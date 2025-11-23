@@ -1,4 +1,12 @@
-/* Reset and base styles */
+   .chat-box { width: 90%; max-width: 600px; margin: 2rem auto; background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .messages { height: 100%; overflow-y: auto; margin-bottom: 1rem; }
+         body{ background: linear-gradient(120deg, #73e45d 50%, #93d47f 100%);}
+        .user, .bot { margin: 0.5rem 0; padding: 0.6rem; border-radius: 8px; }
+        .user { background: #d1e7ff; text-align: right; }
+        .bot { background: #e8e8e8; text-align: left; color:black;}
+        input { width: 80%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 5px; color: green;}
+        button { padding: 0.6rem 1rem; border: none; background: green; color: white; border-radius: 5px; cursor: pointer; }
+        /* Reset and base styles */
 * {
   box-sizing: border-box;
   margin: 0;
