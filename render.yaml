@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: agri-ai-system
+    name: crop_AI_analyzer
     env: docker
     plan: free
     autoDeploy: true
@@ -11,3 +11,5 @@ services:
         value: "False"
       - key: ALLOWED_HOSTS
         value: "*"
+    staticPublishPath: ./staticfiles
+    dockerfilePath: ./Dockerfile
