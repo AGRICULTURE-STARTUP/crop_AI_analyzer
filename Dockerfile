@@ -21,8 +21,12 @@ RUN pip install --upgrade pip && \
 # Copy project files
 COPY . .
 
+# 🌟 CRITICAL FIX: Run collectstatic during the BUILD process (as a RUN command)
+# This ensures the ./staticfiles directory is available for Render's CDN to copy.
+RUN python manage.py collectstatic --noinput
+
 # Expose Django port
 EXPOSE 8000
 
-# Run migrations, collect static, then start server
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn AgriProject.wsgi:application --bind 0.0.0.0:8000"]
+# 🌟 REVISED CMD: Only run migrations and start the server (collectstatic is now done)
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn AgriProject.wsgi:application --bind 0.0.0.0:8000"]
