@@ -36,7 +36,8 @@
         </nav>
     </header>
 
-
+    <div class="section1">
+    <div class="subsection">
     <div class="container">
         <h1>welcome to AgriScan</h1>
         <h5>submit your image for scanning and prediction</h5>
@@ -58,22 +59,38 @@
             </div>
         </form>
     </div>
+       <div class="prediction">
+        {% if prediction %}
+        <h3>Predicted disease: {{ prediction }}</h3>
+        <p>prediction confidence: {{ confidence }}%</p>
+        {% endif %}
+    </div>
+    </div>
+
     <div class="chat-box">
         <div class="messages" id="messages"></div>
         <input type="text" id="userInput" placeholder="Ask about your crop disease..." />
-        <button onclick="sendMessage()">Send</button>
+        <button class="btn" onclick="sendMessage()">Send</button>
+    </div>
     </div>
     <section class="market-challenges">
         <div class="section-header">
             <h2>Connecting Farmers to Markets</h2>
         </div>
         <div class="section-content">
-            <p>
+            <div class="farmer-market_p">
+                <p>
                 Many farmers face significant challenges when trying to access reliable markets for their produce.
                 Limited infrastructure, lack of information, and the presence of middlemen often reduce farmers' profits
                 and make it difficult to reach consumers directly. Bridging this gap is essential for improving farmers'
                 livelihoods and ensuring fair prices for their crops.
             </p>
+            </div>
+
+            <div class="farmer-market">
+              <img src="{% static 'images/farmers-market-produce-0812211-1024x691.jpg' %}" alt="image">
+            </div>
+          
         </div>
     </section>
 
@@ -82,21 +99,22 @@
             <h2>Access to Reputable Fertilizers & Pesticides</h2>
         </div>
         <div class="section-content">
-            <p>
+            
+             <div class="fertilizers">
+              <img src="{% static 'images/H3AQBzstniwy79houvv2Jn.jpg' %}" alt="image">
+            </div>
+            <div class="fertilizers_p"> 
+                   <p>
                 Finding trustworthy sources for fertilizers and pesticides is another major hurdle for farmers. The
                 market is often flooded with counterfeit or substandard products, which can harm crops and reduce
                 yields. Ensuring access to reputable suppliers is crucial for sustainable agriculture and crop health.
             </p>
+            </div>
+         
         </div>
     </section>
 
-    <div class="prediction">
-        {% if prediction %}
-        <h3>Predicted disease: {{ prediction }}</h3>
-        <p>prediction confidence: {{ confidence }}%</p>
-        {% endif %}
-    </div>
-
+ 
 
 
 
