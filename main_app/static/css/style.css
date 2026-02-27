@@ -19,13 +19,22 @@ header {
   background: #388e3c;
   color: #fff;
   padding: 1.5rem 0 1rem 0;
-  text-align: center;
-  border-radius: 0 0 20px 20px;
   box-shadow: 0 2px 8px rgba(56,142,60,0.1);
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  column-gap: 1.5rem;
+  justify-content: space-between;
+  
 }
 header h1 {
   font-size: 2rem;
   margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
+
+}
+header nav{
+  margin-right: 2rem;
 }
 header ul {
   display: flex;
@@ -33,6 +42,11 @@ header ul {
   gap: 1.5rem;
   list-style: none;
   font-size: 1.1rem;
+}
+header nav ul li a{
+  text-decoration: none;
+  color: white;
+  border-bottom: #102e11 1px solid;
 }
 .container {
   max-width: 420px;
@@ -182,7 +196,40 @@ body {
 }
 
 
+    /* Section cards for market and input challenges */
+    .market-challenges, .input-challenges {
+      max-width: 900px;
+      width: 100%;
+      margin: 1.5rem auto 0 auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 0px 20px rgba(56,142,60,0.4);
+      padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      transition: box-shadow 0.2s;
+    }
+    .market-challenges:hover, .input-challenges:hover {
+      box-shadow: 0 4px 24px rgba(56,142,60,0.16);
+    }
+    .section-header h2 {
+      color: #388e3c;
+      font-size: 1.3rem;
+      margin-bottom: 0.7rem;
+      border-bottom: 1px #388e3c solid;
+    }
+    .section-content p {
+      color: #444;
+      font-size: 1.08rem;
+      line-height: 1.6;
+    }
+
     @media (max-width: 600px) {
+      .container, .prediction, .market-challenges, .input-challenges {
+        max-width: 98vw;
+        padding: 1rem 0.5rem;
+      }
   .container, .prediction {
     max-width: 98vw;
     padding: 1rem 0.5rem;

@@ -1,57 +1,104 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
-   
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+
     <title>Agri_crop_doc</title>
-    
+
 </head>
+
 <body>
     <header>
-    <h1>Prediction available for the following crops</h1>
-    <ul>
-        <li>🌽 Maize</li>
-        <li>🥔 Potato</li>
-    </ul>
-</header>
-<div class="container">
-    <h1>welcome to AgriScan</h1>
-<h5>submit your image for scanning and prediction</h5>
-    <form action="/process" method="post"  enctype="multipart/form-data" id="upload-form">
-        {% csrf_token %}
-        <label for="image">Select image</label>
-        <input type="file" name="image" id="image" accept="image/*">
-        <span id="filename"></span>
-        <div id="preview-container">
-            <img id="preview" src="" alt="Image Preview" />
+        <h1>AgriScan</h1>
+        <nav class="nav_bar">
+            <ul class="nav_list">
+                <li><a href="{% url 'page' %}">Home</a></li>
+                <li><a href="fertilizers">Fertilizers</a></li>
+                <li><a href="market">Market</a></li>
+                <li><a href="pesticide">Pesticide</a></li>
+                <li><a href="crop_analyser">AI Scan</a>
+                    <select name="available_crop_scan" id="available_crop_scan">
+                        <option value="maize">🌽 Maize</option>
+                        <option value="Potato">🥔 Potato</option>
+                    </select>
+                </li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout ({{ user.username }})</a></li>
+                {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+
+    <div class="container">
+        <h1>welcome to AgriScan</h1>
+        <h5>submit your image for scanning and prediction</h5>
+        <form action="/process" method="post" enctype="multipart/form-data" id="upload-form">
+            {% csrf_token %}
+            <label for="image">Select image</label>
+            <input type="file" name="image" id="image" accept="image/*">
+            <span id="filename"></span>
+            <div id="preview-container">
+                <img id="preview" src="" alt="Image Preview" />
+            </div>
+            <div class="form-actions">
+                <input type="submit" id="button" value="🧠 Ask AI" class="ai-button">
+                <button type="button" id="reset-btn">Reset</button>
+            </div>
+            <div id="loading-spinner" style="display:none;">
+                <div class="spinner"></div>
+                <span>Processing...</span>
+            </div>
+        </form>
+    </div>
+    <div class="chat-box">
+        <div class="messages" id="messages"></div>
+        <input type="text" id="userInput" placeholder="Ask about your crop disease..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <section class="market-challenges">
+        <div class="section-header">
+            <h2>Connecting Farmers to Markets</h2>
         </div>
-        <div class="form-actions">
-            <input type="submit" id="button" value="🧠 Ask AI" class="ai-button">
-            <button type="button" id="reset-btn">Reset</button>
+        <div class="section-content">
+            <p>
+                Many farmers face significant challenges when trying to access reliable markets for their produce.
+                Limited infrastructure, lack of information, and the presence of middlemen often reduce farmers' profits
+                and make it difficult to reach consumers directly. Bridging this gap is essential for improving farmers'
+                livelihoods and ensuring fair prices for their crops.
+            </p>
         </div>
-        <div id="loading-spinner" style="display:none;">
-            <div class="spinner"></div>
-            <span>Processing...</span>
+    </section>
+
+    <section class="input-challenges">
+        <div class="section-header">
+            <h2>Access to Reputable Fertilizers & Pesticides</h2>
         </div>
-    </form>
-</div>
-<div class="prediction">
-     {% if prediction %}
+        <div class="section-content">
+            <p>
+                Finding trustworthy sources for fertilizers and pesticides is another major hurdle for farmers. The
+                market is often flooded with counterfeit or substandard products, which can harm crops and reduce
+                yields. Ensuring access to reputable suppliers is crucial for sustainable agriculture and crop health.
+            </p>
+        </div>
+    </section>
+
+    <div class="prediction">
+        {% if prediction %}
         <h3>Predicted disease: {{ prediction }}</h3>
         <p>prediction confidence: {{ confidence }}%</p>
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
 
-  <div class="chat-box">
-    <div class="messages" id="messages"></div>
-    <input type="text" id="userInput" placeholder="Ask about your crop disease..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
- 
+
+
 
     <!--<div class="chatbot_container" id="chatbot_container">
           <h2>Chat with Model</h2>
@@ -59,6 +106,7 @@
             <button id="send_btn">Send</button>
     </div>
      <div id="response" class="response"></div>-->
-<script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/script.js' %}"></script>
 </body>
+
 </html>

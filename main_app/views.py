@@ -1,5 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse,JsonResponse
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import AuthenticationForm
+from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
+from .models import FarmerProfile, BuyerProfile, AgencyProfile
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
@@ -110,3 +114,73 @@ def chat(request):
         return JsonResponse({"response": reply})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+def signup_farmer(request):
+    if request.method == 'POST':
+        form = SignupFormfarmer(request.POST)
+        if form.is_valid():
+            user = form.save()
+            FarmerProfile.objects.create(
+                user=user,
+                phone_number=form.cleaned_data.get('phone_number'),
+                county=form.cleaned_data.get('county'),
+                country=form.cleaned_data.get('country'),
+                products=form.cleaned_data.get('products')
+            )
+            login(request, user)
+            return redirect('page')
+    else:
+        form = SignupFormfarmer()
+    return render(request, 'signup.html', {'form': form, 'user_type': 'Farmer'})
+
+def signup_buyer(request):
+    if request.method == 'POST':
+        form = SignupFormbuyer(request.POST)
+        if form.is_valid():
+            user = form.save()
+            BuyerProfile.objects.create(
+                user=user,
+                phone_number=form.cleaned_data.get('phone_number'),
+                county=form.cleaned_data.get('county'),
+                country=form.cleaned_data.get('country')
+            )
+            login(request, user)
+            return redirect('page')
+    else:
+        form = SignupFormbuyer()
+    return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer'})
+
+def signup_agency(request):
+    if request.method == 'POST':
+        form = SignupFormagency(request.POST)
+        if form.is_valid():
+            user = form.save()
+            AgencyProfile.objects.create(
+                user=user,
+                agency_type=form.cleaned_data.get('agency_type'),
+                location=form.cleaned_data.get('location'),
+                support_phone=form.cleaned_data.get('support_phone')
+            )
+            login(request, user)
+            return redirect('page')
+    else:
+        form = SignupFormagency()
+    return render(request, 'signup.html', {'form': form, 'user_type': 'Agency'})
+
+def signin_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('page')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'signin.html', {'form': form})
+
+def signout_view(request):
+    logout(request)
+    return redirect('page')
+
+def reset_password_view(request):
+    return render(request, 'resetpass.html')
