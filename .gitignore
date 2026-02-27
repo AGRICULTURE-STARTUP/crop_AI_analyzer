@@ -21,3 +21,5 @@ staticfiles/
 
 # System files
 *.log
+
+.env
