@@ -159,7 +159,9 @@ def signup_agency(request):
                 user=user,
                 agency_type=form.cleaned_data.get('agency_type'),
                 location=form.cleaned_data.get('location'),
-                support_phone=form.cleaned_data.get('support_phone')
+                support_phone=form.cleaned_data.get('support_phone'),
+                name=form.cleaned_data.get('name'),
+                email=form.cleaned_data.get('email'),
             )
             login(request, user)
             return redirect('page')
@@ -180,7 +182,16 @@ def signin_view(request):
 
 def signout_view(request):
     logout(request)
-    return redirect('page')
+    return redirect('login')
 
 def reset_password_view(request):
     return render(request, 'resetpass.html')
+def fertiliser_view(request):
+    return render(request,"fertiliser_page.html")
+def introduction_view(request):
+    return render(request,"intro.html")
+def fertiliser_display(request):
+    if request.method== 'GET':
+        fertiliser_firm=AgencyProfile.objects.all().values()
+        data=list(fertiliser_firm)
+        return JsonResponse({'fertiliser_firm' : data})

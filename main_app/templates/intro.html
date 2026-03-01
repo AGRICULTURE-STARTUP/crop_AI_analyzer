@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriScan</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <div class="video-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="{% static 'video/8659244-hd_1920_1080_30fps.mp4' %}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <div class="intro-hero">
+        <div class="hero-content">
+            <h1 class="animate-up">Agri<span>Scan</span></h1>
+            <p class="slogan animate-up-delay-1">Redefining Agriculture through AI</p>
+            <div class="cta-group animate-up-delay-2">
+                <a href="{% url 'login' %}" class="btn-primary">Get Started</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

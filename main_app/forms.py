@@ -30,15 +30,14 @@ class SignupFormagency(UserCreationForm):
         ('fertiliser', 'Fertiliser Agency'),
         ('pesticide', 'Pesticide Agency'),
     )
-    first_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}))
-    last_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}))
+    name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}))
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}))
     agency_type = forms.ChoiceField(choices=AGENCY_TYPES, widget=forms.Select(attrs={'class': 'form-control'}))
     location = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Location'}))
     support_phone = forms.CharField(max_length=20, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Support Phone'}))
 
     class Meta(UserCreationForm.Meta):
-        fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email')
+        fields = UserCreationForm.Meta.fields + ('name', 'email','agency_type')
 
 
 

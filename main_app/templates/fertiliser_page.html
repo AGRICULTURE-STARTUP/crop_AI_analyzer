@@ -1,0 +1,100 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriScan | fertilizer</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
+<body>
+    <header>
+        <h1>Agri<span>Scan</span></h1>
+        <nav class="nav_bar" id="navbar">
+            <div class="menu-icons" id="menu-toggle">
+                <span class="open-icon">&#9776;</span>
+                <span class="close-icon">&times;</span>
+            </div>
+            <ul class="nav_list" id="nav-list">
+                <li><a href="{% url 'page' %}">Home</a></li>
+                <li><a href="market">Market</a></li>
+                <li><a href="/pesticide">Pesticide</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout ({{ user.username }})</a></li>
+                {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <div class="fertilisers-container">
+        <div class="fertilisers-header">
+            <h2>Fertilizer & Agency Directory</h2>
+            <p>Connect with reputable suppliers and agricultural agencies.</p>
+            <button id="fetch-firms-btn" class="btn-primary">Display available Fertiliser firms</button>
+        </div>
+
+        <div class="table-responsive">
+            <div id="firms-grid" class="firms-grid">
+                <!-- Data will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fetch-firms-btn').addEventListener('click', function () {
+            const grid = document.getElementById('firms-grid');
+            const btn = this;
+
+            btn.disabled = true;
+            btn.textContent = 'Refreshing Directory...';
+
+            fetch('/fertiliser_firms/')
+                .then(response => response.json())
+                .then(data => {
+                    grid.innerHTML = '';
+                    if (data.fertiliser_firm && data.fertiliser_firm.length > 0) {
+                        data.fertiliser_firm.forEach((firm, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'firm-card animate-up';
+                            card.style.animationDelay = `${index * 0.1}s`;
+
+                            card.innerHTML = `
+                                <div class="card-header">
+                                    <h3>${firm.name || 'Unknown Agency'}</h3>
+                                    <span class="badge ${firm.agency_type}">${firm.agency_type}</span>
+                                </div>
+                                <div class="card-body">
+                                    <p><span class="icon">📍</span> ${firm.location || 'Location missing'}</p>
+                                    <p><span class="icon">✉️</span> <a href="mailto:${firm.email}">${firm.email || 'No email provided'}</a></p>
+                                    <p><span class="icon">📞</span> ${firm.support_phone || 'No phone provided'}</p>
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn-contact">Contact Now</button>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        });
+                    } else {
+                        grid.innerHTML = '<div class="no-results">No agencies found at the moment.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching firms:', error);
+                    grid.innerHTML = '<div class="error-msg">Failed to load directory. Please try again later.</div>';
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Display available Fertiliser firms';
+                });
+        });
+    </script>
+
+</body>
+
+</html>

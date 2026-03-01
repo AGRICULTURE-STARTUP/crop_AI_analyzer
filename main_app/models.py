@@ -32,6 +32,8 @@ class AgencyProfile(models.Model):
     agency_type = models.CharField(max_length=20, choices=AGENCY_TYPES, default='fertiliser')
     location = models.CharField(max_length=255, blank=True, null=True)
     support_phone = models.CharField(max_length=20, blank=True, null=True)
-
+    name = models.CharField(max_length=100, null=False, default='Unknown')
+    email = models.EmailField(null=False, default='unknown@example.com')  
     def __str__(self):
         return f"{self.user.username} - {self.get_agency_type_display()}"
+     
