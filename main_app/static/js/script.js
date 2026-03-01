@@ -31,6 +31,18 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function() {
         spinner.style.display = 'flex';
     });
+
+    // Mobile Menu Toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const navList = document.getElementById('nav-list');
+    const navbar = document.getElementById('navbar');
+
+    if (menuToggle && navList && navbar) {
+        menuToggle.addEventListener('click', function() {
+            navList.classList.toggle('active');
+            navbar.classList.toggle('active');
+        });
+    }
 });
 
 async function sendMessage() {
