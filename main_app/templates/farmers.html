@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agriscan | Farmers</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 </head>
 
 <body>
@@ -18,18 +20,19 @@
                 <span class="close-icon">&times;</span>
             </div>
             <ul class="nav_list" id="nav-list">
-                <li><a href="{% url 'page' %}">Home</a></li>
-                <li><a href="{% url 'fertiliser' %}">Fertilizers/Pesticide</a></li>
-                <li><a href="{% url 'market_buyers' %}">Market/Buyers</a></li>
-                <li><a href="{% url 'farmers' %}">Farmers/sellers</a></li>
+                <li><a href="{% url 'page' %}"> <i class="fa-solid fa-house"></i>Home</a></li>
+                <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Fertiliser/Pesticide</a></li>
+                <li><a href="{% url 'market_buyers' %}"> <i class="fa-solid fa-shop"></i>Market/Buyers</a></li>
+                <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers/sellers</a></li>
                 {% if user.is_authenticated %}
-                <li><a href="{% url 'logout' %}">Logout </a></li>
+                <li><a href="{% url 'logout' %}"> <i class="fa-solid fa-user-xmark"></i>Logout </a></li>
                 {% else %}
-                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'login' %}"> <i class="fa-solid fa-user-check"></i>Login</a></li>
                 {% endif %}
             </ul>
         </nav>
     </header>
+
 
     <div class="fertilisers-container">
         <div class="fertilisers-header">
