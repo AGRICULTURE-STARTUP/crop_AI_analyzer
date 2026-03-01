@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agriscan | Market</title>
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Agri<span>Scan</span></h1>
+        <nav class="nav_bar" id="navbar">
+            <div class="menu-icons" id="menu-toggle">
+                <span class="open-icon">&#9776;</span>
+                <span class="close-icon">&times;</span>
+            </div>
+            <ul class="nav_list" id="nav-list">
+                <li><a href="{% url 'page' %}">Home</a></li>
+                <li><a href="{% url 'fertiliser' %}">Fertilizer/Pesticide</a></li>
+                <li><a href="{% url 'market_buyers' %}">Market/Buyers</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <div class="fertilisers-container">
+        <div class="fertilisers-header">
+            <h2>Buyer & Market Directory</h2>
+            <p>Connect with agriculture buyers and market players in your region.</p>
+            <button id="fetch-buyers-btn" class="btn-primary">Display available Buyers</button>
+        </div>
+
+        <div class="table-responsive">
+            <div id="buyers-grid" class="firms-grid">
+                <!-- Data will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fetch-buyers-btn').addEventListener('click', function() {
+            const grid = document.getElementById('buyers-grid');
+            const btn = this;
+            
+            btn.disabled = true;
+            btn.textContent = 'Scanning Market...';
+            
+            fetch('/market_firms/')
+                .then(response => response.json())
+                .then(data => {
+                    grid.innerHTML = '';
+                    if (data.buyer_list && data.buyer_list.length > 0) {
+                        data.buyer_list.forEach((buyer, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'firm-card animate-up';
+                            card.style.animationDelay = `${index * 0.1}s`;
+                            
+                            card.innerHTML = `
+                                <div class="card-header">
+                                    <h3>${buyer.first_name || 'Market Player'}</h3>
+                                    <span class="badge buyer">Buyer</span>
+                                </div>
+                                <div class="card-body">
+                                    <p><span class="icon">📍</span> ${buyer.county || 'N/A'}, ${buyer.country || 'N/A'}</p>
+                                    <p><span class="icon">📞</span> ${buyer.phone_number || 'No contact provided'}</p>
+                                    <p><span class="icon">✉️</span> <a href="mailto:${buyer.email}">${buyer.email || 'No email provided'}</a></p>
+
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn-contact">Connect</button>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        });
+                    } else {
+                        grid.innerHTML = '<div class="no-results">No buyers found at the moment.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching buyers:', error);
+                    grid.innerHTML = '<div class="error-msg">Failed to load market data. Please try again later.</div>';
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Display available Buyers';
+                });
+        });
+    </script>
+</body>
+</html>

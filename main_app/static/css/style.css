@@ -799,6 +799,11 @@ body {
   color: #ef6c00;
 }
 
+.badge.buyer {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
 .error-msg,
 .no-results {
   grid-column: 1 / -1;

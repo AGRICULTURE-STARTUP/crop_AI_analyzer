@@ -19,7 +19,8 @@ class BuyerProfile(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     county = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
-
+    first_name = models.CharField(max_length=100, null=False, default='Unknown')
+    email = models.EmailField(null=False, default='unknown@example.com')  
     def __str__(self):
         return f"{self.user.username} - Buyer"
 

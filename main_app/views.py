@@ -142,7 +142,10 @@ def signup_buyer(request):
                 user=user,
                 phone_number=form.cleaned_data.get('phone_number'),
                 county=form.cleaned_data.get('county'),
-                country=form.cleaned_data.get('country')
+                country=form.cleaned_data.get('country'),
+                first_name=form.cleaned_data.get('first_name'),
+                email=form.cleaned_data.get("email")
+
             )
             login(request, user)
             return redirect('page')
@@ -195,3 +198,12 @@ def fertiliser_display(request):
         fertiliser_firm=AgencyProfile.objects.all().values()
         data=list(fertiliser_firm)
         return JsonResponse({'fertiliser_firm' : data})
+def market_view(request):
+    return render(request,"market_buyers.html")
+
+def market_display(request):
+    if request.method == "GET":
+        buyer_list= BuyerProfile.objects.all().values()
+        data=list(buyer_list)
+        return JsonResponse({"buyer_list":data})
+        
