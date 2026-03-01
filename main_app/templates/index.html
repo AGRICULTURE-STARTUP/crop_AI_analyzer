@@ -23,8 +23,8 @@
             <ul class="nav_list" id="nav-list">
                 <li><a href="{% url 'page' %}">Home</a></li>
                 <li><a href="{% url 'fertiliser' %}">Fertilizers/Pesticide</a></li>
-                <li><a href="{%url 'market_buyers' %}">Market/Buyers</a></li>
-                <li><a href="/farmers">Farmers/sellers</a></li>
+                <li><a href="{% url 'market_buyers' %}">Market/Buyers</a></li>
+                <li><a href="{% url 'farmers' %}">Farmers/sellers</a></li>
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}">Logout </a></li>
                 {% else %}

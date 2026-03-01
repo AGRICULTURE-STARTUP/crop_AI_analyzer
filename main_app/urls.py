@@ -16,4 +16,6 @@ urlpatterns = [
     path('fertiliser_firms/',views.fertiliser_display,name="fertiliser_firms"),
     path('market/', views.market_view, name='market_buyers'),
     path('market_firms/', views.market_display, name='market_firms'),
+    path('farmers', views.farmer_view, name='farmers'),
+    path('farmer_data/', views.farmer_display, name='farmer_data'),
 ]

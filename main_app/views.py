@@ -206,4 +206,22 @@ def market_display(request):
         buyer_list= BuyerProfile.objects.all().values()
         data=list(buyer_list)
         return JsonResponse({"buyer_list":data})
+
+def farmer_view(request):
+    return render(request, "farmers.html")
+
+def farmer_display(request):
+    if request.method == "GET":
+        # We need the username from the related user object, so we'll construct the list manually
+        farmers = FarmerProfile.objects.select_related('user').all()
+        data = []
+        for farmer in farmers:
+            data.append({
+                'username': farmer.user.username,
+                'phone_number': farmer.phone_number,
+                'county': farmer.county,
+                'country': farmer.country,
+                'products': farmer.products
+            })
+        return JsonResponse({"farmer_list": data})
         

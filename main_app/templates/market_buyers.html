@@ -1,12 +1,14 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agriscan | Market</title>
-        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+
 <body>
     <header>
         <h1>Agri<span>Scan</span></h1>
@@ -17,10 +19,11 @@
             </div>
             <ul class="nav_list" id="nav-list">
                 <li><a href="{% url 'page' %}">Home</a></li>
-                <li><a href="{% url 'fertiliser' %}">Fertilizer/Pesticide</a></li>
+                <li><a href="{% url 'fertiliser' %}">Fertilizers/Pesticide</a></li>
                 <li><a href="{% url 'market_buyers' %}">Market/Buyers</a></li>
+                <li><a href="{% url 'farmers' %}">Farmers/sellers</a></li>
                 {% if user.is_authenticated %}
-                <li><a href="{% url 'logout' %}">Logout</a></li>
+                <li><a href="{% url 'logout' %}">Logout </a></li>
                 {% else %}
                 <li><a href="{% url 'login' %}">Login</a></li>
                 {% endif %}
@@ -43,13 +46,13 @@
     </div>
 
     <script>
-        document.getElementById('fetch-buyers-btn').addEventListener('click', function() {
+        document.getElementById('fetch-buyers-btn').addEventListener('click', function () {
             const grid = document.getElementById('buyers-grid');
             const btn = this;
-            
+
             btn.disabled = true;
             btn.textContent = 'Scanning Market...';
-            
+
             fetch('/market_firms/')
                 .then(response => response.json())
                 .then(data => {
@@ -59,7 +62,7 @@
                             const card = document.createElement('div');
                             card.className = 'firm-card animate-up';
                             card.style.animationDelay = `${index * 0.1}s`;
-                            
+
                             card.innerHTML = `
                                 <div class="card-header">
                                     <h3>${buyer.first_name || 'Market Player'}</h3>
@@ -71,9 +74,7 @@
                                     <p><span class="icon">✉️</span> <a href="mailto:${buyer.email}">${buyer.email || 'No email provided'}</a></p>
 
                                 </div>
-                                <div class="card-footer">
-                                    <button class="btn-contact">Connect</button>
-                                </div>
+                             
                             `;
                             grid.appendChild(card);
                         });
@@ -91,5 +92,7 @@
                 });
         });
     </script>
+    <script src="{% static 'js/script.js' %}"></script>
 </body>
+
 </html>

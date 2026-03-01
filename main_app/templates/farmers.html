@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agriscan | Farmers</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <header>
+        <h1>Agri<span>Scan</span></h1>
+        <nav class="nav_bar" id="navbar">
+            <div class="menu-icons" id="menu-toggle">
+                <span class="open-icon">&#9776;</span>
+                <span class="close-icon">&times;</span>
+            </div>
+            <ul class="nav_list" id="nav-list">
+                <li><a href="{% url 'page' %}">Home</a></li>
+                <li><a href="{% url 'fertiliser' %}">Fertilizers/Pesticide</a></li>
+                <li><a href="{% url 'market_buyers' %}">Market/Buyers</a></li>
+                <li><a href="{% url 'farmers' %}">Farmers/sellers</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout </a></li>
+                {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <div class="fertilisers-container">
+        <div class="fertilisers-header">
+            <h2>Farmer & Seller Directory</h2>
+            <p>Direct from the farm to your door. Find local producers and their fresh harvests.</p>
+            <button id="fetch-farmers-btn" class="btn-primary">Display available Farmers</button>
+        </div>
+
+        <div class="table-responsive">
+            <div id="farmers-grid" class="firms-grid">
+                <!-- Data will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fetch-farmers-btn').addEventListener('click', function () {
+            const grid = document.getElementById('farmers-grid');
+            const btn = this;
+
+            btn.disabled = true;
+            btn.textContent = 'Searching Fields...';
+
+            fetch('/farmer_data/')
+                .then(response => response.json())
+                .then(data => {
+                    grid.innerHTML = '';
+                    if (data.farmer_list && data.farmer_list.length > 0) {
+                        data.farmer_list.forEach((farmer, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'firm-card animate-up';
+                            card.style.animationDelay = `${index * 0.1}s`;
+
+                            card.innerHTML = `
+                                <div class="card-header">
+                                    <h3>${farmer.username || 'Farmer'}</h3>
+                                    <span class="badge farmer">Seller</span>
+                                </div>
+                                <div class="card-body">
+                                    <p><span class="icon">📍</span> ${farmer.county || 'N/A'}, ${farmer.country || 'N/A'}</p>
+                                    <p><span class="icon">🌾</span> <strong>Products:</strong> ${farmer.products || 'Mixed crops'}</p>
+                                    <p><span class="icon">📞</span> ${farmer.phone_number || 'No contact provided'}</p>
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn-contact">Inquire Now</button>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        });
+                    } else {
+                        grid.innerHTML = '<div class="no-results">No farmers listed at the moment.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching farmers:', error);
+                    grid.innerHTML = '<div class="error-msg">Failed to load farmer directory. Please try again.</div>';
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Display available Farmers';
+                });
+        });
+    </script>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

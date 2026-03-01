@@ -6,43 +6,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('upload-form');
     const spinner = document.getElementById('loading-spinner');
 
-    imageInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            filenameSpan.textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                preview.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        } else {
-            filenameSpan.textContent = '';
-            preview.src = '';
-        }
-    });
-
-    resetBtn.addEventListener('click', function() {
-        form.reset();
-        preview.src = '';
-        filenameSpan.textContent = '';
-        spinner.style.display = 'none';
-    });
-
-    form.addEventListener('submit', function() {
-        spinner.style.display = 'flex';
-    });
-
-    // Mobile Menu Toggle
-    const menuToggle = document.getElementById('menu-toggle');
-    const navList = document.getElementById('nav-list');
-    const navbar = document.getElementById('navbar');
-
-    if (menuToggle && navList && navbar) {
-        menuToggle.addEventListener('click', function() {
-            navList.classList.toggle('active');
-            navbar.classList.toggle('active');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                filenameSpan.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    preview.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                filenameSpan.textContent = '';
+                preview.src = '';
+            }
         });
     }
+
+    if (resetBtn && form) {
+        resetBtn.addEventListener('click', function() {
+            form.reset();
+            preview.src = '';
+            filenameSpan.textContent = '';
+            if (spinner) spinner.style.display = 'none';
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', function() {
+            if (spinner) spinner.style.display = 'flex';
+        });
+    }
+
+    // Mobile Menu Toggle
+    
 });
 
 async function sendMessage() {

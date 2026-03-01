@@ -7,132 +7,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriScan | Sign Up - {{ user_type }}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <style>
-        .auth-container {
-            width: 100%;
-            max-width: 500px;
-            margin: 2rem auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
-            padding: 2.5rem 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 1rem;
-            color: #388e3c;
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: #444;
-        }
-
-        .form-control {
-            padding: 0.8rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 1rem;
-            width: 100%;
-        }
-
-        .form-control:focus {
-            border-color: #388e3c;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1);
-        }
-
-        .auth-footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.95rem;
-            color: #666;
-        }
-
-        .auth-footer a {
-            color: #388e3c;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 0.8rem;
-            background-color: #388e3c;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .submit-btn:hover {
-            background-color: #2e7031;
-        }
-
-        .error-message {
-            color: #d32f2f;
-            font-size: 0.85rem;
-            margin-top: 0.3rem;
-        }
-    </style>
 </head>
 
-<body>
-    <header>
-        <h1>AgriScan</h1>
-        <nav class="nav_bar">
-            <ul class="nav_list">
-                <li><a href="{% url 'page' %}">Home</a></li>
-            </ul>
-        </nav>
-    </header>
-
+<body class="auth-page">
     <main>
-        <div class="auth-container">
-            <div class="auth-header">{{ user_type }} Registration</div>
+        <div class="auth-card animate-up">
+            <div class="auth-header-modern">
+                <h2>{{ user_type }} Registration</h2>
+                <p>Join the AgriScan community and empower your farming journey.</p>
+            </div>
+
             <form method="post" novalidate>
                 {% csrf_token %}
-                {% for field in form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                    {% for error in field.errors %}
-                    <div class="error-message">{{ error }}</div>
+                <div class="form-grid">
+                    {% for field in form %}
+                    <div
+                        class="form-group {% if field.name == 'username' or field.name == 'password' or field.name == 'password1' or field.name == 'password2' or field.name == 'email' or 'products' in field.name or 'location' in field.name %}full-width{% endif %}">
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        {% for error in field.errors %}
+                        <div class="error-message" style="color: #d32f2f; font-size: 0.8rem; margin-top: 0.3rem;">{{
+                            error }}</div>
+                        {% endfor %}
+                        {% endif %}
+                        {% if field.help_text and not field.errors %}
+                        <small style="color: #888; font-size: 0.8rem; display: block; margin-top: 0.2rem;">{{
+                            field.help_text|safe }}</small>
+                        {% endif %}
+                    </div>
                     {% endfor %}
-                    {% endif %}
-                    {% if field.help_text %}
-                    <small style="color: #666;">{{ field.help_text }}</small>
-                    {% endif %}
                 </div>
-                {% endfor %}
-                <button type="submit" class="submit-btn">Create Account</button>
+                <button type="submit" class="auth-submit-btn">Create Account</button>
             </form>
-            <div class="auth-footer">
+
+            <div class="auth-footer-modern">
                 Already have an account? <a href="{% url 'login' %}">Log In</a>
             </div>
         </div>
     </main>
+
+    <script>
+        // Apply modern classes to django-generated inputs
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            el.classList.add('form-input-modern');
+            if (el.tagName === 'TEXTAREA') {
+                el.style.minHeight = '100px';
+            }
+        });
+    </script>
+     <div class="video-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="{% static 'video/8659244-hd_1920_1080_30fps.mp4' %}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
 </body>
 
 </html>
