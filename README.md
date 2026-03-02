@@ -13,10 +13,10 @@ Originally built as a computer vision project, it has evolved into a full-stack,
 AgriScan addresses these gaps using computer vision, large language models, and a structured multi-role platform.
 
 ## 🌱 Core Features
-1.AI Crop Disease Detection
-2.Leaf image upload
-3.Real-time AI prediction
-4.Treatment recommendations
+1. AI Crop Disease Detection
+2. Leaf image upload
+3. Real-time AI prediction
+4. Treatment recommendations
 
 
 ## Multilingual AI Agricultural Assistant
