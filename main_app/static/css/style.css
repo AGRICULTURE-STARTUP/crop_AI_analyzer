@@ -824,37 +824,9 @@ body {
 
 @media (max-width: 600px) {
 
-  .container,
-  .prediction,
-  .market-challenges,
-  .input-challenges {
-    max-width: 98vw;
-    padding: 1rem 0.5rem;
-  }
 
-  .container,
-  .prediction {
-    max-width: 98vw;
-    padding: 1rem 0.5rem;
-  }
 
-  header h1 {
-    font-size: 1.2rem;
-  }
-
-  .container h1 {
-    font-size: 1.1rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  #preview {
-    max-height: 120px;
-  }
-
+  
   /* Responsive Header Styles */
   .menu-icons {
     display: block;
@@ -891,6 +863,7 @@ body {
     display: block;
   }
 }
+
 /* Modern Authentication Forms */
 .auth-page {
   min-height: 100vh;
@@ -1029,12 +1002,15 @@ body {
     padding: 2rem 1.5rem;
     border-radius: 0;
   }
+
   .form-grid {
     grid-template-columns: 1fr;
   }
+
   .form-group.full-width {
     grid-column: span 1;
   }
+
   .auth-page {
     padding: 0;
     align-items: flex-start;
