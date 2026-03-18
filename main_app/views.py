@@ -5,7 +5,17 @@ from django.contrib.auth.forms import AuthenticationForm
 from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
 from .models import FarmerProfile, BuyerProfile, AgencyProfile
 from tensorflow.keras.models import load_model
+from tensorflow.keras.layers import Dense
 from tensorflow.keras.preprocessing import image
+
+class SafeDense(Dense):
+    @classmethod
+    def from_config(cls, config):
+        if 'quantization_config' in config:
+            del config['quantization_config']
+        return super().from_config(config)
+
+safe_custom_objs = {'Dense': SafeDense}
 import numpy as np
 import os
 from django.views.decorators.csrf import csrf_exempt
@@ -14,6 +24,8 @@ import requests
 import ollama
 from .utils_weather import get_weather_data
 from langchain_huggingface import HuggingFaceEmbeddings
+from tensorflow.keras import mixed_precision
+mixed_precision.set_global_policy('float32')
 from langchain_chroma import Chroma
 # Cache for dynamically loaded models
 loaded_models = {}
@@ -22,10 +34,32 @@ default_class_names = ['corn_Blight', 'corn_Gray Leaf Spot', 'corn_Healthy',
              'corn_Northern_Leaf_Blight', 'corn_common_Rust', 'potato_Early Blight',
              'potato_Healthy', 'potato_Late Blight']
 
+beans_classes = ["angular_leaf_spot", "anthracnose", "bean_rust", "mosaic_virus", "healthy"]
+maize_classes = ["blight", "common_rust", "Corn___Northern_Leaf_Blight", "downy_mildew", "gray_leaf_spot", "healthy", "msv_streak_virus"]
+cabbage_classes = ["Cabbage___Alternaria_Leaf_Spot", "Cabbage___Bacterial_spot_rot", "Cabbage___Black_Rot", "Cabbage___Cabbage_aphid_colony", "Cabbage___Downy_Mildew", "Cabbage___Healthy", "Cabbage___Ring_Spot"]
+wheat_classes = ["Wheat___black_rust", "Wheat___brown_rust", "Wheat___healthy", "Wheat___leaf_blight", "Wheat___mildew", "Wheat___mite", "Wheat___septoria"]
+tomato_classes = ["bacterial_spot", "early_blight", "healthy", "late_blight", "leaf_mold", "mosaic_virus", "septoria_leaf_spot", "spider_mite", "target_spot", "yellow_leaf__curl_Virus"]
+potato_classes = ["Potato___Early_blight", "Potato___healthy", "Potato___Late_blight"]
+capsicum_classes = ["Capsicum___Bacterial_spot", "Capsicum___healthy"]
+cucumber_classes = ["Cucumber___Anthracnose", "Cucumber___Bacterial_Wilt", "Cucumber___Gummy_Stem_Blight", "Cucumber___Healthy_leaf"]
+onion_classes = ["Onion___Alternaria_D", "Onion___Botrytis_Leaf_Blight", "Onion___Healthy", "Onion___Purple_blotch", "Onion___Virosis-D"]
+pea_classes = ["Pea___Downy_Mildew", "Pea___Healthy", "Pea___Leafminner", "Pea___Powder_Mildew"]
+chilly_cauliflower_rice_classes = ["Cauliflower___Bacterial_spot_rot", "Cauliflower___Black_Rot", "Cauliflower___Downy_Mildew", "Cauliflower___Healthy", "Chili__healthy", "Chili__leaf curl", "Chili__leaf spot", "Chili__whitefly", "Chili__yellowish", "Rice___Brown_Spot", "Rice___Healthy", "Rice___Hispa", "Rice___Leaf_Blast"]
+
 KNOWN_CROP_CLASSES = {
-    'wheat': ['Wheat___black_rust', 'Wheat___brown_rust', 'Wheat___healthy', 'Wheat___leaf_blight', 'Wheat___mildew', 'Wheat___mite', 'Wheat___septoria'],
-    'maize': default_class_names,
-    'potato': default_class_names,
+    'wheat': wheat_classes,
+    'maize': maize_classes,
+    'potato': potato_classes,
+    'beans': beans_classes,
+    'cabbage': cabbage_classes,
+    'tomato': tomato_classes,
+    'capsicum': capsicum_classes,
+    'cucumber': cucumber_classes,
+    'onion': onion_classes,
+    'pea': pea_classes,
+    'cauliflower': chilly_cauliflower_rice_classes,
+    'chilli': chilly_cauliflower_rice_classes,
+    'rice': chilly_cauliflower_rice_classes,
 }
 
 try:
@@ -38,6 +72,26 @@ try:
 except Exception as e:
     print("Warning: Could not initialize ChromaDB/Embeddings. RAG will not have context.", e)
     retriever = None
+
+def get_crop_model(crop_selection):
+    """Determines model path and loads it from cache (or disk if not cached)."""
+    model_path = os.path.join('main_app', 'CropModels', f"{crop_selection}.h5")
+    
+    # Check if the specific model exists, otherwise fallback to maize
+    if not os.path.exists(model_path):
+        model_path = os.path.join('main_app', 'CropModels', 'maize.h5')
+        # If maize.h5 also doesn't exist, try local fallbacks
+        if not os.path.exists(model_path):
+            if os.path.exists(os.path.join('main_app', 'CropModels', 'maize_potato.h5')):
+                model_path = os.path.join('main_app', 'CropModels', 'maize_potato.h5')
+            else:
+                model_path = 'main_app/mobilenet_finetuned2.h5'
+    
+    # Load the model and cache it
+    if model_path not in loaded_models:
+        loaded_models[model_path] = load_model(model_path, compile=False, custom_objects=safe_custom_objs)
+        
+    return loaded_models[model_path]
 
 def page(request):
     return render(request,"index.html")
@@ -58,24 +112,8 @@ def process(request):
         # Get the selected crop type, default to maize
         crop_selection = request.POST.get('available_crop_scan', 'maize').strip().lower()
         
-        # Determine model path
-        model_name = f"{crop_selection}.keras"
-        model_path = os.path.join('main_app', 'CropModels', model_name)
-        
-        # Check if the specific model exists, otherwise fallback to maize
-        if not os.path.exists(model_path):
-            model_path = os.path.join('main_app', 'CropModels', 'maize.keras')
-            # If maize.keras also doesn't exist, try local fallbacks
-            if not os.path.exists(model_path):
-                if os.path.exists(os.path.join('main_app', 'CropModels', 'maize_potato.keras')):
-                    model_path = os.path.join('main_app', 'CropModels', 'maize_potato.keras')
-                else:
-                    model_path = 'main_app/mobilenet_finetuned2.keras'
-        
-        # Load the model and cache it
-        if model_path not in loaded_models:
-            loaded_models[model_path] = load_model(model_path)
-        current_model = loaded_models[model_path]
+        # Retrieve the cached model for the requested crop
+        current_model = get_crop_model(crop_selection)
         
         # Determine class names for the current crop
         current_class_names = KNOWN_CROP_CLASSES.get(crop_selection, default_class_names)
