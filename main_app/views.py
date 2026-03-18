@@ -77,15 +77,8 @@ def get_crop_model(crop_selection):
     """Determines model path and loads it from cache (or disk if not cached)."""
     model_path = os.path.join('main_app', 'CropModels', f"{crop_selection}.h5")
     
-    # Check if the specific model exists, otherwise fallback to maize
     if not os.path.exists(model_path):
-        model_path = os.path.join('main_app', 'CropModels', 'maize.h5')
-        # If maize.h5 also doesn't exist, try local fallbacks
-        if not os.path.exists(model_path):
-            if os.path.exists(os.path.join('main_app', 'CropModels', 'maize_potato.h5')):
-                model_path = os.path.join('main_app', 'CropModels', 'maize_potato.h5')
-            else:
-                model_path = 'main_app/mobilenet_finetuned2.h5'
+        raise FileNotFoundError(f"Model file for '{crop_selection}' not found at {model_path}.")
     
     # Load the model and cache it
     if model_path not in loaded_models:
@@ -109,16 +102,15 @@ def process(request):
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
 
-        # Get the selected crop type, default to maize
+
         crop_selection = request.POST.get('available_crop_scan', 'maize').strip().lower()
         
-        # Retrieve the cached model for the requested crop
+        
         current_model = get_crop_model(crop_selection)
         
-        # Determine class names for the current crop
+    
         current_class_names = KNOWN_CROP_CLASSES.get(crop_selection, default_class_names)
 
-        #code to preproces the image
         img = image.load_img(temp_path, target_size=(224, 224))
         img_array = image.img_to_array(img)
         img_array = img_array / 255.0  
@@ -157,6 +149,12 @@ def chat(request):
                 user_location = request.user.farmer_profile.county
             except Exception:
                 pass
+        if request.user.is_authenticated:
+            try:
+                user_location =request.user.agency_profile.location
+            except Exception:
+                pass
+        
             if not user_location:
                 try:
                     user_location = request.user.buyer_profile.county
@@ -182,7 +180,7 @@ def chat(request):
             Question: {user_message}"""
 
         if user_location:
-            prompt += f"\n            - The user's registered location/county is: {user_location}. You can use this for location-specific advice."
+            prompt += f"\n              - The user's registered location/county is: {user_location}. You can use this for location-specific advice."
 
         url = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -242,7 +240,7 @@ def chat(request):
 
         message_obj = result["choices"][0]["message"]
         
-        # Check if the model wants to call a tool
+    
         if message_obj.get("tool_calls"):
             tool_call = message_obj["tool_calls"][0]
             function_name = tool_call["function"]["name"]
@@ -252,7 +250,6 @@ def chat(request):
                 location_arg = function_args.get("location")
                 tool_output = get_weather_data(location_arg)
                 
-                # Append the assistant's request and the tool's response to the conversation
                 messages.append(message_obj)
                 messages.append({
                     "role": "tool",
