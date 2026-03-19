@@ -1062,8 +1062,7 @@ body {
     min-width: 100%;
     max-width: 100%;
   }
-
-  .container {
+  ontainer {
     padding: 1.5rem;
     min-height: auto;
   }
