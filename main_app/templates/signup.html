@@ -6,7 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriScan | Sign Up - {{ user_type }}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.2">
+    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
 </head>
 
 <body class="auth-page">
@@ -16,7 +17,6 @@
                 <h2>{{ user_type }} Registration</h2>
                 <p>Join the AgriScan community and empower your farming journey.</p>
             </div>
-
             <form method="post" novalidate>
                 {% csrf_token %}
                 <div class="form-grid">
@@ -32,7 +32,7 @@
                         {% endfor %}
                         {% endif %}
                         {% if field.help_text and not field.errors %}
-                        <small style="color: #888; font-size: 0.8rem; display: block; margin-top: 0.2rem;">{{
+                        <small style="color: #888; font-size: 0.8rem; display: none; margin-top: 0.2rem;">{{
                             field.help_text|safe }}</small>
                         {% endif %}
                     </div>

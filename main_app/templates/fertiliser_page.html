@@ -6,20 +6,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriScan | fertilizer</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
 </head>
 
 <body>
     <header>
         <h1>Agri<span>Scan</span></h1>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars open-icon"></i>
+            <i class="fa-solid fa-xmark close-icon" style="display: none;"></i>
+        </button>
         <nav class="nav_bar" id="navbar">
-            <div class="menu-icons" id="menu-toggle">
-                <span class="open-icon">&#9776;</span>
-                <span class="close-icon">&times;</span>
-            </div>
             <ul class="nav_list" id="nav-list">
                 <li><a href="{% url 'page' %}"> <i class="fa-solid fa-house"></i>Home</a></li>
                 <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Fertiliser/Pesticide</a></li>
@@ -39,7 +40,11 @@
         <div class="fertilisers-header">
             <h2>Fertilizer & Agency Directory</h2>
             <p>Connect with reputable suppliers and agricultural agencies.</p>
-            <button id="fetch-firms-btn" class="btn-primary">Display available Fertiliser firms</button>
+            <div class="search-bar" style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" id="county-search" placeholder="Enter county or location..." style="padding: 0.8rem 1rem; border: 1px solid #ccc; border-radius: 8px; width: 100%; max-width: 300px; font-size: 1rem; outline: none;">
+                <button id="search-btn" class="btn-primary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer;">Search</button>
+                <button id="fetch-firms-btn" class="btn-secondary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; background: #f0f0f0; color: #333; border: 1px solid #ccc;">Show All</button>
+            </div>
         </div>
 
         <div class="table-responsive">
@@ -50,53 +55,73 @@
     </div>
 
     <script>
-        document.getElementById('fetch-firms-btn').addEventListener('click', function () {
+        function renderFirms(firmList) {
             const grid = document.getElementById('firms-grid');
-            const btn = this;
+            grid.innerHTML = '';
+            if (firmList && firmList.length > 0) {
+                firmList.forEach((firm, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'firm-card animate-up';
+                    card.style.animationDelay = `${index * 0.1}s`;
 
-            btn.disabled = true;
-            btn.textContent = 'Refreshing Directory...';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h3>${firm.name || 'Unknown Agency'}</h3>
+                            <span class="badge ${firm.agency_type}">${firm.agency_type}</span>
+                        </div>
+                        <div class="card-body">
+                            <p><span class="icon">📍</span> ${firm.location || 'Location missing'}</p>
+                            <p><span class="icon">✉️</span> <a href="mailto:${firm.email}">${firm.email || 'No email provided'}</a></p>
+                            <p><span class="icon">📞</span> ${firm.support_phone || 'No phone provided'}</p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else {
+                grid.innerHTML = '<div class="no-results">county not found, no registed in the area</div>';
+            }
+        }
+
+        function loadFirms(filterLocation = '') {
+            const grid = document.getElementById('firms-grid');
+            const searchBtn = document.getElementById('search-btn');
+            const fetchAllBtn = document.getElementById('fetch-firms-btn');
+
+            if(searchBtn) searchBtn.disabled = true;
+            if(fetchAllBtn) fetchAllBtn.disabled = true;
+            if(searchBtn) searchBtn.textContent = 'Searching...';
 
             fetch('/fertiliser_firms/')
                 .then(response => response.json())
                 .then(data => {
-                    grid.innerHTML = '';
-                    if (data.fertiliser_firm && data.fertiliser_firm.length > 0) {
-                        data.fertiliser_firm.forEach((firm, index) => {
-                            const card = document.createElement('div');
-                            card.className = 'firm-card animate-up';
-                            card.style.animationDelay = `${index * 0.1}s`;
-
-                            card.innerHTML = `
-                                <div class="card-header">
-                                    <h3>${firm.name || 'Unknown Agency'}</h3>
-                                    <span class="badge ${firm.agency_type}">${firm.agency_type}</span>
-                                </div>
-                                <div class="card-body">
-                                    <p><span class="icon">📍</span> ${firm.location || 'Location missing'}</p>
-                                    <p><span class="icon">✉️</span> <a href="mailto:${firm.email}">${firm.email || 'No email provided'}</a></p>
-                                    <p><span class="icon">📞</span> ${firm.support_phone || 'No phone provided'}</p>
-                                </div>
-                               
-                            `;
-                            grid.appendChild(card);
-                        });
-                    } else {
-                        grid.innerHTML = '<div class="no-results">No agencies found at the moment.</div>';
+                    let list = data.fertiliser_firm || [];
+                    if (filterLocation) {
+                        list = list.filter(f => f.location && f.location.toLowerCase().includes(filterLocation.toLowerCase()));
                     }
+                    renderFirms(list);
                 })
                 .catch(error => {
                     console.error('Error fetching firms:', error);
                     grid.innerHTML = '<div class="error-msg">Failed to load directory. Please try again later.</div>';
                 })
                 .finally(() => {
-                    btn.disabled = false;
-                    btn.textContent = 'Display available Fertiliser firms';
+                    if(searchBtn) { searchBtn.disabled = false; searchBtn.textContent = 'Search'; }
+                    if(fetchAllBtn) fetchAllBtn.disabled = false;
                 });
+        }
+
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const loc = document.getElementById('county-search').value.trim();
+            loadFirms(loc);
+        });
+
+        document.getElementById('fetch-firms-btn').addEventListener('click', function() {
+            document.getElementById('county-search').value = '';
+            loadFirms();
         });
     </script>
 
-    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/script.js' %}?v=1.2"></script>
 </body>
 
 </html>

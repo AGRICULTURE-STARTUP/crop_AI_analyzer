@@ -6,19 +6,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agriscan | Market</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
 </head>
 
 <body>
     <header>
         <h1>Agri<span>Scan</span></h1>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars open-icon"></i>
+            <i class="fa-solid fa-xmark close-icon" style="display: none;"></i>
+        </button>
         <nav class="nav_bar" id="navbar">
-            <div class="menu-icons" id="menu-toggle">
-                <span class="open-icon">&#9776;</span>
-                <span class="close-icon">&times;</span>
-            </div>
             <ul class="nav_list" id="nav-list">
                 <li><a href="{% url 'page' %}"> <i class="fa-solid fa-house"></i>Home</a></li>
                 <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Fertiliser/Pesticide</a></li>
@@ -38,7 +39,11 @@
         <div class="fertilisers-header">
             <h2>Buyer & Market Directory</h2>
             <p>Connect with agriculture buyers and market players in your region.</p>
-            <button id="fetch-buyers-btn" class="btn-primary">Display available Buyers</button>
+            <div class="search-bar" style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" id="county-search" placeholder="Enter county to search..." style="padding: 0.8rem 1rem; border: 1px solid #ccc; border-radius: 8px; width: 100%; max-width: 300px; font-size: 1rem; outline: none;">
+                <button id="search-btn" class="btn-primary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer;">Search</button>
+                <button id="fetch-buyers-btn" class="btn-secondary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; background: #f0f0f0; color: #333; border: 1px solid #ccc;">Show All</button>
+            </div>
         </div>
 
         <div class="table-responsive">
@@ -49,53 +54,72 @@
     </div>
 
     <script>
-        document.getElementById('fetch-buyers-btn').addEventListener('click', function () {
+        function renderBuyers(buyerList) {
             const grid = document.getElementById('buyers-grid');
-            const btn = this;
+            grid.innerHTML = '';
+            if (buyerList && buyerList.length > 0) {
+                buyerList.forEach((buyer, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'firm-card animate-up';
+                    card.style.animationDelay = `${index * 0.1}s`;
 
-            btn.disabled = true;
-            btn.textContent = 'Scanning Market...';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h3>${buyer.first_name || 'Market Player'}</h3>
+                            <span class="badge buyer">Buyer</span>
+                        </div>
+                        <div class="card-body">
+                            <p><span class="icon">📍</span> ${buyer.county || 'N/A'}, ${buyer.country || 'N/A'}</p>
+                            <p><span class="icon">📞</span> ${buyer.phone_number || 'No contact provided'}</p>
+                            <p><span class="icon">✉️</span> <a href="mailto:${buyer.email}">${buyer.email || 'No email provided'}</a></p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else {
+                grid.innerHTML = '<div class="no-results">county not found, no registed in the area</div>';
+            }
+        }
+
+        function loadBuyers(filterCounty = '') {
+            const grid = document.getElementById('buyers-grid');
+            const searchBtn = document.getElementById('search-btn');
+            const fetchAllBtn = document.getElementById('fetch-buyers-btn');
+
+            if(searchBtn) searchBtn.disabled = true;
+            if(fetchAllBtn) fetchAllBtn.disabled = true;
+            if(searchBtn) searchBtn.textContent = 'Scanning...';
 
             fetch('/market_firms/')
                 .then(response => response.json())
                 .then(data => {
-                    grid.innerHTML = '';
-                    if (data.buyer_list && data.buyer_list.length > 0) {
-                        data.buyer_list.forEach((buyer, index) => {
-                            const card = document.createElement('div');
-                            card.className = 'firm-card animate-up';
-                            card.style.animationDelay = `${index * 0.1}s`;
-
-                            card.innerHTML = `
-                                <div class="card-header">
-                                    <h3>${buyer.first_name || 'Market Player'}</h3>
-                                    <span class="badge buyer">Buyer</span>
-                                </div>
-                                <div class="card-body">
-                                    <p><span class="icon">📍</span> ${buyer.county || 'N/A'}, ${buyer.country || 'N/A'}</p>
-                                    <p><span class="icon">📞</span> ${buyer.phone_number || 'No contact provided'}</p>
-                                    <p><span class="icon">✉️</span> <a href="mailto:${buyer.email}">${buyer.email || 'No email provided'}</a></p>
-
-                                </div>
-                             
-                            `;
-                            grid.appendChild(card);
-                        });
-                    } else {
-                        grid.innerHTML = '<div class="no-results">No buyers found at the moment.</div>';
+                    let list = data.buyer_list || [];
+                    if (filterCounty) {
+                        list = list.filter(f => f.county && f.county.toLowerCase().includes(filterCounty.toLowerCase()));
                     }
+                    renderBuyers(list);
                 })
                 .catch(error => {
                     console.error('Error fetching buyers:', error);
                     grid.innerHTML = '<div class="error-msg">Failed to load market data. Please try again later.</div>';
                 })
                 .finally(() => {
-                    btn.disabled = false;
-                    btn.textContent = 'Display available Buyers';
+                    if(searchBtn) { searchBtn.disabled = false; searchBtn.textContent = 'Search'; }
+                    if(fetchAllBtn) fetchAllBtn.disabled = false;
                 });
+        }
+
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const county = document.getElementById('county-search').value.trim();
+            loadBuyers(county);
+        });
+
+        document.getElementById('fetch-buyers-btn').addEventListener('click', function() {
+            document.getElementById('county-search').value = '';
+            loadBuyers();
         });
     </script>
-    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/script.js' %}?v=1.2"></script>
 </body>
 
 </html>

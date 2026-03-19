@@ -7,6 +7,8 @@ from .models import FarmerProfile, BuyerProfile, AgencyProfile
 from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.efficientnet import preprocess_input
+
 
 class SafeDense(Dense):
     @classmethod
@@ -30,21 +32,19 @@ from langchain_chroma import Chroma
 # Cache for dynamically loaded models
 loaded_models = {}
 
-default_class_names = ['corn_Blight', 'corn_Gray Leaf Spot', 'corn_Healthy',
-             'corn_Northern_Leaf_Blight', 'corn_common_Rust', 'potato_Early Blight',
-             'potato_Healthy', 'potato_Late Blight']
-
-beans_classes = ["angular_leaf_spot", "anthracnose", "bean_rust", "mosaic_virus", "healthy"]
-maize_classes = ["blight", "common_rust", "Corn___Northern_Leaf_Blight", "downy_mildew", "gray_leaf_spot", "healthy", "msv_streak_virus"]
+beans_classes = ['angular_leaf_spot', 'anthracnose', 'bean_rust', 'healthy', 'mosaic_virus']
 cabbage_classes = ["Cabbage___Alternaria_Leaf_Spot", "Cabbage___Bacterial_spot_rot", "Cabbage___Black_Rot", "Cabbage___Cabbage_aphid_colony", "Cabbage___Downy_Mildew", "Cabbage___Healthy", "Cabbage___Ring_Spot"]
-wheat_classes = ["Wheat___black_rust", "Wheat___brown_rust", "Wheat___healthy", "Wheat___leaf_blight", "Wheat___mildew", "Wheat___mite", "Wheat___septoria"]
-tomato_classes = ["bacterial_spot", "early_blight", "healthy", "late_blight", "leaf_mold", "mosaic_virus", "septoria_leaf_spot", "spider_mite", "target_spot", "yellow_leaf__curl_Virus"]
-potato_classes = ["Potato___Early_blight", "Potato___healthy", "Potato___Late_blight"]
-capsicum_classes = ["Capsicum___Bacterial_spot", "Capsicum___healthy"]
-cucumber_classes = ["Cucumber___Anthracnose", "Cucumber___Bacterial_Wilt", "Cucumber___Gummy_Stem_Blight", "Cucumber___Healthy_leaf"]
+tomato_classes = ['bacterial_spot', 'early_blight', 'healthy', 'late_blight', 'leaf_mold', 'mosaic_virus', 'septoria_leaf_spot', 'spider_mite', 'target_spot', 'yellow_leaf__curl_Virus']
+potato_classes = ['Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy']
+capsicum_classes = ['Capsicum___Bacterial_spot', 'Capsicum___healthy']
+cucumber_classes = ['Cucumber___Anthracnose', 'Cucumber___Bacterial_Wilt', 'Cucumber___Gummy_Stem_Blight', 'Cucumber___Healthy_leaf']
+pea_classes = ['Pea___Downy_Mildew', 'Pea___Healthy', 'Pea___Leafminner', 'Pea___Powder_Mildew']
+
+maize_classes = ['Corn___Northern_Leaf_Blight', 'blight', 'common_rust', 'downy_mildew', 'gray_leaf_spot', 'healthy', 'msv_streak_virus']
+default_class_names = maize_classes
 onion_classes = ["Onion___Alternaria_D", "Onion___Botrytis_Leaf_Blight", "Onion___Healthy", "Onion___Purple_blotch", "Onion___Virosis-D"]
-pea_classes = ["Pea___Downy_Mildew", "Pea___Healthy", "Pea___Leafminner", "Pea___Powder_Mildew"]
 chilly_cauliflower_rice_classes = ["Cauliflower___Bacterial_spot_rot", "Cauliflower___Black_Rot", "Cauliflower___Downy_Mildew", "Cauliflower___Healthy", "Chili__healthy", "Chili__leaf curl", "Chili__leaf spot", "Chili__whitefly", "Chili__yellowish", "Rice___Brown_Spot", "Rice___Healthy", "Rice___Hispa", "Rice___Leaf_Blast"]
+wheat_classes = ["Wheat___black_rust", "Wheat___brown_rust", "Wheat___healthy", "Wheat___leaf_blight", "Wheat___mildew", "Wheat___mite", "Wheat___septoria"]
 
 KNOWN_CROP_CLASSES = {
     'wheat': wheat_classes,
@@ -107,23 +107,19 @@ def process(request):
         
         
         current_model = get_crop_model(crop_selection)
-        
     
-        current_class_names = KNOWN_CROP_CLASSES.get(crop_selection, default_class_names)
-
         img = image.load_img(temp_path, target_size=(224, 224))
         img_array = image.img_to_array(img)
-        img_array = img_array / 255.0  
         img_array = np.expand_dims(img_array, axis=0)
+        img_array= preprocess_input(img_array)
 
         # making  Predictions
         predictions = current_model.predict(img_array)
         predicted_class_index = np.argmax(predictions[0])
         
-        if predicted_class_index < len(current_class_names):
-            prediction = current_class_names[predicted_class_index]
-        else:
-            prediction = f"{crop_selection.capitalize()} Disease (Class {predicted_class_index})"
+        # Resolve class names based on selection, using default_class_names as fallback
+        crop_classes = KNOWN_CROP_CLASSES.get(crop_selection, default_class_names)
+        prediction = crop_classes[predicted_class_index]
             
         confidence = round(100 * np.max(predictions[0]), 2)
 

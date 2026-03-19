@@ -8,18 +8,17 @@ __pycache__/
 # Virtual environment
 .venv/
 
-# Environment variables
 
 # Django
 db.sqlite3
 media/
 staticfiles/
 
-# VSCode or IDE
+
 .vscode/
 .idea/
 
-# System files
+
 *.log
 
 .env
