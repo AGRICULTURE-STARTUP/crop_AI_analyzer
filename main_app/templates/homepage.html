@@ -81,8 +81,8 @@
                 <li><a href="#value">Value</a></li>
                 <li><a href="#team">Team</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="#privacy">Privacy</a></li>
-                <li><a href="#">How it works</a></li>
+                <li><a href="{% url 'privacy_policy' %}">Privacy</a></li>
+            
             </ul>
         </nav>
     </header>
@@ -132,11 +132,20 @@
             <div class="section-content">
                 <div class="farmer-market_p" style="width: 100%;">
                     <p style="text-align: center; font-size: 1.2rem; font-weight: 500;">
-                        The novelty of AgriScan lies in its integration of three critical agricultural support systems: AI-based crop disease diagnosis, multilingual AI advisory services, and a digital agricultural marketplace—within a single scalable platform.
+                        The platform allows farmers to upload images of crop leaves, which are analyzed using a 
+                        trained deep learning model which detects and classifies crop diseases.
+                         Once a disease is identified, the farmer can seek treatment recommendations and preventive 
+                         guidance from the integrated Knowledge-Based AI assistant helping farmers respond quickly and 
+                         effectively. 
+                        The AI agricultural assistant capable of providing contextual farming advice in both English and Kiswahili. The assistant
+                         supports farmers in decision-making related to crop management, pest control, 
+                         agricultural best practices and integrates location specific weather API to provide weather-based advice.
+                        AgriScan also integrates a role-based agricultural marketplace that connects farmers, 
+                        produce buyers, and agrovet agencies. Farmers can discover potential buyers and seedling companies in their locality, buyers can 
+                        source produce directly from farmers, and agrovet agencies can list services and products 
+                        to support farm operations. 
                     </p>
-                    <p style="margin-top: 1rem;">
-                        Unlike many agricultural tools that focus on a single problem, AgriScan addresses diagnosis, knowledge access, and market connectivity simultaneously, creating a comprehensive digital ecosystem designed specifically for smallholder farmers.
-                    </p>
+                 
                 </div>
             </div>
         </section>
@@ -172,17 +181,6 @@
             <a href="{% url 'login' %}" class="btn-primary" style="background: white; color: #1b5e20; padding: 1.2rem 3rem; font-size: 1.3rem;">Get Started</a>
         </section>
 
-        <!-- Privacy Policy -->
-        <section id="privacy" class="privacy-box">
-            <div class="section-header">
-                <h2 style="text-align: left; border-bottom: none;">Privacy Policy</h2>
-            </div>
-            <p><strong>Data Collection:</strong> We collect your name, email, and location via registration forms. This data is stored securely in our database.</p>
-            <p><strong>Purpose:</strong> Your information is collected specifically to help in service delivery and personalized agricultural advice.</p>
-            <p><strong>How data is used:</strong> Data is used to provide accurate disease diagnosis, connect you to relevant markets, and improve our AI models.</p>
-            <p><strong>Data Security:</strong> All collected data is secured in a protected database using industry-standard encryption.</p>
-            <p><strong>Contact Details:</strong> You can reach our team at support@agriscan.com if you have any questions or problems regarding your data.</p>
-        </section>
 
         <!-- Contact Section -->
         <section id="contact" style="text-align: center; margin-top: 4rem;">

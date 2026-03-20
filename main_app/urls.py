@@ -1,10 +1,27 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('',views.introduction_view,name="intro"),
     path('homepage', views.homepage_view, name="homepage"),
+    path('privacy-policy', views.privacy_policy_view, name="privacy_policy"),
     path('login', views.signin_view, name='login'),
+    
+    # Password Reset URLs
+    path('password-reset/', 
+         auth_views.PasswordResetView.as_view(template_name='password_reset_form.html'), 
+         name='password_reset'),
+    path('password-reset/done/', 
+         auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), 
+         name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', 
+         auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'), 
+         name='password_reset_confirm'),
+    path('password-reset-complete/', 
+         auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), 
+         name='password_reset_complete'),
+
     path('page', views.page, name="page"),
     path('process', views.process, name="process"),
     path('chat/', views.chat, name='chat'),

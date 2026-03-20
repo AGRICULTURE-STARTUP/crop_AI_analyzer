@@ -355,9 +355,6 @@ def signin_view(request):
 def signout_view(request):
     logout(request)
     return redirect('login')
-
-def reset_password_view(request):
-    return render(request, 'resetpass.html')
 def fertiliser_view(request):
     return render(request,"fertiliser_page.html")
 def introduction_view(request):
@@ -365,6 +362,9 @@ def introduction_view(request):
 
 def homepage_view(request):
     return render(request,"homepage.html")
+
+def privacy_policy_view(request):
+    return render(request,"privacy_policy.html")
 def fertiliser_display(request):
     if request.method== 'GET':
         fertiliser_firm=AgencyProfile.objects.all().values()
