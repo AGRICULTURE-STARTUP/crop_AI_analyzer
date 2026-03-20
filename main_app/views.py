@@ -362,6 +362,9 @@ def fertiliser_view(request):
     return render(request,"fertiliser_page.html")
 def introduction_view(request):
     return render(request,"intro.html")
+
+def homepage_view(request):
+    return render(request,"homepage.html")
 def fertiliser_display(request):
     if request.method== 'GET':
         fertiliser_firm=AgencyProfile.objects.all().values()

@@ -34,6 +34,10 @@
                     </div>
                     {% endfor %}
                 </div>
+                <div class="form-group full-width" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="privacy-accept" name="privacy-accept" required style="width: auto; margin: 0;">
+                    <label for="privacy-accept" style="font-size: 0.9rem; color: #666; cursor: pointer;">I accept the rules in the <a href="{% url 'homepage' %}#privacy" target="_blank" style="color: #388e3c; text-decoration: underline;">Privacy Policy</a></label>
+                </div>
                 <button type="submit" class="auth-submit-btn">Log In</button>
             </form>
 
