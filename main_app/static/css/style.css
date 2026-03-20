@@ -1062,7 +1062,7 @@ body {
     min-width: 100%;
     max-width: 100%;
   }
-  ontainer {
+  .container {
     padding: 1.5rem;
     min-height: auto;
   }
@@ -1137,5 +1137,16 @@ body {
 
   .card-header h3 {
     word-break: break-word;
+  }
+
+  /* Global font size responsive adjustments */
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 769px) {
+  html {
+    font-size: 16px;
   }
 }

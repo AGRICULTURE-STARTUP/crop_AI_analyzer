@@ -29,7 +29,6 @@ urlpatterns = [
     path('signup/farmer/', views.signup_farmer, name='signup_farmer'),
     path('signup/buyer/', views.signup_buyer, name='signup_buyer'),
     path('signup/agency/', views.signup_agency, name='signup_agency'),
-    path('reset-password/', views.reset_password_view, name='forgot_password'),
     path('fertiliser',views.fertiliser_view,name='fertiliser'),
     path('fertiliser_firms/',views.fertiliser_display,name="fertiliser_firms"),
     path('market/', views.market_view, name='market_buyers'),
