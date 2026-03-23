@@ -124,12 +124,26 @@
                 <li><a href="#team">Team</a></li>
                 <li><a href="#contact">Contact</a></li>
                 <li><a href="{% url 'privacy_policy' %}">Privacy</a></li>
-            
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <i class="fa-solid fa-moon"></i>
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                </li>
             </ul>
         </nav>
     </header>
 
     <main style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+
+          <!-- Call to Action -->
+        <section style="text-align: center; margin: 5rem 0; padding: 4rem; background: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%); border-radius: 24px; color: white;">
+            <h2 style="color: white; border: none; font-size: 2.5rem; margin-bottom: 1.5rem;">Ready to Revolutionize Your Farm?</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2.5rem; opacity: 0.9;">Join fellow farmers using AI to protect their crops and increase yield.</p>
+            <a href="{% url 'login' %}" class="btn-primary" style="background: white; color: #1b5e20; padding: 1.2rem 3rem; font-size: 1.3rem;">Get Started</a>
+        </section>
+
+
         <!-- Story Section -->
         <section id="story" class="market-challenges">
             <div class="section-header">
@@ -220,12 +234,7 @@
             </div>
         </section>
 
-        <!-- Call to Action -->
-        <section style="text-align: center; margin: 5rem 0; padding: 4rem; background: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%); border-radius: 24px; color: white;">
-            <h2 style="color: white; border: none; font-size: 2.5rem; margin-bottom: 1.5rem;">Ready to Revolutionize Your Farm?</h2>
-            <p style="font-size: 1.2rem; margin-bottom: 2.5rem; opacity: 0.9;">Join fellow farmers using AI to protect their crops and increase yield.</p>
-            <a href="{% url 'login' %}" class="btn-primary" style="background: white; color: #1b5e20; padding: 1.2rem 3rem; font-size: 1.3rem;">Get Started</a>
-        </section>
+      
 
 
         <!-- Contact Section -->
