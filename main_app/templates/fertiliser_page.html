@@ -31,6 +31,12 @@
                 {% else %}
                 <li><a href="{% url 'login' %}"> <i class="fa-solid fa-user-check"></i>Login</a></li>
                 {% endif %}
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <i class="fa-solid fa-moon"></i>
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                </li>
             </ul>
         </nav>
     </header>

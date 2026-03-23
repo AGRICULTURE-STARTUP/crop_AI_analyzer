@@ -1,4 +1,27 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Theme Toggle Logic
+    const body = document.body;
+    const themeToggle = document.getElementById('theme-toggle');
+    
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        body.classList.add('dark-mode');
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            body.classList.toggle('dark-mode');
+            
+            // Save preference
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    }
+
     const imageInput = document.getElementById('image');
     const preview = document.getElementById('preview');
     const filenameSpan = document.getElementById('filename');
@@ -87,10 +110,16 @@ async function sendMessage() {
     let i = 0;
     function type() {
         if (i < reply.length) {
-        botTextDiv.innerHTML += reply[i];
-        i++;
-        botTextDiv.scrollIntoView({ behavior: "smooth" });
-        setTimeout(type, 10); 
+            botTextDiv.innerHTML += reply[i];
+            i++;
+            
+            // Only scroll if we are already near the bottom
+            const isAtBottom = messages.scrollHeight - messages.scrollTop <= messages.clientHeight + 100;
+            if (isAtBottom) {
+                messages.scrollTop = messages.scrollHeight;
+            }
+            
+            setTimeout(type, 10); 
         }
     }
     type(); 
