@@ -37,7 +37,7 @@
 
     <div class="fertilisers-container">
         <div class="fertilisers-header">
-            <h2>Farmer & Seller Directory</h2>
+            <h2>Find Farmers </h2>
             <p>Direct from the farm to your door. Find local producers and their fresh harvests.</p>
             <div class="search-bar" style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
                 <input type="text" id="county-search" placeholder="Enter county to search..." style="padding: 0.8rem 1rem; border: 1px solid #ccc; border-radius: 8px; width: 100%; max-width: 300px; font-size: 1rem; outline: none;">
@@ -77,7 +77,7 @@
                     grid.appendChild(card);
                 });
             } else {
-                grid.innerHTML = '<div class="no-results">county not found, no registed in the area</div>';
+                grid.innerHTML = '<div class="no-results">No registered farmer in this location</div>';
             }
         }
 

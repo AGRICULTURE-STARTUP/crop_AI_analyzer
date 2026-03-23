@@ -9,7 +9,7 @@ class FarmerProfile(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     county = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
-    products = models.TextField(blank=True, null=True, help_text="Products/plants dealt with")
+    products = models.TextField(blank=True, null=True, help_text="Products/plants")
 
     def __str__(self):
         return f"{self.user.username} - Farmer"
@@ -26,8 +26,9 @@ class BuyerProfile(models.Model):
 
 class AgencyProfile(models.Model):
     AGENCY_TYPES = (
-        ('fertiliser', 'Fertiliser Agency'),
-        ('pesticide', 'Pesticide Agency'),
+        ('fertiliser', 'Fertiliser Company'),
+        ('pesticide', 'Pesticide Company'),
+        ('seed','Seed Company')
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agency_profile')
     agency_type = models.CharField(max_length=20, choices=AGENCY_TYPES, default='fertiliser')

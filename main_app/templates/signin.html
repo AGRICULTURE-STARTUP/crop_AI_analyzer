@@ -21,6 +21,11 @@
             <div class="auth-header-modern">
                 <h2>Welcome Back</h2>
                 <p>Log in to access your agricultural dashboard.</p>
+                {% if error %}
+                <div class="error-message" style="background: #ffebee; color: #c62828; padding: 0.8rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; text-align: center; border: 1px solid #ffcdd2;">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                </div>
+                {% endif %}
             </div>
 
             <form method="post">

@@ -39,13 +39,11 @@ potato_classes = ['Potato___Early_blight', 'Potato___Late_blight', 'Potato___hea
 capsicum_classes = ['Capsicum___Bacterial_spot', 'Capsicum___healthy']
 cucumber_classes = ['Cucumber___Anthracnose', 'Cucumber___Bacterial_Wilt', 'Cucumber___Gummy_Stem_Blight', 'Cucumber___Healthy_leaf']
 pea_classes = ['Pea___Downy_Mildew', 'Pea___Healthy', 'Pea___Leafminner', 'Pea___Powder_Mildew']
-
 maize_classes = ['Corn___Northern_Leaf_Blight', 'blight', 'common_rust', 'downy_mildew', 'gray_leaf_spot', 'healthy', 'msv_streak_virus']
 default_class_names = maize_classes
-onion_classes = ["Onion___Alternaria_D", "Onion___Botrytis_Leaf_Blight", "Onion___Healthy", "Onion___Purple_blotch", "Onion___Virosis-D"]
-chilly_cauliflower_rice_classes = ["Cauliflower___Bacterial_spot_rot", "Cauliflower___Black_Rot", "Cauliflower___Downy_Mildew", "Cauliflower___Healthy", "Chili__healthy", "Chili__leaf curl", "Chili__leaf spot", "Chili__whitefly", "Chili__yellowish", "Rice___Brown_Spot", "Rice___Healthy", "Rice___Hispa", "Rice___Leaf_Blast"]
-wheat_classes = ["Wheat___black_rust", "Wheat___brown_rust", "Wheat___healthy", "Wheat___leaf_blight", "Wheat___mildew", "Wheat___mite", "Wheat___septoria"]
-
+onion_classes = ['Onion___Alternaria_D', 'Onion___Botrytis_Leaf_Blight', 'Onion___Healthy', 'Onion___Purple_blotch', 'Onion___Virosis-D']
+wheat_classes = ['Wheat___black_rust', 'Wheat___brown_rust', 'Wheat___healthy', 'Wheat___leaf_blight', 'Wheat___mildew', 'Wheat___mite', 'Wheat___septoria']
+cauliflower_classes= ['Cauliflower___Bacterial_spot_rot', 'Cauliflower___Black_Rot', 'Cauliflower___Downy_Mildew', 'Cauliflower___Healthy']
 KNOWN_CROP_CLASSES = {
     'wheat': wheat_classes,
     'maize': maize_classes,
@@ -57,9 +55,9 @@ KNOWN_CROP_CLASSES = {
     'cucumber': cucumber_classes,
     'onion': onion_classes,
     'pea': pea_classes,
-    'cauliflower': chilly_cauliflower_rice_classes,
-    'chilli': chilly_cauliflower_rice_classes,
-    'rice': chilly_cauliflower_rice_classes,
+    'cauliflower': cauliflower_classes,
+   
+  
 }
 
 try:
@@ -165,15 +163,13 @@ def chat(request):
             except Exception as e:
                 print("Error retrieving context:", e)
 
-        prompt = f"""
-            You are AgriBot, an agricultural assistant for small farmers.
-            RULES:
-            - Respond in plain text, no markdown or asterisks.
-            - Output in short, clear points, each point on a new line.
-            - Include Causes, Symptoms, Remedies.
-            - No greetings or introductions.
-            - Each point should be a complete sentence.{context_text}
-            Question: {user_message}"""
+      
+        prompt = f""" 
+        You are AgriBot, an agricultural assistant for small farmers. RULES: 
+        - Respond in plain text, no markdown or asterisks. - Output in short,
+         clear points, each point on a new line. - Include Causes, Symptoms, 
+         Remedies. - No greetings or introductions. - Each point should be a 
+         complete sentence.{context_text} Question: {user_message}"""
 
         if user_location:
             prompt += f"\n              - The user's registered location/county is: {user_location}. You can use this for location-specific advice."
@@ -210,7 +206,7 @@ def chat(request):
         payload = {
             "model": "llama-3.1-8b-instant",
             "messages": messages,
-            "temperature": 0.4,
+            "temperature": 0.3,
             "max_tokens": 500,
             "tools": tools,
             "tool_choice": "auto"
@@ -287,6 +283,8 @@ def chat(request):
 def signup_farmer(request):
     if request.method == 'POST':
         form = SignupFormfarmer(request.POST)
+        if not request.POST.get('privacy-accept'):
+            return render(request, 'signup.html', {'form': form, 'user_type': 'Farmer', 'error': 'You must accept the Privacy Policy to register.'})
         if form.is_valid():
             user = form.save()
             FarmerProfile.objects.create(
@@ -305,6 +303,8 @@ def signup_farmer(request):
 def signup_buyer(request):
     if request.method == 'POST':
         form = SignupFormbuyer(request.POST)
+        if not request.POST.get('privacy-accept'):
+            return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer', 'error': 'You must accept the Privacy Policy to register.'})
         if form.is_valid():
             user = form.save()
             BuyerProfile.objects.create(
@@ -325,6 +325,8 @@ def signup_buyer(request):
 def signup_agency(request):
     if request.method == 'POST':
         form = SignupFormagency(request.POST)
+        if not request.POST.get('privacy-accept'):
+            return render(request, 'signup.html', {'form': form, 'user_type': 'Agency', 'error': 'You must accept the Privacy Policy to register.'})
         if form.is_valid():
             user = form.save()
             AgencyProfile.objects.create(
@@ -344,6 +346,8 @@ def signup_agency(request):
 def signin_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
+        if not request.POST.get('privacy-accept'):
+            return render(request, 'signin.html', {'form': form, 'error': 'You must accept the Privacy Policy to log in.'})
         if form.is_valid():
             user = form.get_user()
             login(request, user)
