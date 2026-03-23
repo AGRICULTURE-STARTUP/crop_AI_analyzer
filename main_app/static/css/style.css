@@ -100,6 +100,7 @@ input {
   font-size: 0.95rem;
   margin: 0;
   width: auto;
+  min-width: 0;
 }
 
 button {
@@ -117,6 +118,7 @@ button {
   border-radius: 10px;
   font-weight: 600;
   transition: transform 0.2s;
+  flex-shrink: 0;
 }
 
 .chat-box button:hover {
@@ -195,6 +197,86 @@ header nav ul li a:hover::after {
   width: 100%;
 }
 
+/* Responsive Navbar Toggle */
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+  z-index: 1001;
+  transition: transform 0.3s ease;
+}
+
+.menu-toggle:hover {
+  transform: scale(1.1);
+}
+
+@media (max-width: 600px) {
+  .menu-toggle {
+    display: block;
+  }
+  
+  header {
+    padding: 1rem 1.5rem;
+  }
+  
+  header nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    transform: translateY(-20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+    margin-right: 0;
+  }
+  
+  header nav.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  header ul {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 1rem 0;
+  }
+  
+  header nav ul li {
+    width: 100%;
+    text-align: center;
+  }
+  
+  header nav ul li a {
+    display: block;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  header nav ul li:last-child a {
+    border-bottom: none;
+  }
+
+  header nav ul li a::after {
+    display: none;
+  }
+  
+  header nav ul li a:hover {
+    background: rgba(255,255,255,0.1);
+    color: #81c784;
+  }
+}
+
+
 select#available_crop_scan {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -218,16 +300,7 @@ select#available_crop_scan option {
   color: #fff;
 }
 
-.menu-icons {
-  display: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: white;
-}
 
-.close-icon {
-  display: none;
-}
 
 .section1 {
   display: flex;
@@ -822,47 +895,7 @@ body {
 }
 
 
-@media (max-width: 600px) {
 
-
-
-  
-  /* Responsive Header Styles */
-  .menu-icons {
-    display: block;
-    margin-right: 1.5rem;
-  }
-
-  .nav_list {
-    display: none;
-    flex-direction: column;
-    position: absolute;
-    top: 70px;
-    right: 0;
-    background: #388e3c;
-    width: 100%;
-    text-align: center;
-    padding: 2rem 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-  }
-
-  .nav_list.active {
-    display: flex;
-  }
-
-  header nav ul li {
-    margin: 1rem 0;
-  }
-
-  .nav_bar.active .open-icon {
-    display: none;
-  }
-
-  .nav_bar.active .close-icon {
-    display: block;
-  }
-}
 
 /* Modern Authentication Forms */
 .auth-page {
@@ -1014,5 +1047,106 @@ body {
   .auth-page {
     padding: 0;
     align-items: flex-start;
+  }
+}
+
+/* Base Responsive Fixes for Layouts */
+@media (max-width: 768px) {
+  .section1 {
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+  }
+  
+  .subsection, 
+  .chat-box-container {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  .container {
+    padding: 1.5rem;
+    min-height: auto;
+  }
+
+  /* Market Challenges and Input Challenges */
+  .market-challenges,
+  .input-challenges {
+    margin: 1.5rem auto;
+    padding: 1.5rem 1rem;
+  }
+
+  .section-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .farmer-market_p, 
+  .fertilizers_p, 
+  .farmer-market, 
+  .fertilizers {
+    width: 100%;
+  }
+
+  /* Make sure images stay within their containers */
+  .farmer-market img,
+  .fertilizers img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Directory Pages (Farmers, Market Buyers, Fertilisers) */
+  .fertilisers-container {
+    padding: 1.5rem 1rem;
+    margin: 1.5rem auto;
+  }
+
+  .fertilisers-header h2 {
+    font-size: 2rem;
+  }
+
+  .firms-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  /* Footer responsiveness */
+  footer {
+    padding: 1.5rem 1rem !important;
+  }
+  
+  footer nav ul {
+    flex-direction: column;
+    gap: 1rem !important;
+  }
+
+  /* firm-card responsive overriding */
+  .table-responsive {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .firm-card {
+    min-width: 0;
+    padding: 1.5rem;
+  }
+
+  .card-body p {
+    flex-wrap: wrap;
+    word-break: break-word; /* allows long emails/names to break instead of scrolling */
+  }
+
+  .card-header h3 {
+    word-break: break-word;
+  }
+
+  /* Global font size responsive adjustments */
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 769px) {
+  html {
+    font-size: 16px;
   }
 }

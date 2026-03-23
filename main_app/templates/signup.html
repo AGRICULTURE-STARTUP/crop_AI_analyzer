@@ -6,17 +6,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriScan | Sign Up - {{ user_type }}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.2">
+    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
 </head>
 
 <body class="auth-page">
     <main>
         <div class="auth-card animate-up">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <a href="{% url 'homepage' %}" style="color: #388e3c; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+            </div>
             <div class="auth-header-modern">
                 <h2>{{ user_type }} Registration</h2>
                 <p>Join the AgriScan community and empower your farming journey.</p>
+                {% if error %}
+                <div class="error-message" style="background: #ffebee; color: #c62828; padding: 0.8rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; text-align: center; border: 1px solid #ffcdd2;">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                </div>
+                {% endif %}
             </div>
-
             <form method="post" novalidate>
                 {% csrf_token %}
                 <div class="form-grid">
@@ -32,11 +42,15 @@
                         {% endfor %}
                         {% endif %}
                         {% if field.help_text and not field.errors %}
-                        <small style="color: #888; font-size: 0.8rem; display: block; margin-top: 0.2rem;">{{
+                        <small style="color: #888; font-size: 0.8rem; display: none; margin-top: 0.2rem;">{{
                             field.help_text|safe }}</small>
                         {% endif %}
                     </div>
                     {% endfor %}
+                </div>
+                <div class="form-group full-width" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="privacy-accept" name="privacy-accept" style="width: auto; margin: 0;" required>
+                    <label for="privacy-accept" style="font-size: 0.9rem; color: #666; cursor: pointer;">I accept the rules in the <a href="{% url 'privacy_policy' %}" target="_blank" style="color: #388e3c; text-decoration: underline;">Privacy Policy</a></label>
                 </div>
                 <button type="submit" class="auth-submit-btn">Create Account</button>
             </form>
@@ -48,8 +62,8 @@
     </main>
 
     <script>
-        // Apply modern classes to django-generated inputs
-        document.querySelectorAll('input, select, textarea').forEach(el => {
+        // Apply modern classes to django-generated inputs (excluding checkboxes)
+        document.querySelectorAll('input:not([type="checkbox"]), select, textarea').forEach(el => {
             el.classList.add('form-input-modern');
             if (el.tagName === 'TEXTAREA') {
                 el.style.minHeight = '100px';

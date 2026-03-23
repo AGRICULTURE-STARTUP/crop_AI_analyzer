@@ -1,0 +1,256 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriScan | Empowering Farmers</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
+    <style>
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .team-member {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+
+        .team-member img {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 3px solid #388e3c;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            font-size: 1.5rem;
+        }
+
+        .social-links a {
+            color: #388e3c;
+            transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: #1b5e20;
+        }
+
+        .privacy-box {
+            background: #f1f8e9;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-top: 3rem;
+            border-left: 5px solid #388e3c;
+        }
+
+        #story, #mission, #value, #team, #privacy, #contact {
+            scroll-margin-top: 100px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem !important;
+            }
+            
+            .section-header h2 {
+                font-size: 1.8rem !important;
+            }
+
+            .farmer-market_p p, .fertilizers_p p {
+                font-size: 1rem !important;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .social-links {
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            h2[style*="font-size: 2.5rem"] {
+                font-size: 1.8rem !important;
+            }
+
+            a.btn-primary[style*="font-size: 1.3rem"] {
+                padding: 1rem 2rem !important;
+                font-size: 1.1rem !important;
+            }
+
+            section[style*="padding: 4rem"] {
+                padding: 2rem 1rem !important;
+                margin: 2rem 0 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1><a href="{% url 'homepage' %}" style="color: inherit; text-decoration: none;">Agri<span>Scan</span></a></h1>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars open-icon"></i>
+            <i class="fa-solid fa-xmark close-icon" style="display: none;"></i>
+        </button>
+        <nav class="nav_bar" id="navbar">
+            <ul class="nav_list">
+                <li><a href="{% url 'homepage' %}">Home</a></li>
+                <li><a href="#story">Story</a></li>
+                <li><a href="#mission">Mission</a></li>
+                <li><a href="#value">Value</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="{% url 'privacy_policy' %}">Privacy</a></li>
+            
+            </ul>
+        </nav>
+    </header>
+
+    <main style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+        <!-- Story Section -->
+        <section id="story" class="market-challenges">
+            <div class="section-header">
+                <h2>Our Story</h2>
+            </div>
+            <div class="section-content">
+                <div class="farmer-market_p">
+                    <p>
+                        Agriscan started in the year 2025 as a simple crop disease diagnosis tool. 
+                        At that time, only two crops could be scanned: potato and maize.
+                         Over the months, it has revolutionized to become a multi-crop diseases detection 
+                         tool with AI support and market connectivity, transforming how farmers manage their 
+                         Agricultural processes.
+                    </p>
+                </div>
+                <div class="farmer-market">
+                    <img src="{% static 'images/maize_potato.jpg' %}" alt="Our Story">
+                </div>
+            </div>
+        </section>
+
+        <!-- Mission Section -->
+        <section id="mission" class="input-challenges">
+            <div class="section-header">
+                <h2>Our Mission</h2>
+            </div>
+            <div class="section-content">
+                <div class="fertilizers">
+                    <img src="{% static 'images/sustainable_farming.png' %}" alt="Mission">
+                </div>
+                <div class="fertilizers_p">
+                    <p>
+                        Our mission is to contribute to a more sustainable agricultural world by solving critical problems: 
+                        late crop disease detection, lack of reliable specialized agricultural advice, and fragmented market connectivity. 
+                        We prevent yield loss and crop rot, ensuring food security and stable income for farmers.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Value Proposition -->
+        <section id="value" class="market-challenges">
+            <div class="section-header">
+                <h2>Value Proposition</h2>
+            </div>
+            <div class="section-content">
+                <div class="farmer-market_p" style="width: 100%;">
+                    <p style="text-align: center; font-size: 1.2rem; font-weight: 500;">
+                        The platform allows farmers to upload images of crop leaves, which are analyzed using
+                        trained deep learning models which detects and classifies crop diseases.
+                         Once a disease is identified, the farmer can seek treatment recommendations and preventive 
+                         guidance from the integrated Knowledge-Based AI assistant helping farmers respond quickly and 
+                         effectively. 
+                        The AI agricultural assistant capable of providing contextual farming advice in both English and Kiswahili. The assistant
+                         supports farmers in decision-making related to crop management, pest control, 
+                         agricultural best practices and integrates location specific weather API to provide weather-based advice.
+                        AgriScan also integrates a role-based agricultural marketplace that connects farmers, 
+                        produce buyers, and agrovet agencies. Farmers can discover potential buyers and seedling companies in their locality, buyers can 
+                        source produce directly from farmers, and agrovet agencies can list services and products 
+                        to support farm operations. 
+                    </p>
+                 
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section id="team" class="input-challenges">
+            <div class="section-header">
+                <h2>Our Team</h2>
+            </div>
+            <div class="team-grid">
+                <div class="team-member">
+                    <img src="{% static 'images/job.jpg' %}" alt="Team Lead">
+                    <h3>Job Nyaribari</h3>
+                    <p>Founder & AI Lead</p>
+                </div>
+                <div class="team-member">
+                    <img src="{% static 'images/noimage.png' %}" alt="Agro Expert">
+                    <h3></h3>
+                    <p></p>
+                </div>
+                <div class="team-member">
+                    <img src="{% static 'images/noimage.png' %}" alt="Market Lead">
+                    <h3></h3>
+                    <p></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section style="text-align: center; margin: 5rem 0; padding: 4rem; background: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%); border-radius: 24px; color: white;">
+            <h2 style="color: white; border: none; font-size: 2.5rem; margin-bottom: 1.5rem;">Ready to Revolutionize Your Farm?</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2.5rem; opacity: 0.9;">Join fellow farmers using AI to protect their crops and increase yield.</p>
+            <a href="{% url 'login' %}" class="btn-primary" style="background: white; color: #1b5e20; padding: 1.2rem 3rem; font-size: 1.3rem;">Get Started</a>
+        </section>
+
+
+        <!-- Contact Section -->
+        <section id="contact" style="text-align: center; margin-top: 4rem;">
+            <div class="section-header">
+                <h2>Connect With Us</h2>
+            </div>
+            <div class="social-links">
+                <a href="mailto:jobnyaribari808@gmail.com?subject=AgriScan Support Request&body=Hello AgriScan Team," target="_blank" title="Email"><i class="fa-solid fa-envelope"></i></a>
+                <a href="https://x.com/job_nyaribari" target="_blank" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                <a href="https://www.facebook.com/profile.php?id=61571381852359" target="_blank" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                <a href="https://www.instagram.com/jobnyaribari?igsh=bTlmazhuYTJ4ZnIw" target="_blank"  title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                <a href="https://wa.me/254758503819" target="_blank" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                <a href="https://www.linkedin.com/in/job-nyaribari/" target="_blank" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="https://github.com/jobcode003" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
+            </div>
+        </section>
+    </main>
+
+
+    <footer style="background: #388e3c; color: #fff; padding: 2rem; text-align: center; margin-top: 50px;">
+        <p>&copy; 2026 AgriScan. Empowering farmers with AI technology.</p>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}?v=1.2"></script>
+</body>
+
+</html>

@@ -6,7 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriScan</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.2">
+    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
 </head>
 
 <body>
@@ -23,7 +24,7 @@
             <h1 class="animate-up">Agri<span>Scan</span></h1>
             <p class="slogan animate-up-delay-1">Redefining Agriculture through AI</p>
             <div class="cta-group animate-up-delay-2">
-                <a href="{% url 'login' %}" class="btn-primary">Get Started</a>
+                <a href="{% url 'homepage' %}" class="btn-primary">Get Started</a>
             </div>
         </div>
     </div>

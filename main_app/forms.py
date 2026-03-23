@@ -27,8 +27,9 @@ class SignupFormbuyer(UserCreationForm):
 
 class SignupFormagency(UserCreationForm):
     AGENCY_TYPES = (
-        ('fertiliser', 'Fertiliser Agency'),
-        ('pesticide', 'Pesticide Agency'),
+        ('fertiliser', 'Fertiliser Company'),
+        ('pesticide', 'Pesticide Company'),
+        ('seed','Seed Company')
     )
     name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}))
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}))

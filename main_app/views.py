@@ -5,7 +5,19 @@ from django.contrib.auth.forms import AuthenticationForm
 from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
 from .models import FarmerProfile, BuyerProfile, AgencyProfile
 from tensorflow.keras.models import load_model
+from tensorflow.keras.layers import Dense
 from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.efficientnet import preprocess_input
+
+
+class SafeDense(Dense):
+    @classmethod
+    def from_config(cls, config):
+        if 'quantization_config' in config:
+            del config['quantization_config']
+        return super().from_config(config)
+
+safe_custom_objs = {'Dense': SafeDense}
 import numpy as np
 import os
 from django.views.decorators.csrf import csrf_exempt
@@ -14,18 +26,38 @@ import requests
 import ollama
 from .utils_weather import get_weather_data
 from langchain_huggingface import HuggingFaceEmbeddings
+from tensorflow.keras import mixed_precision
+mixed_precision.set_global_policy('float32')
 from langchain_chroma import Chroma
 # Cache for dynamically loaded models
 loaded_models = {}
 
-default_class_names = ['corn_Blight', 'corn_Gray Leaf Spot', 'corn_Healthy',
-             'corn_Northern_Leaf_Blight', 'corn_common_Rust', 'potato_Early Blight',
-             'potato_Healthy', 'potato_Late Blight']
-
+beans_classes = ['angular_leaf_spot', 'anthracnose', 'bean_rust', 'healthy', 'mosaic_virus']
+cabbage_classes = ["Cabbage___Alternaria_Leaf_Spot", "Cabbage___Bacterial_spot_rot", "Cabbage___Black_Rot", "Cabbage___Cabbage_aphid_colony", "Cabbage___Downy_Mildew", "Cabbage___Healthy", "Cabbage___Ring_Spot"]
+tomato_classes = ['bacterial_spot', 'early_blight', 'healthy', 'late_blight', 'leaf_mold', 'mosaic_virus', 'septoria_leaf_spot', 'spider_mite', 'target_spot', 'yellow_leaf__curl_Virus']
+potato_classes = ['Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy']
+capsicum_classes = ['Capsicum___Bacterial_spot', 'Capsicum___healthy']
+cucumber_classes = ['Cucumber___Anthracnose', 'Cucumber___Bacterial_Wilt', 'Cucumber___Gummy_Stem_Blight', 'Cucumber___Healthy_leaf']
+pea_classes = ['Pea___Downy_Mildew', 'Pea___Healthy', 'Pea___Leafminner', 'Pea___Powder_Mildew']
+maize_classes = ['Corn___Northern_Leaf_Blight', 'blight', 'common_rust', 'downy_mildew', 'gray_leaf_spot', 'healthy', 'msv_streak_virus']
+default_class_names = maize_classes
+onion_classes = ['Onion___Alternaria_D', 'Onion___Botrytis_Leaf_Blight', 'Onion___Healthy', 'Onion___Purple_blotch', 'Onion___Virosis-D']
+wheat_classes = ['Wheat___black_rust', 'Wheat___brown_rust', 'Wheat___healthy', 'Wheat___leaf_blight', 'Wheat___mildew', 'Wheat___mite', 'Wheat___septoria']
+cauliflower_classes= ['Cauliflower___Bacterial_spot_rot', 'Cauliflower___Black_Rot', 'Cauliflower___Downy_Mildew', 'Cauliflower___Healthy']
 KNOWN_CROP_CLASSES = {
-    'wheat': ['Wheat___black_rust', 'Wheat___brown_rust', 'Wheat___healthy', 'Wheat___leaf_blight', 'Wheat___mildew', 'Wheat___mite', 'Wheat___septoria'],
-    'maize': default_class_names,
-    'potato': default_class_names,
+    'wheat': wheat_classes,
+    'maize': maize_classes,
+    'potato': potato_classes,
+    'beans': beans_classes,
+    'cabbage': cabbage_classes,
+    'tomato': tomato_classes,
+    'capsicum': capsicum_classes,
+    'cucumber': cucumber_classes,
+    'onion': onion_classes,
+    'pea': pea_classes,
+    'cauliflower': cauliflower_classes,
+   
+  
 }
 
 try:
@@ -38,6 +70,19 @@ try:
 except Exception as e:
     print("Warning: Could not initialize ChromaDB/Embeddings. RAG will not have context.", e)
     retriever = None
+
+def get_crop_model(crop_selection):
+    """Determines model path and loads it from cache (or disk if not cached)."""
+    model_path = os.path.join('main_app', 'CropModels', f"{crop_selection}.h5")
+    
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model file for '{crop_selection}' not found at {model_path}.")
+    
+    # Load the model and cache it
+    if model_path not in loaded_models:
+        loaded_models[model_path] = load_model(model_path, compile=False, custom_objects=safe_custom_objs)
+        
+    return loaded_models[model_path]
 
 def page(request):
     return render(request,"index.html")
@@ -55,45 +100,24 @@ def process(request):
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
 
-        # Get the selected crop type, default to maize
+
         crop_selection = request.POST.get('available_crop_scan', 'maize').strip().lower()
         
-        # Determine model path
-        model_name = f"{crop_selection}.keras"
-        model_path = os.path.join('main_app', 'CropModels', model_name)
         
-        # Check if the specific model exists, otherwise fallback to maize
-        if not os.path.exists(model_path):
-            model_path = os.path.join('main_app', 'CropModels', 'maize.keras')
-            # If maize.keras also doesn't exist, try local fallbacks
-            if not os.path.exists(model_path):
-                if os.path.exists(os.path.join('main_app', 'CropModels', 'maize_potato.keras')):
-                    model_path = os.path.join('main_app', 'CropModels', 'maize_potato.keras')
-                else:
-                    model_path = 'main_app/mobilenet_finetuned2.keras'
-        
-        # Load the model and cache it
-        if model_path not in loaded_models:
-            loaded_models[model_path] = load_model(model_path)
-        current_model = loaded_models[model_path]
-        
-        # Determine class names for the current crop
-        current_class_names = KNOWN_CROP_CLASSES.get(crop_selection, default_class_names)
-
-        #code to preproces the image
+        current_model = get_crop_model(crop_selection)
+    
         img = image.load_img(temp_path, target_size=(224, 224))
         img_array = image.img_to_array(img)
-        img_array = img_array / 255.0  
         img_array = np.expand_dims(img_array, axis=0)
+        img_array= preprocess_input(img_array)
 
         # making  Predictions
         predictions = current_model.predict(img_array)
         predicted_class_index = np.argmax(predictions[0])
         
-        if predicted_class_index < len(current_class_names):
-            prediction = current_class_names[predicted_class_index]
-        else:
-            prediction = f"{crop_selection.capitalize()} Disease (Class {predicted_class_index})"
+        # Resolve class names based on selection, using default_class_names as fallback
+        crop_classes = KNOWN_CROP_CLASSES.get(crop_selection, default_class_names)
+        prediction = crop_classes[predicted_class_index]
             
         confidence = round(100 * np.max(predictions[0]), 2)
 
@@ -119,6 +143,12 @@ def chat(request):
                 user_location = request.user.farmer_profile.county
             except Exception:
                 pass
+        if request.user.is_authenticated:
+            try:
+                user_location =request.user.agency_profile.location
+            except Exception:
+                pass
+        
             if not user_location:
                 try:
                     user_location = request.user.buyer_profile.county
@@ -133,18 +163,16 @@ def chat(request):
             except Exception as e:
                 print("Error retrieving context:", e)
 
-        prompt = f"""
-            You are AgriBot, an agricultural assistant for small farmers.
-            RULES:
-            - Respond in plain text, no markdown or asterisks.
-            - Output in short, clear points, each point on a new line.
-            - Include Causes, Symptoms, Remedies.
-            - No greetings or introductions.
-            - Each point should be a complete sentence.{context_text}
-            Question: {user_message}"""
+      
+        prompt = f""" 
+        You are AgriBot, an agricultural assistant for small farmers. RULES: 
+        - Respond in plain text, no markdown or asterisks. - Output in short,
+         clear points, each point on a new line. - Include Causes, Symptoms, 
+         Remedies. - No greetings or introductions. - Each point should be a 
+         complete sentence.{context_text} Question: {user_message}"""
 
         if user_location:
-            prompt += f"\n            - The user's registered location/county is: {user_location}. You can use this for location-specific advice."
+            prompt += f"\n              - The user's registered location/county is: {user_location}. You can use this for location-specific advice."
 
         url = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -178,7 +206,7 @@ def chat(request):
         payload = {
             "model": "llama-3.1-8b-instant",
             "messages": messages,
-            "temperature": 0.4,
+            "temperature": 0.3,
             "max_tokens": 500,
             "tools": tools,
             "tool_choice": "auto"
@@ -204,7 +232,7 @@ def chat(request):
 
         message_obj = result["choices"][0]["message"]
         
-        # Check if the model wants to call a tool
+    
         if message_obj.get("tool_calls"):
             tool_call = message_obj["tool_calls"][0]
             function_name = tool_call["function"]["name"]
@@ -214,7 +242,6 @@ def chat(request):
                 location_arg = function_args.get("location")
                 tool_output = get_weather_data(location_arg)
                 
-                # Append the assistant's request and the tool's response to the conversation
                 messages.append(message_obj)
                 messages.append({
                     "role": "tool",
@@ -256,6 +283,8 @@ def chat(request):
 def signup_farmer(request):
     if request.method == 'POST':
         form = SignupFormfarmer(request.POST)
+        if not request.POST.get('privacy-accept'):
+            return render(request, 'signup.html', {'form': form, 'user_type': 'Farmer', 'error': 'You must accept the Privacy Policy to register.'})
         if form.is_valid():
             user = form.save()
             FarmerProfile.objects.create(
@@ -274,6 +303,8 @@ def signup_farmer(request):
 def signup_buyer(request):
     if request.method == 'POST':
         form = SignupFormbuyer(request.POST)
+        if not request.POST.get('privacy-accept'):
+            return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer', 'error': 'You must accept the Privacy Policy to register.'})
         if form.is_valid():
             user = form.save()
             BuyerProfile.objects.create(
@@ -294,6 +325,8 @@ def signup_buyer(request):
 def signup_agency(request):
     if request.method == 'POST':
         form = SignupFormagency(request.POST)
+        if not request.POST.get('privacy-accept'):
+            return render(request, 'signup.html', {'form': form, 'user_type': 'Agency', 'error': 'You must accept the Privacy Policy to register.'})
         if form.is_valid():
             user = form.save()
             AgencyProfile.objects.create(
@@ -313,6 +346,8 @@ def signup_agency(request):
 def signin_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
+        if not request.POST.get('privacy-accept'):
+            return render(request, 'signin.html', {'form': form, 'error': 'You must accept the Privacy Policy to log in.'})
         if form.is_valid():
             user = form.get_user()
             login(request, user)
@@ -324,13 +359,16 @@ def signin_view(request):
 def signout_view(request):
     logout(request)
     return redirect('login')
-
-def reset_password_view(request):
-    return render(request, 'resetpass.html')
 def fertiliser_view(request):
     return render(request,"fertiliser_page.html")
 def introduction_view(request):
     return render(request,"intro.html")
+
+def homepage_view(request):
+    return render(request,"homepage.html")
+
+def privacy_policy_view(request):
+    return render(request,"privacy_policy.html")
 def fertiliser_display(request):
     if request.method== 'GET':
         fertiliser_firm=AgencyProfile.objects.all().values()

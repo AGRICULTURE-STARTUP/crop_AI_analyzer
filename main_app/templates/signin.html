@@ -6,15 +6,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriScan | Log In</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.2">
+    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
 </head>
 
 <body class="auth-page">
     <main>
         <div class="auth-card animate-up" style="max-width: 450px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <a href="{% url 'homepage' %}" style="color: #388e3c; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+            </div>
             <div class="auth-header-modern">
                 <h2>Welcome Back</h2>
                 <p>Log in to access your agricultural dashboard.</p>
+                {% if error %}
+                <div class="error-message" style="background: #ffebee; color: #c62828; padding: 0.8rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; text-align: center; border: 1px solid #ffcdd2;">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                </div>
+                {% endif %}
             </div>
 
             <form method="post">
@@ -27,17 +38,21 @@
                             id="{{ field.id_for_label }}" class="form-input-modern"
                             placeholder="Enter {{ field.label }}">
                         {% if field.errors %}
-                        <div class="error-message" style="color: #d32f2f; font-size: 0.8rem; margin-top: 0.3rem;">{{
-                            field.errors.0 }}</div>
+                        <div class="error-message" style="color: #d32f2f; font-size: 0.8rem; margin-top: 0.3rem;">
+                            {{field.errors.0 }}</div>
                         {% endif %}
                     </div>
                     {% endfor %}
+                </div>
+                <div class="form-group full-width" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="privacy-accept" name="privacy-accept" required style="width: auto; margin: 0;">
+                    <label for="privacy-accept" style="font-size: 0.9rem; color: #666; cursor: pointer;">I accept the rules in the <a href="{% url 'privacy_policy' %}" target="_self" style="color: #388e3c; text-decoration: underline;">Privacy Policy</a></label>
                 </div>
                 <button type="submit" class="auth-submit-btn">Log In</button>
             </form>
 
             <div class="auth-footer-modern">
-                <a href="{% url 'forgot_password' %}" style="display: block; margin-bottom: 1rem;">Forgot Password?</a>
+                <a href="{% url 'password_reset' %}" style="display: block; margin-bottom: 1rem;">Forgot Password?</a>
                 Don't have an account? Sign Up as:
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-top: 1rem;">
                     <a href="{% url 'signup_farmer' %}" class="btn-contact"
