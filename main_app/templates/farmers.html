@@ -22,9 +22,9 @@
         <nav class="nav_bar" id="navbar">
             <ul class="nav_list" id="nav-list">
                 <li><a href="{% url 'page' %}"> <i class="fa-solid fa-house"></i>Home</a></li>
-                <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Fertiliser/Pesticide</a></li>
-                <li><a href="{% url 'market_buyers' %}"> <i class="fa-solid fa-shop"></i>Market/Buyers</a></li>
-                <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers/sellers</a></li>
+                <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Agrovet</a></li>
+                <li><a href="{% url 'market_buyers' %}"> <i class="fa-solid fa-shop"></i>Market</a></li>
+                <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers</a></li>
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}"> <i class="fa-solid fa-user-xmark"></i>Logout </a></li>
                 {% else %}
@@ -72,12 +72,13 @@
                     card.innerHTML = `
                         <div class="card-header">
                             <h3>${farmer.username || 'Farmer'}</h3>
-                            <span class="badge farmer">Seller</span>
+                            <span class="badge farmer">Farmer</span>
                         </div>
                         <div class="card-body">
                             <p><span class="icon">📍</span> ${farmer.county || 'N/A'}, ${farmer.country || 'N/A'}</p>
                             <p><span class="icon">🌾</span> <strong>Products:</strong> ${farmer.products || 'Mixed crops'}</p>
                             <p><span class="icon">📞</span> ${farmer.phone_number || 'No contact provided'}</p>
+                            <p class="contact"><a href="https://wa.me/${farmer.phone_number.replace(/\D/g, '')}" target="_blank" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i>Contact Now</a></p>
                         </div>
                     `;
                     grid.appendChild(card);

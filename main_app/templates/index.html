@@ -22,9 +22,9 @@
          
             <ul class="nav_list" id="nav-list">
                 <li><a href="{% url 'page' %}"> <i class="fa-solid fa-house"></i>Home</a></li>
-                <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Fertiliser/Pesticide</a></li>
-                <li><a href="{% url 'market_buyers' %}"> <i class="fa-solid fa-shop"></i>Market/Buyers</a></li>
-                <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers/sellers</a></li>
+                <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Agrovet</a></li>
+                <li><a href="{% url 'market_buyers' %}"> <i class="fa-solid fa-shop"></i>Market</a></li>
+                <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers</a></li>
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}"> <i class="fa-solid fa-user-xmark"></i>Logout </a></li>
                 {% else %}
@@ -53,7 +53,7 @@
                             <option value="maize">🌽 Maize</option>
                             <option value="Potato">🥔 Potato</option>
                             <option value="Wheat">🌾 Wheat</option>
-                            <option value="beans">🫘 Beans</option>
+                          <!--  <option value="beans">🫘 Beans</option>-->
                             <option value="Cabbage">🥬 Cabbage</option>
                             <option value="Capsicum">🫑 Capsicum</option>
                             <option value="Cauliflower">🥦 Cauliflower</option>
