@@ -1,32 +1,32 @@
-# Base image
+# Use an official Python runtime as a parent image
 FROM python:3.10-slim
 
-ENV PYTHONUNBUFFERED=1
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PORT 8000
 
+# Set work directory
 WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
-    git \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
-
+# Install dependencies
+COPY requirements.txt /app/
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
-COPY . .
+# Copy project
+COPY . /app/
 
-# 🌟 CRITICAL FIX: Run collectstatic during the BUILD process (as a RUN command)
-# This ensures the ./staticfiles directory is available for Render's CDN to copy.
-RUN python manage.py collectstatic --noinput
+# Environment variable to skip collectstatic during build if necessary, 
+# but Railway usually handles it or we run it on startup.
+# RUN python manage.py collectstatic --noinput
 
-# Expose Django port
-EXPOSE 8000
-
-# 🌟 REVISED CMD: Only run migrations and start the server (collectstatic is now done)
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn AgriProject.wsgi:application --bind 0.0.0.0:8000"]
+# Run the project
+CMD sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn AgriProject.wsgi:application --bind 0.0.0.0:$PORT"

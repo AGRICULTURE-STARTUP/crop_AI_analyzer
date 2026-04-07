@@ -1,4 +1,6 @@
 {% load static %}
+{% load socialaccount %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -21,11 +23,7 @@
             <div class="auth-header-modern">
                 <h2>{{ user_type }} Registration</h2>
                 <p>Join the AgriScan community and empower your farming journey.</p>
-                {% if error %}
-                <div class="error-message" style="background: #ffebee; color: #c62828; padding: 0.8rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; text-align: center; border: 1px solid #ffcdd2;">
-                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
-                </div>
-                {% endif %}
+             
             </div>
             <form method="post" novalidate>
                 {% csrf_token %}
@@ -34,11 +32,19 @@
                     <div
                         class="form-group {% if field.name == 'username' or field.name == 'password' or field.name == 'password1' or field.name == 'password2' or field.name == 'email' or 'products' in field.name or 'location' in field.name %}full-width{% endif %}">
                         <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {% if 'password' in field.name or 'password1' in field.name or 'password2' in field.name %}
+                        <div class="password-wrapper">
+                            {{ field }}
+                            <i class="fa-solid fa-eye password-toggle"></i>
+                        </div>
+                        {% else %}
                         {{ field }}
+                        {% endif %}
+
                         {% if field.errors %}
                         {% for error in field.errors %}
-                        <div class="error-message" style="color: #d32f2f; font-size: 0.8rem; margin-top: 0.3rem;">{{
-                            error }}</div>
+                        <div class="error-message" style="color: #d32f2f; font-size: 0.8rem; margin-top: 0.3rem;">
+                            </div>
                         {% endfor %}
                         {% endif %}
                         {% if field.help_text and not field.errors %}
@@ -53,6 +59,18 @@
                     <label for="privacy-accept" style="font-size: 0.9rem; color: #666; cursor: pointer;">I accept the rules in the <a href="{% url 'privacy_policy' %}" target="_blank" style="color: #388e3c; text-decoration: underline;">Privacy Policy</a></label>
                 </div>
                 <button type="submit" class="auth-submit-btn">Create Account</button>
+                
+                <div style="margin: 1.5rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="flex: 1; height: 1px; background: #eee;"></div>
+                    <span style="color: #888; font-size: 0.85rem;">OR</span>
+                    <div style="flex: 1; height: 1px; background: #eee;"></div>
+                </div>
+
+                <a href="{% provider_login_url 'google' %}" class="auth-google-btn" style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 0.8rem; border: 1px solid #dadce0; border-radius: 8px; text-decoration: none; color: #3c4043; font-weight: 500; font-size: 0.95rem; transition: background-color 0.2s, box-shadow 0.2s; background: white;">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style="width: 20px; height: 20px;">
+                    Sign up with Google
+                </a>
+
             </form>
 
             <div class="auth-footer-modern">
@@ -69,6 +87,21 @@
                 el.style.minHeight = '100px';
             }
         });
+
+        // Password Toggle Logic
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    this.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            });
+        });
+
     </script>
      <div class="video-container">
         <video autoplay muted loop playsinline class="video-bg">
