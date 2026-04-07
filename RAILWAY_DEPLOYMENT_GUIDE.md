@@ -70,5 +70,30 @@ Go to the **Variables** tab of your app service on Railway and add the following
 
 ---
 
+## 🤗 Hosting Models on Hugging Face (Recommended)
+To avoid Git LFS issues and keep your repository lightweight, AgriScan is configured to download models directly from Hugging Face at runtime.
+
+### 1. Create a Hugging Face Repository
+1. Sign up at [huggingface.co](https://huggingface.co/).
+2. Click **New Model** and name your repository (e.g., `agriscan-models`).
+3. Set it to **Public** (or Private if you add an `HF_TOKEN`).
+
+### 2. Upload your Model Files
+1. Go to the **Files and versions** tab in your HF repository.
+2. Click **Upload Files**.
+3. Upload all the `.h5` files from your local `main_app/CropModels/` folder.
+4. Name them exactly as they are (e.g., `maize.h5`, `tomato.h5`).
+
+### 3. Connect to Railway
+1. Go to your Railway dashboard -> **Variables**.
+2. Add a new variable:
+   - **Key**: `HF_MODEL_REPO_ID`
+   - **Value**: `your-username/your-repo-name` (e.g., `jobnyaribari/agriscan-models`)
+3. Railway will redeploy, and your models will now load perfectly from the cloud!
+
+---
+
 > [!TIP]
 > Each time you push new code to your GitHub `main` branch, Railway will automatically rebuild and redeploy your changes!
+
+

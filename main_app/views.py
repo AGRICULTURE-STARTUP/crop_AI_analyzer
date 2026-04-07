@@ -29,6 +29,8 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from tensorflow.keras import mixed_precision
 mixed_precision.set_global_policy('float32')
 from langchain_chroma import Chroma
+from huggingface_hub import hf_hub_download
+
 # Cache for dynamically loaded models
 loaded_models = {}
 
@@ -72,11 +74,24 @@ except Exception as e:
     retriever = None
 
 def get_crop_model(crop_selection):
-    """Determines model path and loads it from cache (or disk if not cached)."""
-    model_path = os.path.join('main_app', 'CropModels', f"{crop_selection}.h5")
+    """Determines model path, downloads from HF if needed, and loads it."""
+    filename = f"{crop_selection}.h5"
+    repo_id = os.getenv("HF_MODEL_REPO_ID")
     
+    # Priority 1: Download from Hugging Face if REPO_ID matches
+    if repo_id:
+        try:
+            print(f"Fetching {filename} from Hugging Face repo: {repo_id}...")
+            model_path = hf_hub_download(repo_id=repo_id, filename=filename)
+        except Exception as e:
+            print(f"HF download failed, falling back to local: {e}")
+            model_path = os.path.join('main_app', 'CropModels', filename)
+    else:
+        # Priority 2: Standard local fallback
+        model_path = os.path.join('main_app', 'CropModels', filename)
+
     if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file for '{crop_selection}' not found at {model_path}.")
+        raise FileNotFoundError(f"Model file '{filename}' not found locally or on HF.")
     
     # Load the model and cache it
     if model_path not in loaded_models:
@@ -89,11 +104,12 @@ def get_crop_model(crop_selection):
                     pass
                 signature_status = "Valid H5 signature but load failed."
             except Exception as h5_err:
-                signature_status = f"Invalid H5 signature: {str(h5_err)}"
+                signature_status = f"Invalid H5 signature (possibly an LFS pointer): {str(h5_err)}"
             
             raise OSError(f"Failed to load model '{crop_selection}': {str(e)}. {signature_status}") from e
         
     return loaded_models[model_path]
+
 
 
 def page(request):
