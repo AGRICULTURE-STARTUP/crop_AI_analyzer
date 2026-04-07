@@ -17,13 +17,12 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ["*"] # Consider restricting this once you have your service URL
+ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
-    "https://*.a.run.app", # For Google Cloud Run
+    "https://*.railway.app",
 ]
-
 
 # Application definition
 
@@ -83,15 +82,15 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'agriscandb',
         'USER': 'agriscanuser',
-        'PASSWORD': 'Jobuser123!', # CHANGE THIS: Update with your Postgres password
+        'PASSWORD': 'Jobuser123!',
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
-'''DATABASES = {
-    'default': dj_database_url.parse(os.getenv("DATABASE_URL"))
-}
-'''
+
+if os.getenv("DATABASE_URL"):
+    DATABASES['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), conn_max_age=600)
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
