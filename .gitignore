@@ -24,3 +24,4 @@ staticfiles/
 .env
 chroma_db/
 *.sqlite3
+db.sqlite3
