@@ -22,9 +22,9 @@
         <nav class="nav_bar" id="navbar">
             <ul class="nav_list" id="nav-list">
                 <li><a href="{% url 'page' %}"> <i class="fa-solid fa-house"></i>Home</a></li>
-                <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Fertiliser/Pesticide</a></li>
-                <li><a href="{% url 'market_buyers' %}"> <i class="fa-solid fa-shop"></i>Market/Buyers</a></li>
-                <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers/sellers</a></li>
+                <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Agrovet</a></li>
+                <li><a href="{% url 'market_buyers' %}"> <i class="fa-solid fa-shop"></i>Market</a></li>
+                <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers</a></li>
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}"> <i class="fa-solid fa-user-xmark"></i>Logout </a></li>
                 {% else %}
@@ -78,6 +78,8 @@
                             <p><span class="icon">📍</span> ${buyer.county || 'N/A'}, ${buyer.country || 'N/A'}</p>
                             <p><span class="icon">📞</span> ${buyer.phone_number || 'No contact provided'}</p>
                             <p><span class="icon">✉️</span> <a href="mailto:${buyer.email}">${buyer.email || 'No email provided'}</a></p>
+                            <p class="contact"><a href="https://wa.me/${buyer.phone_number.replace(/\D/g, '')}" target="_blank" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i>Contact Now</a></p>
+
                         </div>
                     `;
                     grid.appendChild(card);

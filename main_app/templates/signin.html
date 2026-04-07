@@ -1,4 +1,6 @@
 {% load static %}
+{% load socialaccount %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -34,14 +36,22 @@
                     {% for field in form %}
                     <div class="form-group full-width">
                         <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {% if field.field.widget.input_type == 'password' %}
+                        <div class="password-wrapper">
+                            <input type="password" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-input-modern" placeholder="Enter {{ field.label }}">
+                            <i class="fa-solid fa-eye password-toggle"></i>
+                        </div>
+                        {% else %}
                         <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}"
                             id="{{ field.id_for_label }}" class="form-input-modern"
                             placeholder="Enter {{ field.label }}">
+                        {% endif %}
                         {% if field.errors %}
                         <div class="error-message" style="color: #d32f2f; font-size: 0.8rem; margin-top: 0.3rem;">
                             {{field.errors.0 }}</div>
                         {% endif %}
                     </div>
+
                     {% endfor %}
                 </div>
                 <div class="form-group full-width" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -49,6 +59,18 @@
                     <label for="privacy-accept" style="font-size: 0.9rem; color: #666; cursor: pointer;">I accept the rules in the <a href="{% url 'privacy_policy' %}" target="_self" style="color: #388e3c; text-decoration: underline;">Privacy Policy</a></label>
                 </div>
                 <button type="submit" class="auth-submit-btn">Log In</button>
+                
+                <div style="margin: 1.5rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="flex: 1; height: 1px; background: #eee;"></div>
+                    <span style="color: #888; font-size: 0.85rem;">OR</span>
+                    <div style="flex: 1; height: 1px; background: #eee;"></div>
+                </div>
+
+                <a href="{% provider_login_url 'google' %}" class="auth-google-btn" style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 0.8rem; border: 1px solid #dadce0; border-radius: 8px; text-decoration: none; color: #3c4043; font-weight: 500; font-size: 0.95rem; transition: background-color 0.2s, box-shadow 0.2s; background: white;">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style="width: 20px; height: 20px;">
+                    Sign in with Google
+                </a>
+
             </form>
 
             <div class="auth-footer-modern">
@@ -73,6 +95,22 @@
         <div class="video-overlay"></div>
     </div>
 
+
+    <script>
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    this.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            });
+        });
+    </script>
 </body>
+
 
 </html>

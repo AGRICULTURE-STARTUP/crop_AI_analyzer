@@ -1060,6 +1060,34 @@ body {
   outline: none !important;
 }
 
+/* Password Toggle Styles */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper .form-input-modern {
+  padding-right: 3rem !important; /* Make room for the toggle icon */
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.password-toggle:hover {
+  color: var(--accent-color);
+}
+
+
 .auth-submit-btn {
   width: 100%;
   padding: 1rem;
@@ -1218,4 +1246,11 @@ body {
   html {
     font-size: 16px;
   }
+}
+.contact a{
+  padding: 10px;
+  background-color: #2e7031;
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
 }
