@@ -76,7 +76,7 @@ WSGI_APPLICATION = 'AgriProject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-'''DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'agriscandb',
@@ -85,11 +85,11 @@ WSGI_APPLICATION = 'AgriProject.wsgi.application'
         'HOST': 'localhost',
         'PORT': '5432',
     }
-}'''
-DATABASES = {
+}
+'''DATABASES = {
     'default': dj_database_url.parse(os.getenv("DATABASE_URL"))
 }
-
+'''
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
