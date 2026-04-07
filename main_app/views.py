@@ -80,9 +80,21 @@ def get_crop_model(crop_selection):
     
     # Load the model and cache it
     if model_path not in loaded_models:
-        loaded_models[model_path] = load_model(model_path, compile=False, custom_objects=safe_custom_objs)
+        try:
+            loaded_models[model_path] = load_model(model_path, compile=False, custom_objects=safe_custom_objs)
+        except Exception as e:
+            import h5py
+            try:
+                with h5py.File(model_path, 'r') as f:
+                    pass
+                signature_status = "Valid H5 signature but load failed."
+            except Exception as h5_err:
+                signature_status = f"Invalid H5 signature: {str(h5_err)}"
+            
+            raise OSError(f"Failed to load model '{crop_selection}': {str(e)}. {signature_status}") from e
         
     return loaded_models[model_path]
+
 
 def page(request):
     return render(request,"index.html")
@@ -294,7 +306,8 @@ def signup_farmer(request):
                 country=form.cleaned_data.get('country'),
                 products=form.cleaned_data.get('products')
             )
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
             return redirect('page')
     else:
         form = SignupFormfarmer()
@@ -316,7 +329,8 @@ def signup_buyer(request):
                 email=form.cleaned_data.get("email")
 
             )
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
             return redirect('page')
     else:
         form = SignupFormbuyer()
@@ -337,7 +351,8 @@ def signup_agency(request):
                 name=form.cleaned_data.get('name'),
                 email=form.cleaned_data.get('email'),
             )
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
             return redirect('page')
     else:
         form = SignupFormagency()
@@ -350,7 +365,8 @@ def signin_view(request):
             return render(request, 'signin.html', {'form': form, 'error': 'You must accept the Privacy Policy to log in.'})
         if form.is_valid():
             user = form.get_user()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
             return redirect('page')
     else:
         form = AuthenticationForm()

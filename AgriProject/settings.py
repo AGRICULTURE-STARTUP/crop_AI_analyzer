@@ -22,7 +22,9 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
     "https://*.railway.app",
+    "https://up.railway.app",
 ]
+
 
 # Security settings for production
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
