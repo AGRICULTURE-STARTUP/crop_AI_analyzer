@@ -152,8 +152,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
-            "client_id": "540840467622-ht9ahmdne9b3pp6415rqjunrok9q14ta.apps.googleusercontent.com",
-            "secret": "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",
+            "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+            "secret": os.getenv("GOOGLE_CLIENT_SECRET"),
             "key": ""
         }
     }
@@ -177,6 +177,8 @@ ACCOUNT_EMAIL_VERIFICATION = 'none' # For simplicity in this demo
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not DEBUG else 'http'
+SOCIALACCOUNT_AUTO_SIGNUP = False
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
