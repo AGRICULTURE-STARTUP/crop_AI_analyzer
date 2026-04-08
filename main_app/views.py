@@ -432,4 +432,75 @@ def farmer_display(request):
                 'products': farmer.products
             })
         return JsonResponse({"farmer_list": data})
+
+
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url='login')
+def farmer_profile_view(request):
+    """Dedicated profile page for authenticated farmers only."""
+    # Guard: only farmers may access this page
+    try:
+        farmer_profile = request.user.farmer_profile
+    except FarmerProfile.DoesNotExist:
+        return redirect('page')
+
+    # --- AJAX: handle individual crop removal ---
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data = json.loads(request.body)
+        action = data.get('action')
+        crop = data.get('crop', '').strip()
+        existing = [c.strip() for c in (farmer_profile.products or '').split(',') if c.strip()]
+
+        if action == 'remove' and crop in existing:
+            existing.remove(crop)
+        elif action == 'add' and crop and crop not in existing:
+            existing.append(crop)
+
+        farmer_profile.products = ', '.join(existing)
+        farmer_profile.save()
+        return JsonResponse({'crops': existing})
+
+    # --- Standard POST: update personal details ---
+    success_message = None
+    error_message = None
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        county = request.POST.get('county', '').strip()
+        country = request.POST.get('country', '').strip()
+
+        request.user.first_name = first_name
+        request.user.last_name = last_name
+        request.user.email = email
+        request.user.save()
+
+        farmer_profile.phone_number = phone_number
+        farmer_profile.county = county
+        farmer_profile.country = country
+        farmer_profile.save()
+        success_message = 'Profile updated successfully!'
+
+    # Parse the comma-separated products string into a clean list
+    crops_list = [c.strip() for c in (farmer_profile.products or '').split(',') if c.strip()]
+
+    # Build the weather widget data for the farmer's county
+    weather_data = None
+    if farmer_profile.county:
+        raw = get_weather_data(farmer_profile.county)
+        weather_data = json.loads(raw)
+        if 'error' in weather_data:
+            weather_data = None
+
+    context = {
+        'farmer_profile': farmer_profile,
+        'crops_list': crops_list,
+        'weather_data': weather_data,
+        'success_message': success_message,
+        'error_message': error_message,
+    }
+    return render(request, 'farmer_profile.html', context)
         

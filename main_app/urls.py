@@ -40,4 +40,5 @@ urlpatterns = [
     path('market_firms/', views.market_display, name='market_firms'),
     path('farmers', views.farmer_view, name='farmers'),
     path('farmer_data/', views.farmer_display, name='farmer_data'),
+    path('profile/farmer/', views.farmer_profile_view, name='farmer_profile'),
 ]

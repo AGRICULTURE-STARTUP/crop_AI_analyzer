@@ -270,6 +270,9 @@
                 <li><a href="#team">Team</a></li>
                 <li><a href="#contact">Contact</a></li>
                 <li><a href="{% url 'privacy_policy' %}">Privacy</a></li>
+                {% if user.is_authenticated and user.farmer_profile %}
+                <li><a href="{% url 'farmer_profile' %}">My Profile</a></li>
+                {% endif %}
                 <li>
                     <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
                         <i class="fa-solid fa-moon" ></i>

@@ -27,6 +27,9 @@
                 <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers</a></li>
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}"> <i class="fa-solid fa-user-xmark"></i>Logout </a></li>
+                {% if user.farmer_profile %}
+                <li><a href="{% url 'farmer_profile' %}"><i class="fa-solid fa-id-card"></i> My Profile</a></li>
+                {% endif %}
                 {% else %}
                 <li><a href="{% url 'login' %}"> <i class="fa-solid fa-user-check"></i>Login</a></li>
                 {% endif %}
