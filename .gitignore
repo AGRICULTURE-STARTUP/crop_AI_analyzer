@@ -21,9 +21,11 @@ staticfiles/
 
 *.log
 
-.env
 chroma_db/
 *.sqlite3
 db.sqlite3
 
 *.json
+
+*.env
+.env
