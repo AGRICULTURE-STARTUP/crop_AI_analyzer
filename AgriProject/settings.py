@@ -20,7 +20,6 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com",
     "https://*.railway.app",
     "https://up.railway.app",
 ]
@@ -96,9 +95,9 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-'''if os.getenv("DATABASE_URL"):
+if os.getenv("DATABASE_URL"):
     DATABASES['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), conn_max_age=600)
-'''
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
