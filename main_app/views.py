@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse,JsonResponse
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
 from .models import FarmerProfile, BuyerProfile, AgencyProfile
@@ -23,7 +24,8 @@ import os
 from django.views.decorators.csrf import csrf_exempt
 import json
 import requests
-import ollama
+import uuid
+from django.utils.html import strip_tags, escape
 from .utils_weather import get_weather_data
 from langchain_huggingface import HuggingFaceEmbeddings
 from tensorflow.keras import mixed_precision
@@ -112,24 +114,45 @@ def get_crop_model(crop_selection):
 
 
 
+@login_required(login_url='login')
 def page(request):
     return render(request,"index.html")
 
+@login_required(login_url='login')
 def process(request):
     prediction = None
     confidence = None
 
     if request.method == 'POST' and request.FILES.get('image'):
         uploaded_file = request.FILES['image']
-        temp_path = os.path.join('media/uploads', uploaded_file.name)
+        
+        # 1. Validate File Size (5MB limit)
+        if uploaded_file.size > 5 * 1024 * 1024:
+             return render(request, 'index.html', {'error': 'File too large. Maximum size is 5MB.'})
+
+        # 2. Validate MIME type
+        allowed_types = ['image/jpeg', 'image/png', 'image/webp']
+        if uploaded_file.content_type not in allowed_types:
+            return render(request, 'index.html', {'error': 'Invalid file type. Only JPG, PNG, and WEBP images are allowed.'})
+
+        # 3. Secure Filename with UUID
+        ext = os.path.splitext(uploaded_file.name)[1].lower()
+        if ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+            return render(request, 'index.html', {'error': 'Invalid file extension.'})
+        
+        safe_filename = f"{uuid.uuid4()}{ext}"
+        temp_path = os.path.join('media/uploads', safe_filename)
         os.makedirs(os.path.dirname(temp_path), exist_ok=True)
 
         with open(temp_path, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
 
-
+        # 4. Strict Crop Selection Validation
         crop_selection = request.POST.get('available_crop_scan', 'maize').strip().lower()
+        if crop_selection not in KNOWN_CROP_CLASSES:
+             # Fallback to default or error
+             crop_selection = 'maize'
         
         
         current_model = get_crop_model(crop_selection)
@@ -160,10 +183,17 @@ def process(request):
 
 
 @csrf_exempt
+@login_required(login_url='login')
 def chat(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        user_message = data.get('message', '')
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+            
+        user_message = strip_tags(data.get('message', '')).strip()
+        if not user_message:
+             return JsonResponse({"response": "Please enter a message."})
         
         user_location = None
         if request.user.is_authenticated:
@@ -192,15 +222,25 @@ def chat(request):
                 print("Error retrieving context:", e)
 
       
-        prompt = f""" 
-        You are AgriBot, an agricultural assistant for small farmers. RULES: 
-        - Respond in plain text, no markdown or asterisks. - Output in short,
-         clear points, each point on a new line. - Include Causes, Symptoms, 
-         Remedies. - No greetings or introductions. - Each point should be a 
-         complete sentence.{context_text} Question: {user_message}"""
+        prompt = f"""You are AgriBot, a professional agricultural assistant for small-scale farmers. 
+        Your goal is to provide clear, highly structured, and actionable advice.
+
+        STRUCTURE YOUR RESPONSE EXACTLY AS FOLLOWS:
+        1. OVERVIEW: A brief one-sentence summary of the situation.
+        2. CAUSES: List potential causes using '-' bullet points.
+        3. SYMPTOMS: List common symptoms using '-' bullet points.
+        4. REMEDIES: List immediate actions and long-term remedies using '-' bullet points.
+
+        RULES:
+        - Use PLAIN TEXT ONLY. Do not use markdown (no **, ##, or _).
+        - Do not use asterisks (*) for bullets; use hyphens (-) instead.
+        - Each point must be a complete, clear sentence.
+        - No greetings, no introductions, and no conclusions. Start immediately with the headers.
+        {context_text} 
+        Question: {user_message}"""
 
         if user_location:
-            prompt += f"\n              - The user's registered location/county is: {user_location}. You can use this for location-specific advice."
+            prompt += f"\nNote: The user's registered location/county is {user_location}. Use this for location-specific advice if relevant."
 
         url = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -391,6 +431,7 @@ def signin_view(request):
 def signout_view(request):
     logout(request)
     return redirect('login')
+@login_required(login_url='login')
 def fertiliser_view(request):
     return render(request,"fertiliser_page.html")
 def introduction_view(request):
@@ -401,23 +442,28 @@ def homepage_view(request):
 
 def privacy_policy_view(request):
     return render(request,"privacy_policy.html")
+@login_required(login_url='login')
 def fertiliser_display(request):
     if request.method== 'GET':
         fertiliser_firm=AgencyProfile.objects.all().values()
         data=list(fertiliser_firm)
         return JsonResponse({'fertiliser_firm' : data})
+@login_required(login_url='login')
 def market_view(request):
     return render(request,"market_buyers.html")
 
+@login_required(login_url='login')
 def market_display(request):
     if request.method == "GET":
         buyer_list= BuyerProfile.objects.all().values()
         data=list(buyer_list)
         return JsonResponse({"buyer_list":data})
 
+@login_required(login_url='login')
 def farmer_view(request):
     return render(request, "farmers.html")
 
+@login_required(login_url='login')
 def farmer_display(request):
     if request.method == "GET":
         # We need the username from the related user object, so we'll construct the list manually
@@ -434,7 +480,6 @@ def farmer_display(request):
         return JsonResponse({"farmer_list": data})
 
 
-from django.contrib.auth.decorators import login_required
 
 @login_required(login_url='login')
 def farmer_profile_view(request):
@@ -449,7 +494,7 @@ def farmer_profile_view(request):
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         data = json.loads(request.body)
         action = data.get('action')
-        crop = data.get('crop', '').strip()
+        crop = strip_tags(data.get('crop', '')).strip()
         existing = [c.strip() for c in (farmer_profile.products or '').split(',') if c.strip()]
 
         if action == 'remove' and crop in existing:
@@ -466,12 +511,18 @@ def farmer_profile_view(request):
     error_message = None
 
     if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip()
-        phone_number = request.POST.get('phone_number', '').strip()
-        county = request.POST.get('county', '').strip()
-        country = request.POST.get('country', '').strip()
+        first_name = strip_tags(request.POST.get('first_name', '')).strip()
+        last_name = strip_tags(request.POST.get('last_name', '')).strip()
+        email = strip_tags(request.POST.get('email', '')).strip()
+        phone_number = strip_tags(request.POST.get('phone_number', '')).strip()
+        county = strip_tags(request.POST.get('county', '')).strip()
+        country = strip_tags(request.POST.get('country', '')).strip()
+        
+        # Basic validation for phone number (Allow +, spaces, digits)
+        import re
+        if phone_number and not re.match(r'^\+?[\d\s\-]+$', phone_number):
+             error_message = 'Invalid phone number format.'
+             # Continue but maybe log it or show error
 
         request.user.first_name = first_name
         request.user.last_name = last_name

@@ -1,14 +1,9 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriScan | Empowering Farmers</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
+{% block title %}AgriScan | Empowering Farmers{% endblock %}
+
+{% block extra_css %}
     <style>
         .team-grid {
             display: grid;
@@ -18,12 +13,12 @@
         }
 
         .team-member {
-            background: #fff;
+            background: var(--card-bg);
             padding: 1.5rem;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, background var(--transition-speed);
         }
 
         .team-member:hover {
@@ -36,7 +31,7 @@
             border-radius: 50%;
             object-fit: cover;
             margin-bottom: 1rem;
-            border: 3px solid #388e3c;
+            border: 3px solid var(--accent-color);
         }
 
         .social-links {
@@ -48,20 +43,21 @@
         }
 
         .social-links a {
-            color: #388e3c;
+            color: var(--accent-color);
             transition: color 0.3s ease;
         }
 
         .social-links a:hover {
-            color: #1b5e20;
+            color: var(--accent-light);
         }
 
         .privacy-box {
-            background: #f1f8e9;
+            background: var(--preview-bg);
             padding: 2rem;
             border-radius: 15px;
             margin-top: 3rem;
-            border-left: 5px solid #388e3c;
+            border-left: 5px solid var(--accent-color);
+            color: var(--text-primary);
         }
 
         #story, #mission, #value, #team, #privacy, #contact {
@@ -72,7 +68,7 @@
         .pricing-section {
             padding: 5rem 2rem;
             text-align: center;
-            background: #f9fdf9;
+            background: var(--bg-primary);
             border-radius: 30px;
             margin-top: 4rem;
         }
@@ -86,26 +82,26 @@
         }
 
         .pricing-card {
-            background: white;
+            background: var(--card-bg);
             padding: 3rem 2rem;
             border-radius: 20px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--card-shadow);
         }
 
         .pricing-card:hover {
             transform: translateY(-15px);
             box-shadow: 0 20px 40px rgba(56, 142, 60, 0.15);
-            border-color: #81c784;
+            border-color: var(--accent-light);
         }
 
         .pricing-card.featured {
-            border: 2.5px solid #388e3c;
+            border: 2.5px solid var(--accent-color);
             transform: scale(1.05);
             z-index: 2;
         }
@@ -118,7 +114,7 @@
             position: absolute;
             top: 1.5rem;
             right: -2rem;
-            background: #388e3c;
+            background: var(--accent-color);
             color: white;
             padding: 0.5rem 4rem;
             transform: rotate(45deg);
@@ -129,20 +125,20 @@
 
         .pricing-header h3 {
             font-size: 1.6rem;
-            color: #2c3e50;
+            color: var(--text-primary);
             margin-bottom: 1rem;
         }
 
         .pricing-header .price {
             font-size: 2.8rem;
             font-weight: 800;
-            color: #1b5e20;
+            color: var(--accent-color);
             margin: 1.5rem 0;
         }
 
         .pricing-header .price span {
             font-size: 1.1rem;
-            color: #666;
+            color: var(--text-secondary);
             font-weight: 400;
         }
 
@@ -156,7 +152,7 @@
 
         .pricing-features li {
             margin-bottom: 1rem;
-            color: #555;
+            color: var(--text-secondary);
             display: flex;
             align-items: center;
             gap: 0.8rem;
@@ -164,7 +160,7 @@
         }
 
         .pricing-features li i {
-            color: #388e3c;
+            color: var(--accent-color);
             font-size: 1.1rem;
         }
 
@@ -180,23 +176,23 @@
         }
 
         .pricing-btn.outline {
-            border: 2px solid #388e3c;
-            color: #388e3c;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
         }
 
         .pricing-btn.outline:hover {
-            background: #388e3c;
+            background: var(--accent-color);
             color: white;
         }
 
         .pricing-btn.solid {
-            background: #388e3c;
+            background: var(--accent-color);
             color: white;
             box-shadow: 0 4px 15px rgba(56, 142, 60, 0.3);
         }
 
         .pricing-btn.solid:hover {
-            background: #2e7d32;
+            background: var(--accent-light);
             transform: scale(1.03);
             box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
         }
@@ -252,38 +248,9 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <header>
-        <h1><a href="{% url 'homepage' %}" style="color: inherit; text-decoration: none;">Agri<span>Scan</span></a></h1>
-        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
-            <i class="fa-solid fa-bars open-icon"></i>
-            <i class="fa-solid fa-xmark close-icon" style="display: none;"></i>
-        </button>
-        <nav class="nav_bar" id="navbar">
-            <ul class="nav_list">
-                <li><a href="{% url 'homepage' %}">Home</a></li>
-                <li><a href="#story">Story</a></li>
-                <li><a href="#mission">Mission</a></li>
-                <li><a href="#value">Value</a></li>
-                <li><a href="#team">Team</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="{% url 'privacy_policy' %}">Privacy</a></li>
-                {% if user.is_authenticated and user.farmer_profile %}
-                <li><a href="{% url 'farmer_profile' %}">My Profile</a></li>
-                {% endif %}
-                <li>
-                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-                        <i class="fa-solid fa-moon" ></i>
-                        <i class="fa-solid fa-sun"></i>
-                    </button>
-                </li>
-            </ul>
-        </nav>
-    </header>
-
-    <main style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+{% block content %}
 
           <!-- Call to Action -->
         <section style="text-align: center; margin: 5rem 0; padding: 4rem; background: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%); border-radius: 24px; color: white;">
@@ -294,8 +261,8 @@
         <!-- Pricing Section -->
         <section id="pricing" class="pricing-section animate-up">
             <div class="section-header">
-                <h2 style="text-align: center; font-size: 2.5rem; border: none;">Flexible Plans for Every Farmer</h2>
-                <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">Choose the plan that fits your agricultural needs.</p>
+                <h2 style="text-align: center; font-size: 2.5rem; border: none; color: var(--text-primary);">Flexible Plans for Every Farmer</h2>
+                <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">Choose the plan that fits your agricultural needs.</p>
             </div>
             
             <div class="pricing-grid">
@@ -307,9 +274,12 @@
                         <p>Essential tools for small farms</p>
                     </div>
                     <ul class="pricing-features">
-                        <li><i class="fa-solid fa-circle-check"></i> 5 AI Crop Scans / Day</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Basic Weather Alerts</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Community Forum Access</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Up to 5 AI Crop Scans / month</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Basic Disease Detection Results</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Daily Weather Alerts</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Access to Marketplace (Browse Only)</li>
+                        <li><i class="fa-solid fa-circle-xmark" style="color: #ccc;"></i> AI Treatment Recommendations</li>
+                        <li><i class="fa-solid fa-circle-xmark" style="color: #ccc;"></i> Sell Produce in Marketplace</li>
                         <li><i class="fa-solid fa-circle-xmark" style="color: #ccc;"></i> Market Analytics</li>
                     </ul>
                     <a href="{% url 'login' %}" class="pricing-btn outline">Get Started</a>
@@ -320,14 +290,18 @@
                     <div class="popular-badge">Most Popular</div>
                     <div class="pricing-header">
                         <h3>Professional</h3>
-                        <div class="price">Sh. 1,500<span>/mo</span></div>
+                        <div class="price">Sh. 1,000<span>/mo</span></div>
                         <p>Perfect for growing farmers</p>
                     </div>
                     <ul class="pricing-features">
-                        <li><i class="fa-solid fa-circle-check"></i> Unlimited AI Scans</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Priority AI Advice</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Real-time Market Rates</li>
-                        <li><i class="fa-solid fa-circle-check"></i> 24/7 Chat Support</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Unlimited AI Crop Scans</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Advanced AI Treatment Recommendations</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Weather-Based Farming Advice</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Buy & Sell in Marketplace</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Real-Time Market Prices</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Basic Market Analytics</li>
+                        <li><i class="fa-solid fa-circle-check"></i> SMS Alerts for Diseases & Weather</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Priority AI Response Speed</li>
                     </ul>
                     <a href="{% url 'login' %}" class="pricing-btn solid">Upgrade Now</a>
                 </div>
@@ -336,14 +310,18 @@
                 <div class="pricing-card">
                     <div class="pricing-header">
                         <h3>Enterprise</h3>
-                        <div class="price">Sh. 3,000<span>/mo</span></div>
+                        <div class="price">Sh. 2,000<span>/mo</span></div>
                         <p>Complete farm management</p>
                     </div>
                     <ul class="pricing-features">
-                        <li><i class="fa-solid fa-circle-check"></i> All Professional Features</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Expert Agronomy Consultation</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Soil Health Monitoring</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Direct Buyer Matchmaking</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Unlimited AI Crop Scans</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Advanced AI Treatment Recommendations</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Weather-Based Farming Advice</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Buy & Sell in Marketplace</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Real-Time Market Prices</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Basic Market Analytics</li>
+                        <li><i class="fa-solid fa-circle-check"></i> SMS Alerts for Diseases & Weather</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Priority AI Response Speed</li>
                     </ul>
                     <a href="{% url 'login' %}" class="pricing-btn outline">Contact Sales</a>
                 </div>
@@ -460,14 +438,4 @@
                 <a href="https://github.com/jobcode003" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
             </div>
         </section>
-    </main>
-
-
-    <footer style="background: #388e3c; color: #fff; padding: 2rem; text-align: center; margin-top: 50px;">
-        <p>&copy; 2026 AgriScan. Empowering farmers with AI technology.</p>
-    </footer>
-
-    <script src="{% static 'js/script.js' %}?v=1.2"></script>
-</body>
-
-</html>
+{% endblock %}

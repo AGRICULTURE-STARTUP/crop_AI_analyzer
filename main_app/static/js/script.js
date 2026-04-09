@@ -89,15 +89,28 @@ async function sendMessage() {
     const message = input.value.trim();
     if (!message) return;
 
-    messages.innerHTML += `<div class='user'>${message}</div>`;
+    // Create user message element safely
+    const userDiv = document.createElement('div');
+    userDiv.classList.add('user');
+    userDiv.textContent = message;
+    messages.appendChild(userDiv);
+    
     input.value = '';
 
     const botMessageDiv = document.createElement("div");
     botMessageDiv.classList.add("bot-message");
-    botMessageDiv.innerHTML = `<div class="bot-icon">🤖</div><div class="bot-text" id="bot-text"></div>`;
+    
+    const botIcon = document.createElement("div");
+    botIcon.classList.add("bot-icon");
+    botIcon.textContent = "🤖";
+    
+    const botTextDiv = document.createElement("div");
+    botTextDiv.classList.add("bot-text");
+    botTextDiv.id = "bot-text";
+    
+    botMessageDiv.appendChild(botIcon);
+    botMessageDiv.appendChild(botTextDiv);
     messages.appendChild(botMessageDiv);
-
-    const botTextDiv = botMessageDiv.querySelector("#bot-text");
 
     const response = await fetch('/chat/', {
         method: 'POST',
@@ -108,12 +121,13 @@ async function sendMessage() {
     const data = await response.json();
     const reply = data.response || "Sorry, something went wrong.";
     let i = 0;
+    
     function type() {
         if (i < reply.length) {
-            botTextDiv.innerHTML += reply[i];
+            // Append character safely using textContent
+            botTextDiv.textContent += reply[i];
             i++;
             
-            // Only scroll if we are already near the bottom
             const isAtBottom = messages.scrollHeight - messages.scrollTop <= messages.clientHeight + 100;
             if (isAtBottom) {
                 messages.scrollTop = messages.scrollHeight;

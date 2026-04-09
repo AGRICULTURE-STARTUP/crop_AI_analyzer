@@ -96,9 +96,9 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-if os.getenv("DATABASE_URL"):
+'''if os.getenv("DATABASE_URL"):
     DATABASES['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), conn_max_age=600)
-
+'''
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -168,6 +168,11 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Session Management
+SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Allauth Settings
 ACCOUNT_EMAIL_REQUIRED = True

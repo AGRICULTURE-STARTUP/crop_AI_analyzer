@@ -1,44 +1,9 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agriscan | Farmers</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-        <link title="AgriScan"> 
-    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
-</head>
+{% block title %}AgriScan | Farmers{% endblock %}
 
-<body>
-    <header>
-        <h1>Agri<span>Scan</span></h1>
-        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
-            <i class="fa-solid fa-bars open-icon"></i>
-            <i class="fa-solid fa-xmark close-icon" style="display: none;"></i>
-        </button>
-        <nav class="nav_bar" id="navbar">
-            <ul class="nav_list" id="nav-list">
-                <li><a href="{% url 'page' %}"> <i class="fa-solid fa-house"></i>Home</a></li>
-                <li><a href="{% url 'fertiliser' %}"><i class="fa-solid fa-seedling"></i>Agrovet</a></li>
-                <li><a href="{% url 'market_buyers' %}"> <i class="fa-solid fa-shop"></i>Market</a></li>
-                <li><a href="{% url 'farmers' %}"><i class="fa-solid fa-wheat-awn"></i>Farmers</a></li>
-                {% if user.is_authenticated %}
-                <li><a href="{% url 'logout' %}"> <i class="fa-solid fa-user-xmark"></i>Logout </a></li>
-                {% else %}
-                <li><a href="{% url 'login' %}"> <i class="fa-solid fa-user-check"></i>Login</a></li>
-                {% endif %}
-                <li>
-                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-                        <i class="fa-solid fa-moon"></i>
-                        <i class="fa-solid fa-sun"></i>
-                    </button>
-                </li>
-            </ul>
-        </nav>
-    </header>
+{% block content %}
 
 
     <div class="fertilisers-container">
@@ -46,9 +11,9 @@
             <h2>Find Farmers </h2>
             <p>Direct from the farm to your door. Find local producers and their fresh harvests.</p>
             <div class="search-bar" style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
-                <input type="text" id="county-search" placeholder="Enter county to search..." style="padding: 0.8rem 1rem; border: 1px solid #ccc; border-radius: 8px; width: 100%; max-width: 300px; font-size: 1rem; outline: none;">
+                <input type="text" id="county-search" placeholder="Enter county to search..." style="padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; width: 100%; max-width: 300px; font-size: 1rem; outline: none; background: var(--input-bg); color: var(--text-primary);">
                 <button id="search-btn" class="btn-primary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer;">Search</button>
-                <button id="fetch-farmers-btn" class="btn-secondary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; background: #f0f0f0; color: #333; border: 1px solid #ccc;">Show All</button>
+                <button id="fetch-farmers-btn" class="btn-secondary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);">Show All</button>
             </div>
         </div>
 
@@ -126,7 +91,4 @@
             loadFarmers();
         });
     </script>
-    <script src="{% static 'js/script.js' %}?v=1.2"></script>
-</body>
-
-</html>
+{% endblock %}
