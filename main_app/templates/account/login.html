@@ -1,0 +1,128 @@
+{% load static %}
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriScan | Log In to Connect</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
+</head>
+
+<body class="auth-page">
+    <main>
+        <div class="auth-card animate-up" style="max-width: 450px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <a href="{% url 'homepage' %}" style="color: var(--accent-color); text-decoration: none; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+            </div>
+            <div class="auth-header-modern">
+                <h2>Welcome Back</h2>
+                <p>Please confirm your login to connect your account.</p>
+                
+                {% if form.non_field_errors %}
+                <div class="error-message" style="background: var(--error-bg); color: var(--error-text); padding: 0.8rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; text-align: center; border: 1px solid var(--border-color);">
+                    {% for error in form.non_field_errors %}
+                        <p style="margin:0;"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if messages %}
+                <div class="messages" style="margin-top: 1rem;">
+                    {% for message in messages %}
+                        <div style="background: var(--bg-secondary); color: var(--text-primary); padding: 0.8rem; border-radius: 8px; font-size: 0.9rem; text-align: center; border: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+                             {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <form method="post" action="{% url 'account_login' %}">
+                {% csrf_token %}
+                
+                {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+
+                <div class="form-grid" style="grid-template-columns: 1fr;">
+                    {% for field in form %}
+                        {% if field.name == "remember" %}
+                             <div class="form-group full-width" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0;">
+                                 {{ field }}
+                                 <label for="{{ field.id_for_label }}" style="font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; margin: 0;">{{ field.label }}</label>
+                             </div>
+                        {% else %}
+                            <div class="form-group full-width">
+                                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {% if field.field.widget.input_type == 'password' %}
+                                <div class="password-wrapper">
+                                    <input type="password" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-input-modern" placeholder="Enter {{ field.label }}">
+                                    <i class="fa-solid fa-eye password-toggle"></i>
+                                </div>
+                                {% else %}
+                                <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}" class="form-input-modern"
+                                    placeholder="Enter {{ field.label }}" value="{{ field.value|default:'' }}">
+                                {% endif %}
+                                {% if field.errors %}
+                                <div class="error-message" style="color: var(--error-text); font-size: 0.8rem; margin-top: 0.3rem;">
+                                    {{field.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <button type="submit" class="auth-submit-btn" style="margin-top: 1rem;">Log In</button>
+                
+                <div style="margin: 1.5rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">OR</span>
+                    <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+                </div>
+
+                <a href="{% provider_login_url 'google' %}" class="auth-google-btn" style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; text-decoration: none; color: var(--text-primary); font-weight: 500; font-size: 0.95rem; transition: background-color 0.2s, box-shadow 0.2s; background: var(--bg-primary);">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style="width: 20px; height: 20px;">
+                    Sign in with Google
+                </a>
+
+            </form>
+
+            <div class="auth-footer-modern">
+                <a href="{% url 'password_reset' %}" style="display: block; margin-bottom: 1rem;">Forgot Password?</a>
+            </div>
+        </div>
+    </main>
+     <div class="video-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="{% static 'video/8659244-hd_1920_1080_30fps.mp4' %}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const wrapper = this.closest('.password-wrapper');
+                const input = wrapper.querySelector('input');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    this.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
