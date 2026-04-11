@@ -15,18 +15,20 @@
     <main>
         <div class="auth-card animate-up" style="max-width: 450px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                <a href="{% url 'homepage' %}" style="color: var(--accent-color); text-decoration: none; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                <a href="{% url 'homepage' %}"
+                    style="color: var(--accent-color); text-decoration: none; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
                     <i class="fa-solid fa-house"></i> Home
                 </a>
             </div>
             <div class="auth-header-modern">
                 <h2>Sign Up</h2>
                 <p>Welcome to AgriScan! Please create your account.</p>
-                
+
                 {% if form.non_field_errors %}
-                <div class="error-message" style="background: var(--error-bg); color: var(--error-text); padding: 0.8rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; text-align: center; border: 1px solid var(--border-color);">
+                <div class="error-message"
+                    style="background: var(--error-bg); color: var(--error-text); padding: 0.8rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; text-align: center; border: 1px solid var(--border-color);">
                     {% for error in form.non_field_errors %}
-                        <p style="margin:0;">{{ error }}</p>
+                    <p style="margin:0;">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -43,18 +45,19 @@
                             id="{{ field.id_for_label }}" class="form-input-modern"
                             placeholder="Enter {{ field.label }}" value="{{ field.value|default:'' }}">
                         {% if field.errors %}
-                        <div class="error-message" style="color: var(--error-text); font-size: 0.8rem; margin-top: 0.3rem;">
+                        <div class="error-message"
+                            style="color: var(--error-text); font-size: 0.8rem; margin-top: 0.3rem;">
                             {{field.errors.0 }}</div>
                         {% endif %}
                     </div>
                     {% endfor %}
                 </div>
-                
+
                 <button type="submit" class="auth-submit-btn" style="margin-top: 1rem;">Create Account</button>
             </form>
         </div>
     </main>
-     <div class="video-container">
+    <div class="video-container">
         <video autoplay muted loop playsinline class="video-bg">
             <source src="{% static 'video/8659244-hd_1920_1080_30fps.mp4' %}" type="video/mp4">
             Your browser does not support the video tag.
