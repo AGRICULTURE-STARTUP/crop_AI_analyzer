@@ -55,7 +55,6 @@ jsonpatch==1.33
 jsonpointer==3.0.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
-jwt==1.4.0
 keras==3.12.1
 kubernetes==35.0.0
 langchain==1.2.12
@@ -124,6 +123,7 @@ pydantic==2.12.4
 pydantic-settings==2.13.1
 pydantic_core==2.41.5
 Pygments==2.19.2
+PyJWT==2.12.1
 pypdf==6.8.0
 PyPika==0.51.1
 pyproject_hooks==1.2.0
