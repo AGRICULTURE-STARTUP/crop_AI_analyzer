@@ -4,6 +4,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import PasswordResetView
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
 from .models import FarmerProfile, BuyerProfile, AgencyProfile
 from tensorflow.keras.models import load_model
@@ -120,7 +122,11 @@ def page(request):
     return render(request,"index.html")
 
 @login_required(login_url='login')
+@ratelimit(key='user_or_ip', rate='5/m', block=False)
 def process(request):
+    was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
+    if was_limited:
+        return render(request, 'index.html', {'error': 'Too many scan requests. Please wait a minute.'})
     prediction = None
     confidence = None
 
@@ -185,7 +191,11 @@ def process(request):
 
 @csrf_exempt
 @login_required(login_url='login')
+@ratelimit(key='user_or_ip', rate='10/m', block=False)
 def chat(request):
+    was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
+    if was_limited:
+        return JsonResponse({"error": "Rate limit exceeded. Please wait a moment."}, status=429)
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -349,7 +359,11 @@ def chat(request):
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 
+@ratelimit(key='ip', rate='3/m', block=False)
 def signup_farmer(request):
+    was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
+    if was_limited:
+        return render(request, 'signup.html', {'form': SignupFormfarmer(), 'user_type': 'Farmer', 'error': 'Too many registration attempts. Please try again later.'})
     if request.method == 'POST':
         form = SignupFormfarmer(request.POST)
         if not request.POST.get('privacy-accept'):
@@ -370,7 +384,11 @@ def signup_farmer(request):
         form = SignupFormfarmer()
     return render(request, 'signup.html', {'form': form, 'user_type': 'Farmer'})
 
+@ratelimit(key='ip', rate='3/m', block=False)
 def signup_buyer(request):
+    was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
+    if was_limited:
+        return render(request, 'signup.html', {'form': SignupFormbuyer(), 'user_type': 'Buyer', 'error': 'Too many registration attempts. Please try again later.'})
     if request.method == 'POST':
         form = SignupFormbuyer(request.POST)
         if not request.POST.get('privacy-accept'):
@@ -393,7 +411,11 @@ def signup_buyer(request):
         form = SignupFormbuyer()
     return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer'})
 
+@ratelimit(key='ip', rate='3/m', block=False)
 def signup_agency(request):
+    was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
+    if was_limited:
+        return render(request, 'signup.html', {'form': SignupFormagency(), 'user_type': 'Agency', 'error': 'Too many registration attempts. Please try again later.'})
     if request.method == 'POST':
         form = SignupFormagency(request.POST)
         if not request.POST.get('privacy-accept'):
@@ -415,7 +437,11 @@ def signup_agency(request):
         form = SignupFormagency()
     return render(request, 'signup.html', {'form': form, 'user_type': 'Agency'})
 
+@ratelimit(key='ip', rate='5/m', block=False)
 def signin_view(request):
+    was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
+    if was_limited:
+        return render(request, 'signin.html', {'form': AuthenticationForm(), 'error': 'Too many login attempts. Please try again later.'})
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if not request.POST.get('privacy-accept'):
@@ -556,7 +582,17 @@ def farmer_profile_view(request):
     }
     return render(request, 'farmer_profile.html', context)
 
+@method_decorator(ratelimit(key='ip', rate='3/m', block=False), name='dispatch')
 class CustomPasswordResetView(PasswordResetView):
+    def dispatch(self, request, *args, **kwargs):
+        was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
+        if was_limited:
+            return render(request, 'password_reset_form.html', {
+                'form': self.get_form_class()(),
+                'error': 'Too many password reset requests. Please try again later.'
+            })
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         opts = {
             "use_https": self.request.is_secure(),
