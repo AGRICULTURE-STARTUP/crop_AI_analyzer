@@ -3,6 +3,7 @@ from django.http import HttpResponse,JsonResponse
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.views import PasswordResetView
 from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
 from .models import FarmerProfile, BuyerProfile, AgencyProfile
 from tensorflow.keras.models import load_model
@@ -554,4 +555,23 @@ def farmer_profile_view(request):
         'error_message': error_message,
     }
     return render(request, 'farmer_profile.html', context)
+
+class CustomPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        opts = {
+            "use_https": self.request.is_secure(),
+            "token_generator": self.token_generator,
+            "from_email": self.from_email,
+            "email_template_name": self.email_template_name,
+            "subject_template_name": self.subject_template_name,
+            "request": self.request,
+            "html_email_template_name": self.html_email_template_name,
+            "extra_email_context": {
+                 **(self.extra_email_context or {}),
+                 'domain': self.request.get_host(),
+                 'site_name': 'AgriScan'
+            },
+        }
+        form.save(**opts)
+        return super(PasswordResetView, self).form_valid(form)
         
