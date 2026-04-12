@@ -186,13 +186,23 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not DEBUG else 'http'
 SOCIALACCOUNT_AUTO_SIGNUP = False
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+# Load your credentials from environment variables
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+# The email address that emails will appear to come from
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+# Toggle sandbox mode based on your environment
+# If True, emails will NOT actually be sent (good for local testing)
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+# Optional: Disable click tracking if you want clean URLs in your emails
+SENDGRID_TRACK_CLICKS_PLAIN = False
 
 # Production Logging
 LOGGING = {
