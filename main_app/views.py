@@ -68,16 +68,24 @@ KNOWN_CROP_CLASSES = {
   
 }
 
-try:
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    vectorstore = Chroma(
-        persist_directory=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'chroma_db'),
-        embedding_function=embeddings
-    )
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
-except Exception as e:
-    print("Warning: Could not initialize ChromaDB/Embeddings. RAG will not have context.", e)
-    retriever = None
+_retriever_instance = None
+_retriever_initialized = False
+
+def get_retriever():
+    global _retriever_instance, _retriever_initialized
+    if not _retriever_initialized:
+        try:
+            embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+            vectorstore = Chroma(
+                persist_directory=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'chroma_db'),
+                embedding_function=embeddings
+            )
+            _retriever_instance = vectorstore.as_retriever(search_kwargs={"k": 3})
+        except Exception as e:
+            print("Warning: Could not initialize ChromaDB/Embeddings. RAG will not have context.", e)
+            _retriever_instance = None
+        _retriever_initialized = True
+    return _retriever_instance
 
 def get_crop_model(crop_selection):
     """Determines model path, downloads from HF if needed, and loads it."""
@@ -240,9 +248,10 @@ def chat(request):
                     pass
 
         context_text = ""
-        if retriever:
+        retriever_instance = get_retriever()
+        if retriever_instance:
             try:
-                docs = retriever.invoke(user_message)
+                docs = retriever_instance.invoke(user_message)
                 context_text = "\n            Relevant Context from Documents:\n            " + "\n            ".join([doc.page_content.replace("\n", " ") for doc in docs])
             except Exception as e:
                 print("Error retrieving context:", e)
