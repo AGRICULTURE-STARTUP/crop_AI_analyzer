@@ -30,6 +30,11 @@ To build a sustainable agricultural future where every farmer has an AI agronomi
 - **Buyer/Market**: Discover fresh produce directly from the source.
 - **Agro-Agencies**: Connect with farmers to provide fertilizers, seeds, and pesticides.
 
+### 💰 Micro-Lending & Farm Health Score
+- **Dynamic Scoring**: Generates a verifiable Farm Health Score (300-850) factoring in AI scan frequency, healthy crop ratios, and marketplace transactions.
+- **Fintech Integration API**: Secure, token-authorized REST API for partnered financial institutions to retrieve real-time farmer risk tiers.
+- **Consent-based Data Sharing**: Built-in privacy controls allowing farmers to explicitly opt-in to share their digital footprints to unlock non-collateral loans.
+
 ---
 
 ## 🛠️ Technical Architecture
