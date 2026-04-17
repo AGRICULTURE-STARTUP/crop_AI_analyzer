@@ -184,7 +184,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
         }
-        @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
 
         .form-group {
             display: flex;
@@ -453,6 +453,38 @@
             margin-top: 1.4rem;
         }
 
+        /* ── RESPONSIVE BOXES ───────────────────────────── */
+        .health-score-box {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(56,142,60,0.05);
+            border-radius: 12px;
+            border: 1px solid var(--border-muted);
+        }
+        .opt-in-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1.5px solid var(--border-muted);
+            margin-top: 1rem;
+        }
+        @media (max-width: 768px) {
+            .health-score-box {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            .opt-in-box {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.8rem;
+            }
+        }
+
         /* ── SPINNER (save feedback) ────────────────────── */
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.7s linear infinite; }
@@ -563,7 +595,7 @@
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(56,142,60,0.05); border-radius: 12px; border: 1px solid var(--border-muted);">
+                <div class="health-score-box">
                     <div style="text-align: center;">
                         <div style="font-size: 3rem; font-weight: 800; color: var(--green-700); line-height: 1;">{{ health_profile.health_score|default:"300" }}</div>
                         <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Out of 850</div>
@@ -591,7 +623,7 @@
                     <input type="hidden" name="county" value="{{ farmer_profile.county }}">
                     <input type="hidden" name="country" value="{{ farmer_profile.country }}">
 
-                    <div style="display: flex; align-items: flex-start; gap: 1rem; padding-top: 0.5rem; border-top: 1.5px solid var(--border-muted); margin-top: 1rem;">
+                    <div class="opt-in-box">
                         <input type="checkbox" id="opt_in_for_lending" name="opt_in_for_lending" style="width: 1.2rem; height: 1.2rem; margin-top: 0.2rem; cursor: pointer;" {% if health_profile.opt_in_for_lending %}checked{% endif %}>
                         <div>
                             <label for="opt_in_for_lending" style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); cursor: pointer;">Opt-in to Financial Data Sharing</label>
