@@ -41,4 +41,7 @@ urlpatterns = [
     path('farmers', views.farmer_view, name='farmers'),
     path('farmer_data/', views.farmer_display, name='farmer_data'),
     path('profile/farmer/', views.farmer_profile_view, name='farmer_profile'),
+    
+    # --- Micro-Lending API ---
+    path('api/v1/lending/score/', views.farm_health_score_api, name='farm_health_score_api'),
 ]

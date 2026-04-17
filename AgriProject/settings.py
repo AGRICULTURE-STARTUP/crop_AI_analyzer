@@ -94,11 +94,10 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
+
 }
 if os.getenv("DATABASE_URL"):
-    DATABASES['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), conn_max_age=600)
-
-# Password validation
+    DATABASES['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), conn_max_age=60# Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [

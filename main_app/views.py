@@ -7,7 +7,8 @@ from django.contrib.auth.views import PasswordResetView
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
-from .models import FarmerProfile, BuyerProfile, AgencyProfile
+from .models import FarmerProfile, BuyerProfile, AgencyProfile, CropScanLog, PartnerAPIKey, FarmHealthProfile
+from .utils_scoring import calculate_farm_health_score
 from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.preprocessing import image
@@ -178,6 +179,20 @@ def process(request):
         prediction = crop_classes[predicted_class_index]
             
         confidence = round(100 * np.max(predictions[0]), 2)
+        
+        # --- FARMSCAN LOGGING FOR LENDING SCORE ---
+        if request.user.is_authenticated:
+            try:
+                farmer = request.user.farmer_profile
+                CropScanLog.objects.create(
+                    farmer=farmer,
+                    crop_type=crop_selection,
+                    result=prediction,
+                    confidence_score=confidence / 100.0, # Store as ratio 0-1
+                    location=farmer.county
+                )
+            except Exception as e:
+                pass # E.g., user is a Buyer/Agency, not Farmer
 
         
         os.remove(temp_path)
@@ -597,6 +612,14 @@ def farmer_profile_view(request):
         farmer_profile.county = county
         farmer_profile.country = country
         farmer_profile.save()
+        
+        # --- Opt-in for lending ---
+        opt_in = request.POST.get('opt_in_for_lending') == 'on'
+        health_profile = getattr(farmer_profile, 'health_profile', None)
+        if health_profile:
+            health_profile.opt_in_for_lending = opt_in
+            health_profile.save()
+
         success_message = 'Profile updated successfully!'
 
     # Parse the comma-separated products string into a clean list
@@ -610,8 +633,12 @@ def farmer_profile_view(request):
         if 'error' in weather_data:
             weather_data = None
 
+    # Calculate Farm Health Score
+    health_profile = calculate_farm_health_score(farmer_profile)
+
     context = {
         'farmer_profile': farmer_profile,
+        'health_profile': health_profile,
         'crops_list': crops_list,
         'weather_data': weather_data,
         'success_message': success_message,
@@ -638,7 +665,7 @@ class CustomPasswordResetView(PasswordResetView):
             "email_template_name": self.email_template_name,
             "subject_template_name": self.subject_template_name,
             "request": self.request,
-            "html_email_template_name": self.html_email_template_name,
+             "html_email_template_name": self.html_email_template_name,
             "extra_email_context": {
                  **(self.extra_email_context or {}),
                  'domain': self.request.get_host(),
@@ -647,4 +674,45 @@ class CustomPasswordResetView(PasswordResetView):
         }
         form.save(**opts)
         return super(PasswordResetView, self).form_valid(form)
+
+@csrf_exempt
+def farm_health_score_api(request):
+    """Secure endpoint for fintech/banks to fetch a farmer's health score."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    token = auth_header.split(' ')[1]
+    try:
+        partner = PartnerAPIKey.objects.get(api_key=token, is_active=True)
+    except PartnerAPIKey.DoesNotExist:
+        return JsonResponse({'error': 'Invalid or inactive API key'}, status=401)
+        
+    phone = request.GET.get('phone')
+    if not phone:
+        return JsonResponse({'error': 'Phone parameter is required'}, status=400)
+    
+    try:
+        farmer = FarmerProfile.objects.get(phone_number=phone)
+        try:
+            health_profile = farmer.health_profile # Handled by signal
+        except FarmHealthProfile.DoesNotExist:
+            return JsonResponse({'error': 'Farmer profile not fully initialized'}, status=500)
+        
+        if not health_profile.opt_in_for_lending:
+            return JsonResponse({'error': 'User has not consented to data sharing'}, status=403)
+            
+        return JsonResponse({
+            'farmer_name': f"{farmer.user.first_name} {farmer.user.last_name}".strip() or farmer.user.username,
+            'county': farmer.county,
+            'health_score': health_profile.health_score,
+            'risk_tier': health_profile.risk_tier,
+            'active_connections': farmer.market_connections.filter(status='Completed').count(),
+            'total_scans': farmer.scan_logs.count()
+        }, status=200)
+    except FarmerProfile.DoesNotExist:
+         return JsonResponse({'error': 'Farmer not found'}, status=404)
         

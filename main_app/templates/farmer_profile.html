@@ -553,6 +553,57 @@
         <!-- ── RIGHT COLUMN ─────────────────────────────── -->
         <div style="display:flex; flex-direction:column; gap:1.8rem;">
 
+            <!-- Farm Health Score & Micro-Lending Card -->
+            <div class="glass-card">
+                <div class="profile-card-header">
+                    <div class="card-header-icon" style="background: linear-gradient(135deg, var(--amber), var(--amber-dark));"><i class="fa-solid fa-chart-pie"></i></div>
+                    <div>
+                        <h2>Farm Health Score</h2>
+                        <span>Lending & Credit Profile</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(56,142,60,0.05); border-radius: 12px; border: 1px solid var(--border-muted);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; font-weight: 800; color: var(--green-700); line-height: 1;">{{ health_profile.health_score|default:"300" }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Out of 850</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem;">
+                            Risk Tier: 
+                            <span style="color: {% if health_profile.risk_tier == 'Low Risk' %}var(--green-500){% elif health_profile.risk_tier == 'Medium Risk' %}var(--amber-dark){% else %}#d32f2f{% endif %};">
+                                {{ health_profile.risk_tier|default:"High Risk" }}
+                            </span>
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.4;">
+                            Scan crops regularly, ensure a high healthy-crop ratio, and connect with buyers to increase your score and unlock micro-loans.
+                        </p>
+                    </div>
+                </div>
+
+                <form method="POST" action="{% url 'farmer_profile' %}">
+                    {% csrf_token %}
+                    <!-- Include hidden fields to preserve personal details when this specific form submits -->
+                    <input type="hidden" name="first_name" value="{{ request.user.first_name }}">
+                    <input type="hidden" name="last_name" value="{{ request.user.last_name }}">
+                    <input type="hidden" name="email" value="{{ request.user.email }}">
+                    <input type="hidden" name="phone_number" value="{{ farmer_profile.phone_number }}">
+                    <input type="hidden" name="county" value="{{ farmer_profile.county }}">
+                    <input type="hidden" name="country" value="{{ farmer_profile.country }}">
+
+                    <div style="display: flex; align-items: flex-start; gap: 1rem; padding-top: 0.5rem; border-top: 1.5px solid var(--border-muted); margin-top: 1rem;">
+                        <input type="checkbox" id="opt_in_for_lending" name="opt_in_for_lending" style="width: 1.2rem; height: 1.2rem; margin-top: 0.2rem; cursor: pointer;" {% if health_profile.opt_in_for_lending %}checked{% endif %}>
+                        <div>
+                            <label for="opt_in_for_lending" style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); cursor: pointer;">Opt-in to Financial Data Sharing</label>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">By checking this box, I legally allow AgriScan to securely share my Farm Health Score with partnered banks and fintechs.</p>
+                            <button type="submit" class="btn-save" style="margin-top: 1rem; padding: 0.6rem 1.5rem; font-size: 0.85rem;" onclick="this.innerHTML='<i class=\\'fa-solid fa-circle-notch spin\\'></i> Updating...';">
+                                <i class="fa-solid fa-shield-halved"></i> Update Consent
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             <!-- Personal Details Form -->
             <div class="glass-card">
                 <div class="profile-card-header">
