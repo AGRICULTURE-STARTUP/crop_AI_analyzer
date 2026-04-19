@@ -142,11 +142,27 @@ STATIC_URL = "/" \
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = '/media/'
-# Use Cloudinary for media storage in production (if CLOUDINARY_URL is present)
+
+# Modern Django 5.x Storage Configuration
 if os.getenv('CLOUDINARY_URL'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 else:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 
 CLOUDINARY_STORAGE = {
     'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL')
