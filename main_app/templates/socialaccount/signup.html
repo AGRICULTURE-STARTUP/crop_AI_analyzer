@@ -22,7 +22,7 @@
             </div>
             <div class="auth-header-modern">
                 <h2>Almost There</h2>
-                <p>You are about to use your Google account to log in. As a final step, please confirm your username.</p>
+                <p>You are about to use your Google account to log in. As a final step, please confirm your details and choose your role.</p>
                 
                 {% if form.non_field_errors %}
                 <div class="error-message" style="background: var(--error-bg); color: var(--error-text); padding: 0.8rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; text-align: center; border: 1px solid var(--border-color);">
@@ -49,9 +49,21 @@
                         {% endif %}
                     </div>
                     {% endfor %}
+
+                    <!-- Custom Role Selection for Social Users -->
+                    <div class="form-group full-width" style="margin-top: 1rem;">
+                        <label class="form-label">Account Type (Role)</label>
+                        <select name="user_type" class="form-input-modern" required style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--bg-secondary); color: var(--text-primary);">
+                            <option value="" disabled selected>Select your role...</option>
+                            <option value="farmer">Farmer (Scan crops & sell)</option>
+                            <option value="buyer">Buyer (Purchase produce)</option>
+                            <option value="agency">Agrovet (Sell seeds/fertilisers)</option>
+                        </select>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">This determines which dashboard you will use.</p>
+                    </div>
                 </div>
                 
-                <button type="submit" class="auth-submit-btn" style="margin-top: 1rem;">Finalize Account</button>
+                <button type="submit" class="auth-submit-btn" style="margin-top: 1.5rem; background: var(--accent-color); color: white; border: none; padding: 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%;">Finalize Account</button>
             </form>
         </div>
     </main>
