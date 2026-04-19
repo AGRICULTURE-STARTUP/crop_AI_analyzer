@@ -24,37 +24,126 @@
         </div>
     </div>
 
+    <style>
+        .product-card {
+            background: var(--surface-color, #fff);
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .product-image {
+            width: 100%;
+            height: auto;
+            max-height: 250px;
+            object-fit: contain;
+            display: block;
+            background: #fdfdfd;
+            padding: 5px;
+        }
+        .product-image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 3rem;
+        }
+        .product-details {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .product-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-color, #333);
+        }
+        .product-price {
+            font-size: 1.4rem;
+            color: var(--primary-color, #27ae60);
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .product-meta {
+            font-size: 0.9rem;
+            color: var(--text-muted, #777);
+            margin-bottom: 0.5rem;
+        }
+        .product-agency {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color, #eee);
+            padding-top: 1rem;
+        }
+        .buy-btn {
+            display: block;
+            text-align: center;
+            background: #25D366; /* WhatsApp Green */
+            color: white;
+            padding: 0.8rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 1rem;
+            transition: background 0.3s;
+        }
+        .buy-btn:hover {
+            background: #128C7E;
+            color: white;
+        }
+    </style>
+
     <script>
-        function renderFirms(firmList) {
+        function renderProducts(productList) {
             const grid = document.getElementById('firms-grid');
             grid.innerHTML = '';
-            if (firmList && firmList.length > 0) {
-                firmList.forEach((firm, index) => {
+            if (productList && productList.length > 0) {
+                productList.forEach((prod, index) => {
                     const card = document.createElement('div');
-                    card.className = 'firm-card animate-up';
+                    card.className = 'product-card animate-up';
                     card.style.animationDelay = `${index * 0.1}s`;
+                    
+                    let imageHtml = prod.image_url 
+                        ? `<img src="${prod.image_url}" class="product-image" alt="${prod.name}">` 
+                        : `<div class="product-image-placeholder"><i class="fa-solid fa-box"></i></div>`;
+
+                    let phone = prod.support_phone ? prod.support_phone.replace(/\D/g, '') : '';
+                    let contactBtn = phone 
+                        ? `<a href="https://wa.me/${phone}?text=Hi, Im interested in your ${encodeURIComponent(prod.name)} on AgriScan." target="_blank" class="buy-btn"><i class="fa-brands fa-whatsapp"></i> Buy via WhatsApp</a>`
+                        : `<p style="color:var(--text-muted); font-size: 0.85rem; margin-top:1rem; text-align:center;">No contact number available</p>`;
 
                     card.innerHTML = `
-                        <div class="card-header">
-                            <h3>${firm.name || 'Unknown Agency'}</h3>
-                            <span class="badge ${firm.agency_type}">${firm.agency_type}</span>
-                        </div>
-                        <div class="card-body">
-                            <p><span class="icon">📍</span> ${firm.location || 'Location missing'}</p>
-                            <p><span class="icon">✉️</span> <a href="mailto:${firm.email}">${firm.email || 'No email provided'}</a></p>
-                            <p><span class="icon">📞</span> ${firm.support_phone || 'No phone provided'}</p>
-                            <p class="contact"><a href="https://wa.me/${firm.support_phone.replace(/\D/g, '')}" target="_blank" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i>Contact Now</a></p>
-
+                        ${imageHtml}
+                        <div class="product-details">
+                            <h3 class="product-title">${prod.name || 'Unnamed Product'}</h3>
+                            <div class="product-price">KES ${prod.price || '0.00'}</div>
+                            ${prod.description ? `<p class="product-meta" style="margin-bottom: 1rem;">${prod.description}</p>` : ''}
+                            
+                            <div class="product-agency">
+                                <p style="font-weight:600; color:var(--text-color); margin-bottom: 0.25rem;"><i class="fa-solid fa-store" style="color:var(--primary-color);"></i> ${prod.agency_name}</p>
+                                <p class="product-meta"><i class="fa-solid fa-location-dot"></i> ${prod.location || 'Unknown Location'}</p>
+                                <p class="product-meta" style="text-transform: capitalize;"><i class="fa-solid fa-tag"></i> ${prod.agency_type}</p>
+                                ${contactBtn}
+                            </div>
                         </div>
                     `;
                     grid.appendChild(card);
                 });
             } else {
-                grid.innerHTML = '<div class="no-results">no registerd agrovet in the area</div>';
+                grid.innerHTML = '<div class="no-results" style="grid-column: 1/-1; text-align:center; padding: 4rem;">No products found matching your search.</div>';
             }
         }
 
-        function loadFirms(filterLocation = '') {
+        function loadProducts(searchTerm = '') {
             const grid = document.getElementById('firms-grid');
             const searchBtn = document.getElementById('search-btn');
             const fetchAllBtn = document.getElementById('fetch-firms-btn');
@@ -66,15 +155,20 @@
             fetch('/fertiliser_firms/')
                 .then(response => response.json())
                 .then(data => {
-                    let list = data.fertiliser_firm || [];
-                    if (filterLocation) {
-                        list = list.filter(f => f.location && f.location.toLowerCase().includes(filterLocation.toLowerCase()));
+                    let list = data.products || [];
+                    if (searchTerm) {
+                        const term = searchTerm.toLowerCase();
+                        list = list.filter(p => 
+                            (p.name && p.name.toLowerCase().includes(term)) || 
+                            (p.location && p.location.toLowerCase().includes(term)) ||
+                            (p.agency_name && p.agency_name.toLowerCase().includes(term))
+                        );
                     }
-                    renderFirms(list);
+                    renderProducts(list);
                 })
                 .catch(error => {
-                    console.error('Error fetching firms:', error);
-                    grid.innerHTML = '<div class="error-msg">Failed to load directory. Please try again later.</div>';
+                    console.error('Error fetching products:', error);
+                    grid.innerHTML = '<div class="error-msg" style="grid-column: 1/-1; text-align:center; padding: 4rem; color:red;">Failed to load catalogue. Please try again later.</div>';
                 })
                 .finally(() => {
                     if(searchBtn) { searchBtn.disabled = false; searchBtn.textContent = 'Search'; }
@@ -83,13 +177,18 @@
         }
 
         document.getElementById('search-btn').addEventListener('click', function() {
-            const loc = document.getElementById('county-search').value.trim();
-            loadFirms(loc);
+            const term = document.getElementById('county-search').value.trim();
+            loadProducts(term);
         });
 
         document.getElementById('fetch-firms-btn').addEventListener('click', function() {
             document.getElementById('county-search').value = '';
-            loadFirms();
+            loadProducts();
+        });
+        
+        // Initial load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
         });
     </script>
 

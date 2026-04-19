@@ -42,6 +42,18 @@ class AgencyProfile(models.Model):
         return f"{self.user.username} - {self.get_agency_type_display()}"
 
 
+class AgencyProduct(models.Model):
+    agency = models.ForeignKey(AgencyProfile, on_delete=models.CASCADE, related_name='products')
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Cost in local currency")
+    image = models.ImageField(upload_to='uploads/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.agency.name}"
+
+
 # --- Micro-Lending & Farm Health Models ---
 
 class CropScanLog(models.Model):

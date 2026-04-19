@@ -7,7 +7,7 @@ from django.contrib.auth.views import PasswordResetView
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
-from .models import FarmerProfile, BuyerProfile, AgencyProfile, CropScanLog, PartnerAPIKey, FarmHealthProfile
+from .models import FarmerProfile, BuyerProfile, AgencyProfile, CropScanLog, PartnerAPIKey, FarmHealthProfile, AgencyProduct
 from .utils_scoring import calculate_farm_health_score
 from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import Dense
@@ -94,7 +94,7 @@ def is_plant_image(img_path):
     return is_valid
 
 beans_classes = ['angular_leaf_spot', 'anthracnose', 'bean_rust', 'healthy', 'mosaic_virus']
-cabbage_classes = ["Cabbage___Alternaria_Leaf_Spot", "Cabbage___Bacterial_spot_rot", "Cabbage___Black_Rot", "Cabbage___Cabbage_aphid_colony", "Cabbage___Downy_Mildew", "Cabbage___Healthy", "Cabbage___Ring_Spot"]
+cabbage_classes= ['Cabbage___Alternaria_Leaf_Spot', 'Cabbage___Black_Rot', 'Cabbage___Cabbage_aphid_colony', 'Cabbage___Downy_Mildew', 'Cabbage___Healthy', 'Cabbage___Ring_Spot']
 tomato_classes = ['bacterial_spot', 'early_blight', 'healthy', 'late_blight', 'leaf_mold', 'mosaic_virus', 'septoria_leaf_spot', 'spider_mite', 'target_spot', 'yellow_leaf__curl_Virus']
 potato_classes = ['Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy']
 capsicum_classes = ['Capsicum___Bacterial_spot', 'Capsicum___healthy']
@@ -105,19 +105,32 @@ default_class_names = maize_classes
 onion_classes = ['Onion___Alternaria_D', 'Onion___Botrytis_Leaf_Blight', 'Onion___Healthy', 'Onion___Purple_blotch', 'Onion___Virosis-D']
 wheat_classes = ['Wheat___black_rust', 'Wheat___brown_rust', 'Wheat___healthy', 'Wheat___leaf_blight', 'Wheat___mildew', 'Wheat___mite', 'Wheat___septoria']
 cauliflower_classes= ['Cauliflower___Bacterial_spot_rot', 'Cauliflower___Black_Rot', 'Cauliflower___Downy_Mildew', 'Cauliflower___Healthy']
+apple_classes = ['Apple_Scab', 'Apple_rust_leaf', 'Black_Rot', 'Cedar_Apple_Rust', 'Healthy']
+ball_pepper_classes = ['Bacterial_Spot', 'Healthy']
+cashew_nuts_classes = ['Cashew_anthracnose', 'Cashew_gumosis', 'Cashew_healthy', 'Cashew_leaf_miner', 'Cashew_red_rust']
+cassava_classes = ['Cassava_bacterial_blight', 'Cassava_brown_spot', 'Cassava_green_mite', 'Cassava_healthy', 'Cassava_mosaic']
+chilly_classes = ['Chili__healthy', 'Chili__leaf curl', 'Chili__leaf spot', 'Chili__whitefly', 'Chili__yellowish']
+sugarcane_classes = ['Healthy', 'Mosaic', 'RedRot', 'RedRust', 'YellowRust ']
+grape_classes = ['Black_Rot', 'Esca_(Black Measles)', 'Healthy', 'Leaf_Blight']
 KNOWN_CROP_CLASSES = {
     'wheat': wheat_classes,
     'maize': maize_classes,
     'potato': potato_classes,
     'beans': beans_classes,
     'cabbage': cabbage_classes,
+    'cassava': cassava_classes,
     'tomato': tomato_classes,
     'capsicum': capsicum_classes,
     'cucumber': cucumber_classes,
     'onion': onion_classes,
     'pea': pea_classes,
     'cauliflower': cauliflower_classes,
-   
+    'apple': apple_classes,
+    'ball_pepper': ball_pepper_classes,
+    'cashew_nuts': cashew_nuts_classes,
+    'chilly': chilly_classes,
+    'sugarcane': sugarcane_classes,
+    'grape': grape_classes,
   
 }
 
@@ -181,6 +194,10 @@ def get_crop_model(crop_selection):
 
 @login_required(login_url='login')
 def page(request):
+    if hasattr(request.user, 'buyer_profile'):
+        return redirect('buyer_dashboard_view')
+    elif hasattr(request.user, 'agency_profile'):
+        return redirect('agency_dashboard_view')
     return render(request,"index.html")
 
 @login_required(login_url='login')
@@ -567,9 +584,14 @@ def signin_view(request):
             return render(request, 'signin.html', {'form': form, 'error': 'You must accept the Privacy Policy to log in.'})
         if form.is_valid():
             user = form.get_user()
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-
-            return redirect('page')
+            if hasattr(user, 'farmer_profile'):
+                return redirect('page')
+            elif hasattr(user, 'buyer_profile'):
+                return redirect('buyer_dashboard_view')
+            elif hasattr(user, 'agency_profile'):
+                return redirect('agency_dashboard_view')
+            else:
+                return redirect('page')
     else:
         form = AuthenticationForm()
     return render(request, 'signin.html', {'form': form})
@@ -591,9 +613,22 @@ def privacy_policy_view(request):
 @login_required(login_url='login')
 def fertiliser_display(request):
     if request.method== 'GET':
-        fertiliser_firm=AgencyProfile.objects.all().values()
-        data=list(fertiliser_firm)
-        return JsonResponse({'fertiliser_firm' : data})
+        products = AgencyProduct.objects.select_related('agency').all()
+        data = []
+        for p in products:
+            data.append({
+                'id': p.id,
+                'name': p.name,
+                'price': str(p.price),
+                'description': p.description or '',
+                'image_url': request.build_absolute_uri(p.image.url) if p.image and hasattr(p.image, 'url') else '',
+                'agency_name': p.agency.name,
+                'agency_type': p.agency.agency_type,
+                'location': p.agency.location,
+                'support_phone': p.agency.support_phone,
+                'agency_email': p.agency.email
+            })
+        return JsonResponse({'products' : data})
 @login_required(login_url='login')
 def market_view(request):
     return render(request,"market_buyers.html")
@@ -782,4 +817,85 @@ def farm_health_score_api(request):
         }, status=200)
     except FarmerProfile.DoesNotExist:
          return JsonResponse({'error': 'Farmer not found'}, status=404)
+
+
+@login_required(login_url='login')
+def buyer_dashboard_view(request):
+    try:
+        buyer_profile = request.user.buyer_profile
+    except BuyerProfile.DoesNotExist:
+        return redirect('page')
+
+    success_message = None
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        county = request.POST.get('county', '').strip()
+        country = request.POST.get('country', '').strip()
+
+        # Update BuyerProfile
+        if first_name: buyer_profile.first_name = first_name
+        if email: buyer_profile.email = email
+        if phone_number: buyer_profile.phone_number = phone_number
+        if county: buyer_profile.county = county
+        if country: buyer_profile.country = country
         
+        buyer_profile.save()
+        success_message = "Profile updated successfully."
+
+    farmers = FarmerProfile.objects.all()
+
+    context = {
+        'buyer_profile': buyer_profile,
+        'farmers': farmers,
+        'success_message': success_message
+    }
+    return render(request, 'buyer_dashboard.html', context)
+
+
+@login_required(login_url='login')
+def agency_dashboard_view(request):
+    try:
+        agency_profile = request.user.agency_profile
+    except AgencyProfile.DoesNotExist:
+        return redirect('page')
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        image = request.FILES.get('image')
+        
+        # Debugging print (will show in server console)
+        print(f"DEBUG: Processing upload for {name}. Image in FILES: {image}")
+
+        if name and price:
+            AgencyProduct.objects.create(
+                agency=agency_profile,
+                name=name,
+                description=description,
+                price=price,
+                image=image
+            )
+            return redirect('agency_dashboard_view')
+
+    products = agency_profile.products.all()
+
+    context = {
+        'agency_profile': agency_profile,
+        'products': products
+    }
+    return render(request, 'agency_dashboard.html', context)
+
+
+@login_required(login_url='login')
+def delete_product(request, product_id):
+    try:
+        # Ensure only the owner can delete
+        product = AgencyProduct.objects.get(id=product_id, agency=request.user.agency_profile)
+        product.delete()
+    except (AgencyProduct.DoesNotExist, AttributeError):
+        pass
+    return redirect('agency_dashboard_view')

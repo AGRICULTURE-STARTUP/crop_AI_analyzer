@@ -21,12 +21,26 @@
             <ul class="nav_list">
                 <li><a href="{% url 'homepage' %}">Home</a></li>
                 {% if user.is_authenticated %}
-                <li><a href="{% url 'page' %}">Scanner</a></li>
-                <li><a href="{% url 'fertiliser' %}">Agrovet</a></li>
-                <li><a href="{% url 'market_buyers' %}">Market</a></li>
-                <li><a href="{% url 'farmers' %}">Farmers</a></li>
+                {% if hasattr|default_if_none:"" %}{# we can't reliably call hasattr in templates. Instead we check profiles #}
+                {% endif %}
+                
                 {% if user.farmer_profile %}
-                <li><a href="{% url 'farmer_profile' %}">Profile</a></li>
+                    <li><a href="{% url 'page' %}">Scanner</a></li>
+                    <li><a href="{% url 'fertiliser' %}">Agrovet</a></li>
+                    <li><a href="{% url 'market_buyers' %}">Market</a></li>
+                    <li><a href="{% url 'farmers' %}">Farmers</a></li>
+                    <li><a href="{% url 'farmer_profile' %}">Profile</a></li>
+                {% elif user.buyer_profile %}
+                    <li><a href="{% url 'buyer_dashboard_view' %}">My Profile</a></li>
+                    <li><a href="{% url 'farmers' %}">Farmers List</a></li>
+                {% elif user.agency_profile %}
+                    <li><a href="{% url 'agency_dashboard_view' %}">My Products</a></li>
+                {% else %}
+                    <!-- Fallback -->
+                    <li><a href="{% url 'page' %}">Scanner</a></li>
+                    <li><a href="{% url 'fertiliser' %}">Agrovet</a></li>
+                    <li><a href="{% url 'market_buyers' %}">Market</a></li>
+                    <li><a href="{% url 'farmers' %}">Farmers</a></li>
                 {% endif %}
                 <li><a href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
