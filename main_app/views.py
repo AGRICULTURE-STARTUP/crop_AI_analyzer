@@ -12,7 +12,7 @@ from .utils_scoring import calculate_farm_health_score
 from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.efficientnet import preprocess_input
+from tensorflow.keras.applications.efficientnet import preprocess_input, EfficientNetB0, decode_predictions
 
 
 class SafeDense(Dense):
@@ -39,6 +39,59 @@ from huggingface_hub import hf_hub_download
 
 # Cache for dynamically loaded models
 loaded_models = {}
+
+# Gatekeeper model cache
+_gatekeeper_model = None
+
+def get_gatekeeper():
+    global _gatekeeper_model
+    if _gatekeeper_model is None:
+        _gatekeeper_model = EfficientNetB0(weights='imagenet')
+    return _gatekeeper_model
+
+def is_plant_image(img_path):
+    """
+    Returns True if the image is likely a plant/crop, False if it's a known non-plant.
+    Uses a pre-trained ImageNet EfficientNetB0 to filter out obvious out-of-distribution images.
+    """
+    model = get_gatekeeper()
+    img = image.load_img(img_path, target_size=(224, 224))
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = preprocess_input(img_array)
+    
+    preds = model.predict(img_array)
+    decoded = decode_predictions(preds, top=5)[0]
+    
+    # Debugging: Print exactly what ImageNet thinks it is
+    print(f"\n--- GATEKEEPER IMAGE-NET PREDICTIONS ---")
+    for i, (imagenet_id, label, score) in enumerate(decoded):
+        print(f"{i + 1}: {label} ({score * 100:.2f}%)")
+    print("----------------------------------------\n")
+    
+    # We use a whitelist approach now (much stricter)
+    # ImageNet has very specific classes, so we include common plant/nature words and textures leaves get confused for.
+    plant_whitelist = [
+        'plant', 'leaf', 'flower', 'tree', 'grass', 'daisy', 'pot', 'earthstar',
+        'corn', 'cabbage', 'cucumber', 'zucchini', 'bell_pepper', 'strawberry', 
+        'orange', 'lemon', 'fig', 'pineapple', 'banana', 'apple', 'broccoli', 
+        'cauliflower', 'artichoke', 'turnip', 'mushroom', 'agaric', 'gyromitra', 
+        'stinkhorn', 'bolete', 'ear', 'greenhouse', 'buckeye', 'acorn', 'rapeseed',
+        'velvet', 'wool', 'sponge', 'doormat', 'doily', 'shower_cap', 'nematode', 
+        'slug', 'snail', 'ladybug', 'fly', 'ant', 'grasshopper', 'cricket', 'mantis',
+        'leafhopper', 'lacewing', 'dragonfly', 'damselfly', 'admiral', 'ringlet',
+        'sulphur_butterfly', 'lycaenid', 'hay', 'head_cabbage', 'macaw', 'tailed_frog'
+    ]
+    
+    # Check if ANY of the top-5 predictions correspond to our whitelist
+    is_valid = False
+    for _, label, conf in decoded:
+        label_lower = label.lower()
+        if any(w in label_lower for w in plant_whitelist):
+            is_valid = True
+            break
+            
+    return is_valid
 
 beans_classes = ['angular_leaf_spot', 'anthracnose', 'bean_rust', 'healthy', 'mosaic_virus']
 cabbage_classes = ["Cabbage___Alternaria_Leaf_Spot", "Cabbage___Bacterial_spot_rot", "Cabbage___Black_Rot", "Cabbage___Cabbage_aphid_colony", "Cabbage___Downy_Mildew", "Cabbage___Healthy", "Cabbage___Ring_Spot"]
@@ -169,6 +222,11 @@ def process(request):
         if crop_selection not in KNOWN_CROP_CLASSES:
              # Fallback to default or error
              crop_selection = 'maize'
+        
+        # 5. ImageNet Gatekeeper (OOD Check)
+        if not is_plant_image(temp_path):
+             os.remove(temp_path)
+             return render(request, 'index.html', {'error': 'Image does not appear to be a plant. Please upload a clear leaf photo.'})
         
         
         current_model = get_crop_model(crop_selection)

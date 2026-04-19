@@ -10,6 +10,13 @@
             <div class="container">
                 <h1>welcome to AgriScan</h1>
                 <h5>submit your image for scanning and prediction</h5>
+                
+                {% if error %}
+                <div class="error-message" style="color: #d8000c; background-color: #ffd2d2; padding: 12px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; border: 1px solid #d8000c; text-align: center;">
+                    ⚠️ {{ error }}
+                </div>
+                {% endif %}
+
                 <form action="/process" method="post" enctype="multipart/form-data" id="upload-form">
                     {% csrf_token %}
                     <div class="crop-selection">
