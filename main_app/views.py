@@ -584,6 +584,8 @@ def signin_view(request):
             return render(request, 'signin.html', {'form': form, 'error': 'You must accept the Privacy Policy to log in.'})
         if form.is_valid():
             user = form.get_user()
+            login(request, user)
+            
             if hasattr(user, 'farmer_profile'):
                 return redirect('page')
             elif hasattr(user, 'buyer_profile'):
