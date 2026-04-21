@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriScan</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="icon" type="image/png" href="{% static 'images/agriscan_favicon.png' %}">
 </head>
 
@@ -37,6 +38,9 @@
             <p class="slogan animate-up-delay-1">Redefining Agriculture through AI</p>
             <div class="cta-group animate-up-delay-2">
                 <a href="{% url 'homepage' %}" class="btn-primary">Get Started</a>
+                <a href="{% static 'downloads/app-debug.apk' %}" class="btn-secondary" download>
+                    <i class="fa-brands fa-android"></i> Download App
+                </a>
             </div>
         </div>
     </div>

@@ -1,110 +1,102 @@
-# AgriScan System Documentation
+# 📖 AgriScan Technical Documentation
 
-Welcome to the **AgriScan** documentation. This document provides a comprehensive overview of the platform's architecture, security, features, and technical implementation.
-
----
-
-## 🚀 Project Overview
-**AgriScan** is an AI-powered agricultural platform designed to empower small-scale farmers with advanced diagnostic tools, real-time insights, and a connected community. Its mission is to bridge the gap between technology and traditional farming through accessible AI.
-
-### Core Features:
-1.  **AI Crop Disease Scanner**: High-precision image analysis to detect diseases in various crops (Maize, Wheat, Tomato, etc.).
-2.  **RAG-powered AI Assistant**: A real-time chat interface providing agricultural advice backed by a localized knowledge base.
-3.  **Digital Marketplace**: Connecting farmers with verified product buyers and agrovet agencies.
-4.  **Farmer Profile Dashboard**: A centralized hub for managing personal data, tracking registered crops, and viewing local weather forecasts.
-5.  **Multi-Language UI**: Support for Dark/Light modes and responsive design for all devices.
-
----
-
-## 🛠 Tech Stack
-
-### Core Technologies:
-- **Framework**: Django 5.x (Python)
-- **AI Models**: TensorFlow / Keras (EfficientNet-based models)
-- **LLM/Chat**: Groq API (Llama 3.1 8B/70B)
-- **Vector Database**: ChromaDB (for RAG context)
-- **Embeddings**: HuggingFace (`all-MiniLM-L6-v2`)
-
-### Frontend:
-- **Styling**: Vanilla CSS3 with CSS Variables (Theming)
-- **Logic**: Vanilla JavaScript (AJAX, DOM manipulation)
-- **Icons**: FontAwesome 6
-
----
-
-## 🔒 Security Architecture
-
-AgriScan is built with a "Security-First" approach:
-
--   **Session Security**: 30-minute inactivity timeout enforced via `SESSION_COOKIE_AGE`.
--   **Authentication**: Secure login/signup system with Google OAuth2 integration.
--   **Input Sanitization**: All user-provided data is sanitized via `strip_tags()` and regex validation to prevent SQLi and XSS.
--   **File Security**: 
-    -   Uploaded images are renamed to **UUIDs** to prevent path traversal.
-    -   MIME-type white-listing (JPEG, PNG, WEBP).
-    -   5MB file size limit enforced.
--   **XSS Protection**: Frontend rendering uses `.textContent` instead of `.innerHTML` to prevent script injection.
+Welcome to the **AgriScan** technical documentation. This document provides a deep dive into the system's architecture, security protocols, AI pipelines, and financial integration logic.
 
 ---
 
 ## 🏗 System Architecture
 
-1.  **Inference Pipeline**: User uploads an image → Backend validates size/type → Image is processed/renamed → TensorFlow model predicts disease → Results returned with confidence score.
-2.  **RAG Assistant Pipeline**: User message → ChromaDB retrieval (top 3 relevant docs) → Prompt engineering with context → Groq API completion → AI response streamed/rendered safely.
-3.  **Directory System**: Django ORM-based filtering of Agencies and Markets with real-time county-based weather integration.
+AgriScan uses a decoupled modular architecture to handle real-time AI inference and complex data relationships.
+
+### 1. AI Inference Pipeline
+The system utilizes a multi-stage validation process for every crop scan:
+- **Input Sanitization**: Images are renamed to UUIDs and validated for MIME-type (JPEG/PNG/WEBP) and size (5MB limit).
+- **OOD Gatekeeper**: An **EfficientNetB0** model trained on ImageNet acts as a "Gatekeeper". It checks the image against a whitelist of ~80 plant-related classes (leaves, flowers, trees, etc.). If the image doesn't match, it is rejected before reaching the crop models.
+- **Model Routing**: Based on user selection, the system routes the image to a specific fine-tuned model (e.g., Maize-Net, Tomato-Net).
+- **Result Logging**: Successful scans are logged in the `CropScanLog` table, which directly feeds into the Farm Health Score.
+
+### 2. RAG Assistant Architecture
+The **AgriBot** uses Retrieval-Augmented Generation to provide localized advice:
+- **Knowledge Base**: PDF/Text documents are chunked and stored as embeddings in **ChromaDB**.
+- **Retrieval**: User queries trigger a similarity search (K=3) using `all-MiniLM-L6-v2`.
+- **LLM Synthesis**: The context is injected into a strict system prompt and processed by **Llama 3.3 (via Groq API)**.
+- **Tool-Calling**: The bot can autonomously trigger the `get_weather_data` tool to fetch real-time forecasts for the user's county.
 
 ---
 
-## 💻 Setup & Installation
+## 💰 Financial Integration & Scoring
 
-### 1. Prerequisites:
-- Python 3.10+
-- A Groq API Key
-- A Google Cloud OAuth client (optional, for Google Sign-in)
+AgriScan transforms digital footprints into a verifiable creditworthiness metric called the **Farm Health Score**.
 
-### 2. Local Environment Setup:
-```bash
-# Clone the repository
-git clone <repo_url>
-cd crop_AI_analyzer
+### Scoring Algorithm Logic
+The score is calculated dynamically in `utils_scoring.py` and ranges from **300 to 850**:
 
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate
+| Component           | Max Points | Metric                                                        |
+| ------------------- | ---------- | ------------------------------------------------------------- |
+| **Engagement**      | +200       | 10 pts per scan in the last 6 months.                         |
+| **Crop Health**     | +200       | Ratio of "Healthy" diagnosis vs. disease detections.          |
+| **Market Activity** | +150       | 50 pts per completed transaction in the decentralized market. |
+| **Base Score**      | 300        | Automatic starting point for all registered farmers.          |
 
-# Install dependencies
-pip install -r requirements.txt
+### Partner API Reference
+Financial institutions can retrieve a farmer's risk tier via a secure REST endpoint.
 
-# Run migrations
-python manage.py migrate
-
-# Start the server
-python manage.py runserver
-```
-
-### 3. Environment Variables (`.env`):
-Create a `.env` file in the project root with:
-```env
-GROQ_API_KEY=your_key_here
-HF_TOKEN=your_huggingface_token
-GOOGLE_CLIENT_ID=your_id_here
-GOOGLE_CLIENT_SECRET=your_secret_here
-SECRET_KEY=your_django_secret
-DEBUG=True
-```
+- **Endpoint**: `/api/farm-health-score/`
+- **Method**: `GET`
+- **Auth**: `Authorization: Bearer <API_KEY>`
+- **Response**:
+  ```json
+  {
+    "farmer": "job_nyaribari",
+    "health_score": 745,
+    "risk_tier": "Low Risk",
+    "last_calculated": "2026-04-19T14:30:00Z"
+  }
+  ```
 
 ---
 
-## 🗺 Roadmap & Limitations
+## 🔒 Security & RBAC
 
-### Known Limitations:
-- AI Scanner requires clear, well-lit leaf photos for optimal accuracy.
-- Weather data depends on the accuracy of the user's registered county.
+### Role-Based Access Control (RBAC) Matrix
+Permissions are enforced at the view level using Django decorators and profile checks.
 
-### Future Roadmap:
-- [ ] **Offline Mode**: Lite model for areas with low connectivity (TFLite).
-- [ ] **Push Notifications**: Real-time alerts for weather changes or pest outbreaks.
-- [ ] **Advanced Analytics**: Seasonal crop yield predictions based on historical profile data.
+| Feature            | Farmer | Buyer | Agency |
+| ------------------ | :----: | :---: | :----: |
+| AI Crop Scanning   |   ✅    |   ❌   |   ❌    |
+| AgriBot Access     |   ✅    |   ✅   |   ✅    |
+| List Produce       |   ✅    |   ❌   |   ❌    |
+| Manage Products    |   ❌    |   ❌   |   ✅    |
+| Access Lending API |   ❌    |   ❌   |   ❌*   |
+*(API access is reserved for registered Partners with API Keys)*
+
+### Infrastructure Security
+- **Secure Storage**: In production, all media assets are stored on **Cloudinary** via a modern Django 5.x storage backend, ensuring persistence across ephemeral container restarts.
+- **Rate Limiting**: Critical endpoints (Login, Signup, Chat, Scan) are protected by `django-ratelimit` to prevent brute-force and DDoS attacks.
+- **Inactivity Protections**: Session timeouts are enforced after 30 minutes of inactivity.
+
+---
+
+## 🚀 Mobile Native Integration
+
+AgriScan is packaged as a native mobile application using **CapacitorJS**. 
+
+### Key Integrations:
+- **Camera API**: Bypasses browser file pickers for a native camera interface.
+- **Deep Linking**: Allows notifications to open specific disease results directly.
+- **Resource Bundling**: Frontend assets are bundled locally to reduce load times on slow mobile networks.
+
+---
+
+## 🛠 Setup & Installation
+
+Detailed setup instructions are available in the [README.md](file:///home/job/Desktop/projects/AgriScan/crop_AI_analyzer/README.md).
+
+### Essential Keys
+- `SECRET_KEY`: Django security key.
+- `GROQ_API_KEY`: For AgriBot LLM reasoning.
+- `HF_TOKEN`: For model downloads and embeddings.
+- `CLOUDINARY_URL`: For production media storage.
 
 ---
 

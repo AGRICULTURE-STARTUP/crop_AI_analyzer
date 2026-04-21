@@ -4,6 +4,7 @@
 [![Django](https://img.shields.io/badge/Django-5.2-092e20?logo=django)](https://www.djangoproject.com/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.19-FF6F00?logo=tensorflow)](https://www.tensorflow.org/)
 [![Railway](https://img.shields.io/badge/Deployed_on-Railway-0B0D0E?logo=railway)](https://railway.app/)
+[![Cloudinary](https://img.shields.io/badge/Storage-Cloudinary-0078d7?logo=cloudinary)](https://cloudinary.com/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 **AgriScan** is a cutting-edge, AI-powered agricultural platform designed to bridge the gap between technology and traditional farming. By integrating advanced Computer Vision, Multilingual LLMs, and a decentralized Marketplace, AgriScan empowers farmers to make data-driven decisions and connect directly with the agricultural ecosystem.
@@ -15,17 +16,18 @@ To build a sustainable agricultural future where every farmer has an AI agronomi
 
 ## ✨ Key Features
 
-### 🔍 AI Crop Diagnosis
+### 🔍 AI Crop Diagnosis & Gatekeeper
 - **Multi-Crop Support**: Detects diseases in Maize, Potato, Tomato, Beans, Wheat, and more.
-- **Instant Analysis**: High-speed leaf scan analysis powered by **MobileNetV2**.
+- **Smart Filtering**: Integrated **EfficientNetB0 Gatekeeper** ensures only plant-related images are processed, increasing system trust.
+- **Instant Analysis**: High-speed leaf scan analysis powered by MobileNetV2.
 - **97% Accuracy**: Fine-tuned deep learning models ensuring reliable diagnosis.
 
 ### 🤖 AgriBot: Multilingual AI Assistant
 - **RAG-Enabled**: Uses Retrieval-Augmented Generation (LangChain + ChromaDB) for context-aware advice.
 - **Multilingual**: Supports **English** and **Kiswahili** to cater to diverse farming communities.
-- **Weather Integration**: Smart advice based on local weather conditions via API.
+- **Tool-Calling**: Capable of fetching real-time weather data to provide location-specific advice.
 
-### 🏪 Role-Based Marketplace
+### 🏪 Role-Based Marketplace (RBAC)
 - **Farmer Profile**: List produce, find buyers, and get specialized advice.
 - **Buyer/Market**: Discover fresh produce directly from the source.
 - **Agro-Agencies**: Connect with farmers to provide fertilizers, seeds, and pesticides.
@@ -37,19 +39,28 @@ To build a sustainable agricultural future where every farmer has an AI agronomi
 
 ---
 
+## 📱 Native Mobile Experience
+AgriScan is optimized for mobile via **CapacitorJS**, enabling:
+- **Native Camera Integration**: High-resolution image capture for AI scanning.
+- **Offline Readiness**: Future support for TFLite edge inference.
+- **Android/iOS Packaging**: Standardized builds for deployment on mobile app stores.
+
+---
+
 ## 🛠️ Technical Architecture
 
 ### Artificial Intelligence Stack
 - **Vision Model**: `EfficientNet`/`MobileNetV2` backbone with custom transfer learning.
+- **Gatekeeper OOD Filter**: `EfficientNetB0` with an ImageNet-based whitelist.
 - **Embedding Engine**: `all-MiniLM-L6-v2` via HuggingFace for semantic search.
 - **Vector Database**: `ChromaDB` for high-performance knowledge retrieval.
-- **LLM Reasoning**: Powered by **Groq / Llama-3.1-8b** for ultra-fast, intelligent conversations.
+- **LLM Reasoning**: Powered by **Groq / Llama-3.3-70b** for ultra-fast, intelligent conversations.
 
 ### Backend Infrastructure
-- **Framework**: Django REST Framework.
+- **Framework**: Django 5.x with Django REST Framework.
+- **Storage**: **Cloudinary** for persistent media storage in production.
 - **Database**: PostgreSQL (Production) / SQLite (Development).
-- **Security**: Role-Based Access Control (RBAC), Secure Cookie Session Management, and CSRF Protection.
-- **Static Assets**: Optimized with WhiteNoise for efficient container delivery.
+- **Security**: Role-Based Access Control (RBAC), Rate Limiting (`django-ratelimit`), and CSRF Protection.
 
 ---
 
@@ -58,8 +69,8 @@ To build a sustainable agricultural future where every farmer has an AI agronomi
 ### Local Development
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/AgriScan.git
-   cd AgriScan
+   git clone https://github.com/jobcode003/AgriScan.git
+   cd crop_AI_analyzer
    ```
 2. **Setup Virtual Environment**:
    ```bash
@@ -73,7 +84,8 @@ To build a sustainable agricultural future where every farmer has an AI agronomi
    SECRET_KEY=your_key
    DEBUG=True
    GROQ_API_KEY=your_groq_key
-   OPEN_WEATHER_API_KEY=your_weather_key
+   HF_TOKEN=your_huggingface_token
+   CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
    ```
 4. **Run Migrations & Start Server**:
    ```bash
@@ -82,20 +94,20 @@ To build a sustainable agricultural future where every farmer has an AI agronomi
    ```
 
 ### Production Deployment (Railway)
-AgriScan is pre-configured for **Railway** via Docker. The system automatically handles migrations and static file collection on startup.
+AgriScan is pre-configured for **Railway** via Docker. 
 
 > [!IMPORTANT]
-> When deploying to Railway, ensure the `PORT` environment variable is set to `8000` and the `DATABASE_URL` is provisioned.
+> Ensure the `CLOUDINARY_URL` is set in your Railway environment variables to enable persistent storage for user uploads.
 
 ---
 
 ## 📊 Analytics
-| Metric | Performance |
-|--------|-------------|
-| **Training Accuracy** | 97.2% |
-| **Validation Accuracy** | 85.6% |
-| **Average Inference Time** | 240ms |
-| **Model Type** | MobileNetV2 (Fine-tuned) |
+| Metric                     | Performance              |
+| -------------------------- | ------------------------ |
+| **Training Accuracy**      | 97.2%                    |
+| **Validation Accuracy**    | 85.6%                    |
+| **Average Inference Time** | 240ms                    |
+| **Model Type**             | MobileNetV2 (Fine-tuned) |
 
 ---
 
