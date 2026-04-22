@@ -23,26 +23,7 @@
   --transition-speed: 0.3s;
 }
 
-body.dark-mode {
-  --bg-primary: #0f1710;
-  --bg-secondary: #1a251c;
-  --text-primary: #e8f5e9;
-  --text-secondary: #a5d6a7;
-  --text-muted: #78997a;
-  --header-bg: linear-gradient(135deg, #0a1f0c 0%, #143a17 100%);
-  --accent-color: #4caf50;
-  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  --border-color: #2e4a31;
-  --input-bg: #253327;
-  --input-text: #a5d6a7;
-  --card-bg: #1a251c;
-  --preview-bg: #142015;
-  --prediction-bg: #142015;
-  --error-bg: #3e1a1a;
-  --error-text: #ff8a80;
-  --success-bg: #1a2e1c;
-  --success-text: #a5d6a7;
-}
+
 
 html, body {
   overflow-x: hidden;
@@ -90,7 +71,9 @@ body {
   color: var(--text-primary);
   font-family: 'Inter', sans-serif;
   transition: background var(--transition-speed), color var(--transition-speed);
+  padding-top: 80px; /* Offset for fixed header */
 }
+
 
 .user,
 .bot-message {
@@ -193,11 +176,22 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 1000;
-  transition: background var(--transition-speed);
+  left: 0;
+  width: 100%;
+  z-index: 2000;
+  transition: all 0.3s ease;
 }
+
+header.scrolled {
+  padding: 0.8rem 2rem;
+  background: rgba(27, 94, 32, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
 
 header h1 {
   font-size: 1.8rem;
@@ -676,50 +670,7 @@ body {
   background: radial-gradient(circle, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.7) 100%);
 }
 
-/* Dark Mode Toggle Button */
-.theme-toggle {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1.1rem;
-  margin: 0 auto;
-}
 
-@media (min-width: 601px) {
-  .theme-toggle {
-    margin-left: 0.5rem;
-  }
-}
-
-.theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: rotate(15deg) scale(1.1);
-}
-
-.dark-mode .theme-toggle {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffca28;
-}
-
-.theme-toggle .fa-sun {
-  display: none;
-}
-
-.dark-mode .theme-toggle .fa-moon {
-  display: none;
-}
-
-.dark-mode .theme-toggle .fa-sun {
-  display: block;
-}
 
 .intro-hero {
   height: 100vh;

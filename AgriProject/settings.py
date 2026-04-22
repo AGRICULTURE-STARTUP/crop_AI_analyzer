@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'cloudinary_storage',
-    'cloudinary',
+   'cloudinary',
     'main_app'
 ]
 

@@ -4,438 +4,825 @@
 {% block title %}AgriScan | Empowering Farmers{% endblock %}
 
 {% block extra_css %}
-    <style>
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+<style>
+    
+
+    body {
+        --primary: #2E7D32;
+        --secondary: #81C784;
+        --primary-dark: #1B5E20;
+        --accent: #F59E0B; 
+        --text-headline: #121212;
+        --text-body: #333333;
+        --surface-card: #ffffff;
+        --surface-glass: rgba(255, 255, 255, 0.85);
+        --glass-border: rgba(27, 94, 32, 0.12);
+        --premium-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        --hero-text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+
+
+    .hp-label {
+        display: inline-block;
+        padding: 0.5rem 1.2rem;
+        background: rgba(56, 142, 60, 0.1);
+        color: var(--primary);
+        border-radius: 100px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(56, 142, 60, 0.2);
+    }
+
+    /* ── Animations ─────────────────────────────────────────── */
+    .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ── Hero Section ───────────────────────────────────────── */
+    .hero-premium {
+        position: relative;
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        background: url("{% static 'images/hero_premium.png' %}") center/cover no-repeat;
+        border-radius: 0 0 80px 80px;
+        overflow: hidden;
+        margin-bottom: -60px;
+        z-index: 10;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #1B5E20 0%, rgba(27, 94, 32, 0.8) 40%, rgba(255, 255, 255, 0.95) 100%);
+        backdrop-filter: blur(1px);
+    }
+
+
+
+    .hero-container {
+        position: relative;
+        max-width: 1100px;
+        width: 100%;
+        text-align: left;
+        color: white;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(8px);
+        border-radius: 100px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        letter-spacing: 0.5px;
+    }
+
+    .hero-title {
+        font-size: clamp(2.5rem, 8vw, 5.5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        text-shadow: var(--hero-text-shadow);
+    }
+
+    .hero-title span {
+        color: var(--secondary);
+    }
+
+    .hero-description {
+        font-size: clamp(1rem, 2vw, 1.4rem);
+        max-width: 650px;
+        line-height: 1.6;
+        margin-bottom: 3rem;
+        color: rgba(255, 255, 255, 0.98);
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4); /* Stronger shadow for light areas */
+    }
+
+    .hero-btns {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-hero-primary {
+        padding: 1.2rem 2.8rem;
+        background: #FFFFFF;
+        color: #1B5E20;
+        border-radius: 100px;
+        font-weight: 800;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-hero-primary:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        background: var(--secondary);
+        color: #FFFFFF;
+    }
+
+    .btn-hero-secondary {
+        padding: 1.2rem 2.8rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: #FFFFFF;
+        border: 2px solid #FFFFFF;
+        border-radius: 100px;
+        font-weight: 800;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-hero-secondary:hover {
+        background: #FFFFFF;
+        color: #1B5E20;
+    }
+
+    /* ── Trust Bar ───────────────────────────────────────────── */
+    .trust-bar {
+        position: relative;
+        z-index: 20;
+        max-width: 1000px;
+        margin: 0 auto;
+        background: var(--surface-card);
+        border-radius: 30px;
+        padding: 2rem 3rem;
+        display: flex;
+        justify-content: space-around;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .trust-item {
+        text-align: center;
+    }
+
+    .trust-num {
+        display: block;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: var(--primary);
+        margin-bottom: 0.2rem;
+    }
+
+    .trust-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-body);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* ── Bento Grid ──────────────────────────────────────────── */
+    .section-bento {
+        padding: 5rem 2rem;
+        max-width: 1300px;
+        margin: 0 auto;
+    }
+
+    .bento-header {
+        text-align: center;
+        margin-bottom: 5rem;
+    }
+
+    .bento-header h2 {
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-weight: 900;
+        color: var(--text-headline);
+        margin-bottom: 1.2rem;
+        letter-spacing: -0.02em;
+        transition: color var(--transition-speed);
+    }
+
+    .bento-header p {
+        font-size: clamp(1rem, 1.5vw, 1.2rem);
+        color: var(--text-body);
+        max-width: 650px;
+        margin: 0 auto;
+        opacity: 0.9;
+        transition: color var(--transition-speed);
+    }
+
+    .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: minmax(300px, auto);
+        gap: 1.5rem;
+    }
+
+    .bento-card {
+        background: var(--surface-card);
+        border-radius: 32px;
+        padding: 2.5rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+
+    .bento-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-premium);
+        border-color: var(--primary);
+    }
+
+    .bento-card h3 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-headline);
+        margin-bottom: 0.8rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .bento-card p {
+        font-size: 1rem;
+        color: var(--text-body);
+        line-height: 1.6;
+        position: relative;
+        z-index: 2;
+    }
+
+    .bento-icon {
+        font-size: 3rem;
+        margin-bottom: auto;
+        color: var(--primary);
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Grid assignments */
+    .card-large { grid-column: span 2; grid-row: span 2; background: linear-gradient(135deg, #F4FAF4 0%, #FFFFFF 100%); }
+
+    .card-tall { grid-row: span 2; }
+    .card-wide { grid-column: span 2; }
+
+    .card-decoration {
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        font-size: 10rem;
+        opacity: 0.05;
+        color: var(--primary);
+        transform: rotate(15deg);
+        pointer-events: none;
+    }
+
+    /* ── How It Works Journey ────────────────────────────────── */
+    .journey-section {
+        padding: 5rem 2rem;
+        background: var(--bg-primary);
+    }
+
+    .journey-container {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .journey-container::before {
+        content: '';
+        position: absolute;
+        left: 31px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: dashed var(--primary);
+        opacity: 0.3;
+    }
+
+    .journey-step {
+        display: flex;
+        gap: 3rem;
+        margin-bottom: 4rem;
+        position: relative;
+    }
+
+    .journey-index {
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        background: var(--surface-card);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        font-size: 1.4rem;
+        font-weight: 900;
+        box-shadow: var(--card-shadow);
+        z-index: 2;
+    }
+
+    .journey-step.active .journey-index {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 10px 15px -3px rgba(56, 142, 60, 0.4);
+    }
+
+    .journey-content h3 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        color: var(--text-headline);
+    }
+
+    .journey-content p {
+        font-size: 1.1rem;
+        color: var(--text-body);
+        line-height: 1.6;
+    }
+
+    /* ── Modern Pricing ───────────────────────────────────────── */
+    .pricing-premium {
+        padding: 6rem 2rem;
+        max-width: 1300px;
+        margin: 0 auto;
+    }
+
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 4rem;
+        align-items: stretch;
+    }
+
+    .pricing-card-modern {
+        background: var(--surface-glass);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 32px;
+        padding: 3rem 2.5rem;
+        border: 1px solid var(--glass-border);
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        text-align: left;
+        position: relative;
+        box-shadow: var(--premium-shadow);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pricing-card-modern::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 32px;
+        padding: 2px;
+        background: linear-gradient(135deg, var(--glass-border), transparent);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+
+
+    .pricing-card-modern:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.12);
+        border-color: var(--primary);
+    }
+
+
+
+    .pricing-card-modern.featured {
+        background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+        color: #FFFFFF;
+        transform: scale(1.08);
+        border: none;
+        z-index: 10;
+        box-shadow: 0 30px 60px rgba(27, 94, 32, 0.3);
+    }
+
+    .pricing-card-modern.featured .price-amount,
+    .pricing-card-modern.featured h3,
+    .pricing-card-modern.featured li,
+    .pricing-card-modern.featured .price-desc {
+        color: #FFFFFF !important;
+    }
+
+    .pricing-card-modern h3 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        color: var(--text-headline);
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--accent);
+        color: #000;
+        padding: 0.6rem 1.5rem;
+        border-radius: 100px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .price-tag {
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+    }
+
+    .price-amount {
+        font-size: 3rem;
+        font-weight: 900;
+        color: var(--primary);
+        line-height: 1;
+    }
+
+    .price-desc {
+        font-size: 1rem;
+        color: var(--text-body);
+        font-weight: 500;
+    }
+
+    .pricing-features-modern {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 2.5rem;
+        flex-grow: 1;
+    }
+
+    .pricing-features-modern li {
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        font-size: 0.95rem;
+        color: var(--text-body);
+        font-weight: 500;
+    }
+
+
+    .pricing-features-modern i {
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    .pricing-card-modern.featured i {
+        color: #FFFFFF;
+    }
+
+    .btn-pricing {
+        display: block;
+        width: 100%;
+        padding: 1.5rem;
+        border-radius: 24px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-pricing.outline {
+        border: 2px solid var(--primary);
+        color: var(--primary);
+    }
+
+    .btn-pricing.outline:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-pricing.solid {
+        background: #FFFFFF;
+        color: var(--primary-dark);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .btn-pricing.solid:hover {
+        transform: scale(1.05);
+        background: #f8f8f8;
+    }
+
+    /* ── Dark Mode Consistency Enhancements ───────────────────── */
+
+
+    /* ── Responsive Excellence ───────────────────────────────────── */
+    @media (max-width: 1200px) {
+        .bento-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .trust-bar {
+            flex-wrap: wrap;
             gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .team-member {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.3s ease, background var(--transition-speed);
-        }
-
-        .team-member:hover {
-            transform: translateY(-5px);
-        }
-
-        .team-member img {
-            width: 130px;
-            height: 130px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 1rem;
-            border: 3px solid var(--accent-color);
-        }
-
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-top: 2rem;
-            font-size: 1.5rem;
-        }
-
-        .social-links a {
-            color: var(--accent-color);
-            transition: color 0.3s ease;
-        }
-
-        .social-links a:hover {
-            color: var(--accent-light);
-        }
-
-        .privacy-box {
-            background: var(--preview-bg);
             padding: 2rem;
-            border-radius: 15px;
-            margin-top: 3rem;
-            border-left: 5px solid var(--accent-color);
-            color: var(--text-primary);
+            justify-content: center;
         }
+    }
 
-        #story, #mission, #value, #team, #privacy, #contact {
-            scroll-margin-top: 100px;
-        }
-
-        /* Responsive adjustments */
-        .pricing-section {
-            padding: 5rem 2rem;
+    @media (max-width: 768px) {
+        .hero-premium {
             text-align: center;
-            background: var(--bg-primary);
-            border-radius: 30px;
-            margin-top: 4rem;
+            padding-top: 8rem;
+            min-height: 100vh;
+            border-radius: 0;
         }
-
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2.5rem;
-            margin-top: 3.5rem;
-            align-items: stretch;
+        .hero-btns {
+            justify-content: center;
         }
-
-        .pricing-card {
-            background: var(--card-bg);
-            padding: 3rem 2rem;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
+        .hero-overlay {
+            background: linear-gradient(to bottom, rgba(10, 31, 12, 0.9) 0%, rgba(10, 31, 12, 0.7) 100%);
+        }
+        .bento-grid {
+            grid-template-columns: 1fr;
+        }
+        .card-large, .card-wide {
+            grid-column: span 1;
+        }
+        .journey-step {
             flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-        }
-
-        .pricing-card:hover {
-            transform: translateY(-15px);
-            box-shadow: 0 20px 40px rgba(56, 142, 60, 0.15);
-            border-color: var(--accent-light);
-        }
-
-        .pricing-card.featured {
-            border: 2.5px solid var(--accent-color);
-            transform: scale(1.05);
-            z-index: 2;
-        }
-
-        .pricing-card.featured:hover {
-          transform: scale(1.07) translateY(-15px);
-        }
-
-        .popular-badge {
-            position: absolute;
-            top: 1.5rem;
-            right: -2rem;
-            background: var(--accent-color);
-            color: white;
-            padding: 0.5rem 4rem;
-            transform: rotate(45deg);
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .pricing-header h3 {
-            font-size: 1.6rem;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-        }
-
-        .pricing-header .price {
-            font-size: 2.8rem;
-            font-weight: 800;
-            color: var(--accent-color);
-            margin: 1.5rem 0;
-        }
-
-        .pricing-header .price span {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            font-weight: 400;
-        }
-
-        .pricing-features {
-            list-style: none;
-            padding: 0;
-            margin: 2rem 0;
-            text-align: left;
-            flex-grow: 1;
-        }
-
-        .pricing-features li {
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
-            display: flex;
+            gap: 1.5rem;
             align-items: center;
-            gap: 0.8rem;
-            font-size: 1rem;
-        }
-
-        .pricing-features li i {
-            color: var(--accent-color);
-            font-size: 1.1rem;
-        }
-
-        .pricing-btn {
-            display: inline-block;
-            padding: 1.1rem 2.2rem;
-            border-radius: 12px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.3s ease;
             text-align: center;
-            margin-top: auto;
         }
-
-        .pricing-btn.outline {
-            border: 2px solid var(--accent-color);
-            color: var(--accent-color);
+        .journey-container::before {
+            display: none;
         }
-
-        .pricing-btn.outline:hover {
-            background: var(--accent-color);
-            color: white;
+        .pricing-premium {
+            padding: 5rem 1.5rem;
         }
-
-        .pricing-btn.solid {
-            background: var(--accent-color);
-            color: white;
-            box-shadow: 0 4px 15px rgba(56, 142, 60, 0.3);
+        .pricing-card-modern.featured {
+            transform: scale(1);
         }
-
-        .pricing-btn.solid:hover {
-            background: var(--accent-light);
-            transform: scale(1.03);
-            box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .pricing-section {
-                padding: 3rem 1.2rem;
-            }
-            .pricing-grid {
-                gap: 2rem;
-            }
-            .pricing-card.featured {
-                transform: scale(1);
-            }
-            .pricing-card.featured:hover {
-                transform: translateY(-10px);
-            }
-            main {
-                padding: 1rem !important;
-            }
-
-            
-            .section-header h2 {
-                font-size: 1.8rem !important;
-            }
-
-            .farmer-market_p p, .fertilizers_p p {
-                font-size: 1rem !important;
-            }
-
-            .team-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .social-links {
-                gap: 1rem;
-                flex-wrap: wrap;
-            }
-
-            h2[style*="font-size: 2.5rem"] {
-                font-size: 1.8rem !important;
-            }
-
-            a.btn-primary[style*="font-size: 1.3rem"] {
-                padding: 1rem 2rem !important;
-                font-size: 1.1rem !important;
-            }
-
-            section[style*="padding: 4rem"] {
-                padding: 2rem 1rem !important;
-                margin: 2rem 0 !important;
-            }
-        }
-    </style>
+    }
+</style>
 {% endblock %}
 
 {% block content %}
+<!-- ════════════════════════════════════════════════════════════
+     1. HERO SECTION
+════════════════════════════════════════════════════════════ -->
+<section class="hero-premium">
+    <div class="hero-overlay"></div>
+    <div class="hero-container reveal active">
+        <div class="hero-badge">
+            <i class="fa-solid fa-sparkles"></i> AI-Powered Agricultural Intelligence
+        </div>
+        <h1 class="hero-title">Experience the Future of <span>Farming</span></h1>
+        <p class="hero-description">Detect crop diseases in seconds, get expert treatment plans in Kiswahili or English, and unlock financial growth with our AI-driven ecosystem.</p>
+        <div class="hero-btns">
+            <a href="{% url 'login' %}" class="btn-hero-primary">Start Scanning Now</a>
+            <a href="{% static 'downloads/app-debug.apk' %}" class="btn-hero-secondary" download>Download Android App</a>
+        </div>
+    </div>
+</section>
 
-          <!-- Call to Action -->
-        <section style="text-align: center; margin: 5rem 0; padding: 4rem; background: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%); border-radius: 24px; color: white;">
-            <h2 style="color: white; border: none; font-size: 2.5rem; margin-bottom: 1.5rem;">Ready to Revolutionize Your Farm?</h2>
-            <p style="font-size: 1.2rem; margin-bottom: 0.5rem; opacity: 0.9;">Join fellow farmers using AI to protect their crops and increase yield.</p>
-        </section>
+<!-- ════════════════════════════════════════════════════════════
+     2. TRUST BAR
+════════════════════════════════════════════════════════════ -->
+<div class="trust-bar reveal">
+    <div class="trust-item">
+        <span class="trust-num">100+</span>
+        <span class="trust-label">Diseases Detected</span>
+    </div>
+    <div class="trust-item">
+        <span class="trust-num">24/7</span>
+        <span class="trust-label">AI Support</span>
+    </div>
+    <div class="trust-item">
+        <span class="trust-num">Bilingual</span>
+        <span class="trust-label">EN + Kiswahili</span>
+    </div>
+    <div class="trust-item">
+        <span class="trust-num">Secure</span>
+        <span class="trust-label">Data Privacy</span>
+    </div>
+</div>
 
-        <!-- Pricing Section -->
-        <section id="pricing" class="pricing-section animate-up">
-            <div class="section-header">
-                <h2 style="text-align: center; font-size: 2.5rem; border: none; color: var(--text-primary);">Flexible Plans for Every Farmer</h2>
-                <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">Choose the plan that fits your agricultural needs.</p>
+
+<section id="features" class="section-bento">
+    <div class="bento-header reveal">
+        <span class="hp-label">Core Capabilities</span>
+        <h2>Precision Tools for Proactive Farmers</h2>
+        <p>Built on top-tier machine learning models to provide accurate, actionable insights for your farm.</p>
+    </div>
+
+    <div class="bento-grid">
+        <!-- Feature 1: AI Scanner (Large) -->
+        <div class="bento-card card-large reveal" style="padding:0;">
+            <div style="height: 240px; overflow: hidden;">
+                <img src="{% static 'images/ai_diagnosis.png' %}" alt="AI Diagnosis" style="width:100%; height:100%; object-fit:cover;">
             </div>
-            
-            <div class="pricing-grid">
-                <!-- Free Plan -->
-                <div class="pricing-card">
-                    <div class="pricing-header">
-                        <h3>Starter</h3>
-                        <div class="price">Sh. 0<span>/mo</span></div>
-                        <p>Essential tools for small farms</p>
-                    </div>
-                    <ul class="pricing-features">
-                        <li><i class="fa-solid fa-circle-check"></i> Up to 5 AI Crop Scans / month</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Basic Disease Detection Results</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Daily Weather Alerts</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Access to Marketplace (Browse Only)</li>
-                        <li><i class="fa-solid fa-circle-xmark" style="color: #ccc;"></i> AI Treatment Recommendations</li>
-                        <li><i class="fa-solid fa-circle-xmark" style="color: #ccc;"></i> Sell Produce in Marketplace</li>
-                        <li><i class="fa-solid fa-circle-xmark" style="color: #ccc;"></i> Market Analytics</li>
-                    </ul>
-                    <a href="{% url 'login' %}" class="pricing-btn outline">Get Started</a>
-                </div>
-
-                <!-- Standard Plan (Featured) -->
-                <div class="pricing-card featured">
-                    <div class="popular-badge">Most Popular</div>
-                    <div class="pricing-header">
-                        <h3>Professional</h3>
-                        <div class="price">Sh. 650<span>/mo</span></div>
-                        <p>Perfect for growing farmers</p>
-                    </div>
-                    <ul class="pricing-features">
-                        <li><i class="fa-solid fa-circle-check"></i> Unlimited AI Crop Scans</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Advanced AI Treatment Recommendations</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Weather-Based Farming Advice</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Buy & Sell in Marketplace</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Real-Time Market Prices</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Basic Market Analytics</li>
-                        <li><i class="fa-solid fa-circle-check"></i> SMS Alerts for Diseases & Weather</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Priority AI Response Speed</li>
-                    </ul>
-                    <a href="{% url 'login' %}" class="pricing-btn solid">Upgrade Now</a>
-                </div>
-
-                <!-- Premium Plan -->
-                <div class="pricing-card">
-                    <div class="pricing-header">
-                        <h3>Enterprise</h3>
-                        <div class="price">Sh. 1,430<span>/mo</span></div>
-                        <p>Complete farm management</p>
-                    </div>
-                    <ul class="pricing-features">
-                        <li><i class="fa-solid fa-circle-check"></i> Unlimited AI Crop Scans</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Advanced AI Treatment Recommendations</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Weather-Based Farming Advice</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Buy & Sell in Marketplace</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Real-Time Market Prices</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Basic Market Analytics</li>
-                        <li><i class="fa-solid fa-circle-check"></i> SMS Alerts for Diseases & Weather</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Priority AI Response Speed</li>
-                    </ul>
-                    <a href="{% url 'login' %}" class="pricing-btn outline">Contact Sales</a>
-                </div>
+            <div style="padding: 2.5rem;">
+                <i class="fa-solid fa-camera-viewfinder bento-icon" style="margin-bottom:1rem;"></i>
+                <h3>Advanced Disease Diagnosis</h3>
+                <p>Our deep learning models identify dozens of diseases across multiple crops like maize, potato, tomato, and cassava. Just snap a photo, and AgriScan handles the rest — offline and online.</p>
             </div>
-        </section>
+            <i class="fa-solid fa-microscope card-decoration"></i>
+        </div>
 
+        <!-- Feature 2: Bilingual Assistant (Wide) -->
+        <div class="bento-card card-wide reveal">
+            <i class="fa-solid fa-robot bento-icon"></i>
+            <h3>The Bilingual AI Expert</h3>
+            <p>Immediate treatment recommendations in <strong>English and Kiswahili</strong>. Get expert advice on pest control and soil health through natural conversation.</p>
+            <i class="fa-solid fa-comments card-decoration"></i>
+        </div>
 
+        <!-- Feature 3: Market -->
+        <div class="bento-card reveal">
+            <i class="fa-solid fa-shop bento-icon"></i>
+            <h3>Market Connection</h3>
+            <p>Direct access to agrovet supplies and produce buyers in your locality.</p>
+            <i class="fa-solid fa-cart-shopping card-decoration"></i>
+        </div>
 
-        <!-- Story Section -->
-        <section id="story" class="market-challenges">
-            <div class="section-header">
-                <h2>Our Story</h2>
-            </div>
-            <div class="section-content">
-                <div class="farmer-market_p">
-                    <p>
-                        Agriscan started in the year 2025 as a simple crop disease diagnosis tool. 
-                        At that time, only two crops could be scanned: potato and maize.
-                         Over the months, it has revolutionized to become a multi-crop diseases detection 
-                         tool with AI support and market connectivity, transforming how farmers manage their 
-                         Agricultural processes.
-                    </p>
-                </div>
-                <div class="farmer-market">
-                    <img src="{% static 'images/maize_potato.jpg' %}" alt="Our Story">
-                </div>
-            </div>
-        </section>
+        <!-- Feature 4: Weather -->
+        <div class="bento-card reveal">
+            <i class="fa-solid fa-cloud-sun-rain bento-icon"></i>
+            <h3>Weather Intelligence</h3>
+            <p>Hyper-local weather data for precision planting and irrigation.</p>
+            <i class="fa-solid fa-sun card-decoration"></i>
+        </div>
 
-        <!-- Mission Section -->
-        <section id="mission" class="input-challenges">
-            <div class="section-header">
-                <h2>Our Mission</h2>
-            </div>
-            <div class="section-content">
-                <div class="fertilizers">
-                    <img src="{% static 'images/sustainable_farming.png' %}" alt="Mission">
-                </div>
-                <div class="fertilizers_p">
-                    <p>
-                        Our mission is to contribute to a more sustainable agricultural world by solving critical problems: 
-                        late crop disease detection, lack of reliable specialized agricultural advice, and fragmented market connectivity. 
-                        We prevent yield loss and crop rot, ensuring food security and stable income for farmers.
-                    </p>
-                </div>
-            </div>
-        </section>
+        <!-- Feature 5: Lending (Wide) -->
+        <div class="bento-card card-wide reveal">
+            <i class="fa-solid fa-hand-holding-dollar bento-icon" style="color:var(--accent)"></i>
+            <h3>Micro-Lending & Credit</h3>
+            <p>Your agricultural activity builds a <strong>Farm Health Score</strong>. Access micro-loans and credit from financial partners tailored to your specific farm metrics.</p>
+            <i class="fa-solid fa-chart-line-up card-decoration"></i>
+        </div>
 
-        <!-- Value Proposition -->
-        <section id="value" class="market-challenges">
-            <div class="section-header">
-                <h2>Value Proposition</h2>
-            </div>
-            <div class="section-content">
-                <div class="farmer-market_p" style="width: 100%;">
-                    <p style="text-align: center; font-size: 1.2rem; font-weight: 500;">
-                        The platform allows farmers to upload images of crop leaves, which are analyzed using
-                        trained deep learning models which detects and classifies crop diseases.
-                         Once a disease is identified, the farmer can seek treatment recommendations and preventive 
-                         guidance from the integrated Knowledge-Based AI assistant helping farmers respond quickly and 
-                         effectively. 
-                        The AI agricultural assistant capable of providing contextual farming advice in both English and Kiswahili. The assistant
-                         supports farmers in decision-making related to crop management, pest control, 
-                         agricultural best practices and integrates location specific weather API to provide weather-based advice.
-                        AgriScan also integrates a role-based agricultural marketplace that connects farmers, 
-                        produce buyers, and agrovet agencies. Farmers can discover potential buyers and seedling companies in their locality, buyers can 
-                        source produce directly from farmers, and agrovet agencies can list services and products 
-                        to support farm operations. 
-                    </p>
-                 
-                </div>
-            </div>
-        </section>
+        <!-- Feature 6: Dashboard -->
+        <div class="bento-card reveal">
+            <i class="fa-solid fa-gauge-high bento-icon"></i>
+            <h3>Pro Dashboard</h3>
+            <p>Unified control for Farmers, Buyers, and Agencies.</p>
+            <i class="fa-solid fa-shield card-decoration"></i>
+        </div>
+    </div>
+</section>
 
-        <!-- Team Section -->
-        <section id="team" class="input-challenges">
-            <div class="section-header">
-                <h2>Our Team</h2>
-            </div>
-            <div class="team-grid">
-                <div class="team-member">
-                    <img src="{% static 'images/job.jpg' %}" alt="Team Lead">
-                    <h3>Job Nyaribari</h3>
-                    <p>Founder & AI Lead</p>
-                </div>
-                <div class="team-member">
-                    <img src="{% static 'images/noimage.png' %}" alt="Agro Expert">
-                    <h3></h3>
-                    <p></p>
-                </div>
-                <div class="team-member">
-                    <img src="{% static 'images/noimage.png' %}" alt="Market Lead">
-                    <h3></h3>
-                    <p></p>
-                </div>
-            </div>
-        </section>
+<!-- ════════════════════════════════════════════════════════════
+     4. JOURNEY TIMELINE
+════════════════════════════════════════════════════════════ -->
+<section id="how-it-works" class="journey-section">
+    <div class="bento-header reveal">
+        <span class="hp-label">Simple Workflow</span>
+        <h2>Your Journey to a Healthier Farm</h2>
+    </div>
 
-      
+    <div class="journey-container">
+        <div class="journey-step reveal">
+            <div class="journey-index">1</div>
+            <div class="journey-content">
+                <h3>Select Your Role</h3>
+                <p>Register as a Farmer, Buyer, or Agency. Each role provides a custom set of tools focused on your specific agricultural goals.</p>
+            </div>
+        </div>
+        <div class="journey-step active reveal">
+            <div class="journey-index">2</div>
+            <div class="journey-content">
+                <h3>Scan & Identify</h3>
+                <p>Open the AI Scanner and take a photo of a crop leaf. Within 2 seconds, our model provides a detailed diagnosis of potential diseases.</p>
+            </div>
+        </div>
+        <div class="journey-step reveal">
+            <div class="journey-index">3</div>
+            <div class="journey-content">
+                <h3>Consult & Treat</h3>
+                <p>Use the AI Assistant to get step-by-step treatment plans. Ask about organic solutions or specific fertilizer types in your preferred language.</p>
+            </div>
+        </div>
+        <div class="journey-step reveal">
+            <div class="journey-index">4</div>
+            <div class="journey-content">
+                <h3>Trade & Grow</h3>
+                <p>Connect with the market to sell your healthy produce or source quality inputs. Build your Farm Health Score to unlock financial expansion.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     5. PRICING SECTION
+════════════════════════════════════════════════════════════ -->
+<section id="pricing" class="pricing-premium">
+    <div class="bento-header reveal">
+        <span class="hp-label">Membership</span>
+        <h2>Choose Your Path</h2>
+        <p>Simple, transparent pricing for every stage of your harvest.</p>
+    </div>
+
+    <div class="pricing-grid">
+        <!-- Starter -->
+        <div class="pricing-card-modern reveal">
+            <h3>Starter</h3>
+            <p class="price-desc">Perfect for small garden diagnostics</p>
+            <div class="price-tag"><span class="price-amount">Sh. 0</span><span>/mo</span></div>
+            <ul class="pricing-features-modern">
+                <li><i class="fa-solid fa-circle-check"></i> 5 AI Scans per Month</li>
+                <li><i class="fa-solid fa-circle-check"></i> Basic Disease ID</li>
+                <li><i class="fa-solid fa-circle-check"></i> Marketplace Browse</li>
+                <li style="opacity:0.5"><i class="fa-solid fa-circle-xmark"></i> AI Treatment Plans</li>
+            </ul>
+            <a href="{% url 'login' %}" class="btn-pricing outline">Get Started</a>
+        </div>
+
+        <!-- Professional -->
+        <div class="pricing-card-modern featured reveal">
+            <div class="popular-badge">Most Popular</div>
+            <h3>Professional</h3>
+            <p class="price-desc">Complete toolkit for growth</p>
+            <div class="price-tag"><span class="price-amount">Sh. 650</span><span>/mo</span></div>
+            <ul class="pricing-features-modern">
+                <li><i class="fa-solid fa-circle-check"></i> Unlimited AI Scans</li>
+                <li><i class="fa-solid fa-circle-check"></i> Full Bilingual AI Support</li>
+                <li><i class="fa-solid fa-circle-check"></i> Sell in Marketplace</li>
+                <li><i class="fa-solid fa-circle-check"></i> Real-time Market Prices</li>
+                <li><i class="fa-solid fa-circle-check"></i> Weather Intelligence</li>
+            </ul>
+            <a href="{% url 'login' %}" class="btn-pricing solid">Upgrade Now</a>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="pricing-card-modern reveal">
+            <h3>Enterprise</h3>
+            <p class="price-desc">Advanced farm management</p>
+            <div class="price-tag"><span class="price-amount">Sh. 1,430</span><span>/mo</span></div>
+            <ul class="pricing-features-modern">
+                <li><i class="fa-solid fa-circle-check"></i> Everything in Pro</li>
+                <li><i class="fa-solid fa-circle-check"></i> Farm Health Scoring</li>
+                <li><i class="fa-solid fa-circle-check"></i> Micro-Lending Access</li>
+                <li><i class="fa-solid fa-circle-check"></i> Priority API Support</li>
+            </ul>
+            <a href="{% url 'login' %}" class="btn-pricing outline">Contact Sales</a>
+        </div>
+    </div>
+</section>
 
 
-        <!-- Contact Section -->
-        <section id="contact" style="text-align: center; margin-top: 4rem;">
-            <div class="section-header">
-                <h2>Connect With Us</h2>
-            </div>
-            <div class="social-links">
-                <a href="mailto:jobnyaribari808@gmail.com?subject=AgriScan Support Request&body=Hello AgriScan Team," target="_blank" title="Email"><i class="fa-solid fa-envelope"></i></a>
-                <a href="https://x.com/job_nyaribari" target="_blank" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
-                <a href="https://www.facebook.com/profile.php?id=61571381852359" target="_blank" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
-                <a href="https://www.instagram.com/jobnyaribari?igsh=bTlmazhuYTJ4ZnIw" target="_blank"  title="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                <a href="https://wa.me/254758503819" target="_blank" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
-                <a href="https://www.linkedin.com/in/job-nyaribari/" target="_blank" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
-                <a href="https://github.com/jobcode003" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
-            </div>
-        </section>
+<section id="story" class="hp-section" style="background:var(--bg-secondary);">
+    <div class="bento-header reveal">
+        <span class="hp-label">Our Story</span>
+        <h2>Mission Driven Growth</h2>
+    </div>
+    <div style="max-width:800px; margin:0 auto; text-align:center; padding:0 2rem;" class="reveal">
+        <p style="font-size:1.2rem; line-height:1.8; color:var(--text-body);">
+            Founded in 2025, AgriScan was born from the need to solve late crop disease detection and fragmented market connectivity. We empower farmers to prevent yield loss, ensure food security, and build verifiable financial identities.
+        </p>
+        <div style="margin-top:4rem; display: flex; justify-content: center;" class="hero-btns">
+            <a href="mailto:jobnyaribari808@gmail.com" class="btn-hero-primary" style="background:var(--primary-dark); color:white;">Contact Our Team</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Scroll Reveal Animation
+    function reveal() {
+        var reveals = document.querySelectorAll(".reveal");
+        for (var i = 0; i < reveals.length; i++) {
+            var windowHeight = window.innerHeight;
+            var elementTop = reveals[i].getBoundingClientRect().top;
+            var elementVisible = 150;
+            if (elementTop < windowHeight - elementVisible) {
+                reveals[i].classList.add("active");
+            }
+        }
+    }
+    window.addEventListener("scroll", reveal);
+    // Trigger once on load
+    reveal();
+</script>
 {% endblock %}

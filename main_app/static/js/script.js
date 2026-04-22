@@ -1,26 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Theme Toggle Logic
-    const body = document.body;
-    const themeToggle = document.getElementById('theme-toggle');
-    
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        body.classList.add('dark-mode');
-    }
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function() {
-            body.classList.toggle('dark-mode');
-            
-            // Save preference
-            if (body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-        });
-    }
+    // Theme Logic Removed (Unified System)
 
     const imageInput = document.getElementById('image');
     const preview = document.getElementById('preview');
@@ -78,6 +57,17 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 openIcon.style.display = 'block';
                 closeIcon.style.display = 'none';
+            }
+    }
+
+    // Header Scroll Effect
+    const header = document.querySelector('header');
+    if (header) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
             }
         });
     }
