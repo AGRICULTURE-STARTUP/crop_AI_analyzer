@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 openIcon.style.display = 'block';
                 closeIcon.style.display = 'none';
             }
+    });
     }
 
     // Header Scroll Effect
