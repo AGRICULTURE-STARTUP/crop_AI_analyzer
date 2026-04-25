@@ -223,18 +223,58 @@ async function navigateTo(url, pushState = true) {
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
+        
         const newMain = doc.querySelector('main');
         const newTitle = doc.title;
 
         if (newMain) {
-            main.innerHTML = newMain.innerHTML;
+            // 1. Update Title
             document.title = newTitle;
+
+            // 2. Update Content
+            main.innerHTML = newMain.innerHTML;
+
+            // 3. Handle Scripts (Execution)
+            // Remove any previously injected page-specific scripts if they were external
+            document.querySelectorAll('script.spa-injected-script').forEach(s => s.remove());
+
+            const scripts = doc.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                // Skip core scripts
+                if (oldScript.src && (oldScript.src.includes('script.js') || oldScript.src.includes('font-awesome'))) return;
+                
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                newScript.textContent = oldScript.textContent;
+                newScript.classList.add('spa-injected-script');
+                document.body.appendChild(newScript);
+                
+                // If it's inline, it executes immediately and we can remove it to keep DOM clean
+                if (!oldScript.src) newScript.remove();
+            });
+
+            // 4. Handle Styles
+            // Remove previous page styles to avoid conflicts
+            document.querySelectorAll('.spa-page-style').forEach(s => s.remove());
+
+            const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
+            styles.forEach(style => {
+                // Skip core style
+                if (style.href && style.href.includes('style.css')) return;
+                const newStyle = style.cloneNode(true);
+                newStyle.classList.add('spa-page-style');
+                document.head.appendChild(newStyle);
+            });
+
             window.scrollTo(0, 0);
             initPage();
         } else {
             window.location.href = url;
         }
     } catch (e) {
+        console.error('SPA Navigation Error:', e);
         window.location.href = url;
     } finally {
         if (progress) {
