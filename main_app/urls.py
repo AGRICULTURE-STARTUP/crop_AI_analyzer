@@ -46,4 +46,9 @@ urlpatterns = [
     
     # --- Micro-Lending API ---
     path('api/v1/lending/score/', views.farm_health_score_api, name='farm_health_score_api'),
+
+    # --- M-Pesa Monetization ---
+    path('mpesa/topup/', views.initiate_topup, name='mpesa_topup'),
+    path('mpesa/callback/', views.mpesa_callback, name='mpesa_callback'),
+    path('admin/revenue/', views.revenue_dashboard, name='revenue_dashboard'),
 ]

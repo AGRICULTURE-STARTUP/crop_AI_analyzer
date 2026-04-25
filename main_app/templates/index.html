@@ -11,13 +11,20 @@
                 <h1>welcome to AgriScan</h1>
                 <h5>submit your image for scanning and prediction</h5>
                 
+                <h3>AI Disease Diagnosis</h3>
+                <p>Upload a clear photo of your plant leaf for instant diagnosis.</p>
+
                 {% if error %}
-                <div class="error-message" style="color: #d8000c; background-color: #ffd2d2; padding: 12px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; border: 1px solid #d8000c; text-align: center;">
-                    ⚠️ {{ error }}
+                <div class="error-msg-card">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <p>{{ error }}</p>
+                    {% if needs_topup %}
+                    <button class="btn btn-topup-trigger" onclick="window.openTopupModal()" style="margin-top:1rem;">Top Up Wallet</button>
+                    {% endif %}
                 </div>
                 {% endif %}
 
-                <form action="/process" method="post" enctype="multipart/form-data" id="upload-form">
+                <form id="upload-form" method="POST" enctype="multipart/form-data" action="{% url 'process' %}">
                     {% csrf_token %}
                     <div class="crop-selection">
                         <label for="available_crop_scan">Select crop type:</label>
@@ -67,14 +74,6 @@
             </div>
         </div>
 
-        <div class="chat-box-container">
-            <div class="chat-box">
-                <div class="messages" id="messages"></div>
-                <div class="chat-input-container">
-                    <input type="text" id="userInput" placeholder="Ask about your crop disease..." />
-                    <button class="btn" onclick="sendMessage()">Send</button>
-                </div>
-            </div>
         </div>
     </div>
     <section class="market-challenges">

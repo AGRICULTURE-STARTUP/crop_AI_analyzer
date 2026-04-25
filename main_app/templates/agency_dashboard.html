@@ -153,6 +153,23 @@
         </div>
     </div>
 
+    </div>
+    
+    {% if not is_subscribed %}
+    <div style="background: rgba(216, 0, 12, 0.05); border: 1px solid #d8000c; color: #d8000c; padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <i class="fa-solid fa-circle-exclamation" style="font-size: 1.5rem;"></i>
+            <div>
+                <strong style="display: block; font-size: 1.1rem;">Storefront Inactive</strong>
+                <p style="font-size: 0.9rem; margin-top: 0.2rem; opacity: 0.9;">An active subscription is required to list products. Premium plans start at KSh 1,500/mo.</p>
+            </div>
+        </div>
+        <button class="btn-topup" onclick="window.openTopupModal('1500', 'Activate Basic Storefront')" style="padding: 0.8rem 1.5rem; font-size: 0.95rem; min-width: 180px;">
+            <i class="fa-solid fa-rocket"></i> Activate Now
+        </button>
+    </div>
+    {% endif %}
+
     <div class="dashboard-grid">
         <!-- Add Product Form -->
         <div class="form-section">

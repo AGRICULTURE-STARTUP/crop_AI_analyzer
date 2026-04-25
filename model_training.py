@@ -1,4 +1,4 @@
-import keras
+'''import keras
 import tensorflow as tf
 from keras.applications import MobileNetV2
 
@@ -116,3 +116,10 @@ model.fit(
     validation_data=test,
     callbacks=[earlystop,checkpoint]
 )
+'''
+import google.generativeai as genai
+genai.configure(api_key="AIzaSyBa3oSrwfl48IORlRV5PTfSd7sUnq37lW4")
+
+for m in genai.list_models():
+    if 'generateContent' in m.supported_generation_methods:
+        print(m.name)

@@ -539,6 +539,25 @@
             </div>
             {% endif %}
 
+            <!-- Wallet Card -->
+            <div class="glass-card">
+                <div class="profile-card-header">
+                    <div class="card-header-icon" style="background: linear-gradient(135deg, #25D366, #128C7E);"><i class="fa-solid fa-wallet"></i></div>
+                    <div>
+                        <h2>AgriScan Wallet</h2>
+                        <span>Current Balance: <strong>KSh {{ wallet.balance|floatformat:2 }}</strong></span>
+                    </div>
+                </div>
+                <div style="text-align: center; padding: 1rem 0;">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                        Top up your wallet to continue using AI scans and the chat assistant.
+                    </p>
+                    <button class="btn-topup" onclick="window.openTopupModal()" style="width: 100%;">
+                        <i class="fa-solid fa-mobile-screen-button"></i> Top Up with M-Pesa
+                    </button>
+                </div>
+            </div>
+
             <!-- Quick Links card -->
             <div class="glass-card">
                 <div class="profile-card-header">

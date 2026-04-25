@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse,JsonResponse
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Sum, Count
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import PasswordResetView
 from django_ratelimit.decorators import ratelimit
@@ -31,6 +32,18 @@ import requests
 import uuid
 from django.utils.html import strip_tags, escape
 from .utils_weather import get_weather_data
+from .mpesa_utils import MpesaGateway
+from .models import (
+    FarmerProfile, BuyerProfile, AgencyProfile, CropScanLog, 
+    PartnerAPIKey, FarmHealthProfile, AgencyProduct, Wallet, 
+    MpesaTransaction, AgrovetSubscription
+)
+from django.utils import timezone
+from datetime import timedelta
+from django.db import transaction
+
+mpesa_client = MpesaGateway()
+
 from langchain_huggingface import HuggingFaceEmbeddings
 from tensorflow.keras import mixed_precision
 mixed_precision.set_global_policy('float32')
@@ -69,29 +82,33 @@ def is_plant_image(img_path):
         print(f"{i + 1}: {label} ({score * 100:.2f}%)")
     print("----------------------------------------\n")
     
-    # We use a whitelist approach now (much stricter)
-    # ImageNet has very specific classes, so we include common plant/nature words and textures leaves get confused for.
+    # Strict whitelist of ImageNet classes related to plants, crops, and foliage.
     plant_whitelist = [
         'plant', 'leaf', 'flower', 'tree', 'grass', 'daisy', 'pot', 'earthstar',
         'corn', 'cabbage', 'cucumber', 'zucchini', 'bell_pepper', 'strawberry', 
         'orange', 'lemon', 'fig', 'pineapple', 'banana', 'apple', 'broccoli', 
         'cauliflower', 'artichoke', 'turnip', 'mushroom', 'agaric', 'gyromitra', 
-        'stinkhorn', 'bolete', 'ear', 'greenhouse', 'buckeye', 'acorn', 'rapeseed',
-        'velvet', 'wool', 'sponge', 'doormat', 'doily', 'shower_cap', 'nematode', 
-        'slug', 'snail', 'ladybug', 'fly', 'ant', 'grasshopper', 'cricket', 'mantis',
-        'leafhopper', 'lacewing', 'dragonfly', 'damselfly', 'admiral', 'ringlet',
-        'sulphur_butterfly', 'lycaenid', 'hay', 'head_cabbage', 'macaw', 'tailed_frog'
+        'stinkhorn', 'bolete', 'buckeye', 'acorn', 'rapeseed',
+        'head_cabbage', 'vegetable', 'fruit', 'greenhouse', 'hay', 'thistle'
     ]
     
-    # Check if ANY of the top-5 predictions correspond to our whitelist
-    is_valid = False
-    for _, label, conf in decoded:
-        label_lower = label.lower()
-        if any(w in label_lower for w in plant_whitelist):
-            is_valid = True
-            break
+    # Analyze the top-3 predictions
+    top_label = decoded[0][1].lower()
+    top_score = decoded[0][2]
+    
+    # 1. If the top prediction is extremely confident (>70%) and NOT in whitelist, reject immediately.
+    # This caught the Linux logo (Tux) which ImageNet likely sees as a penguin or toy with high confidence.
+    is_top_plant = any(w in top_label for w in plant_whitelist)
+    if not is_top_plant and top_score > 0.6:
+        return False
+
+    # 2. Otherwise, check if ANY of the top-3 predictions are plant-related with decent confidence.
+    for _, label, conf in decoded[:3]:
+        if any(w in label.lower() for w in plant_whitelist):
+            if conf > 0.15: # Must be at least 15% confident it's a plant
+                return True
             
-    return is_valid
+    return False
 
 beans_classes = ['angular_leaf_spot', 'anthracnose', 'bean_rust', 'healthy', 'mosaic_virus']
 cabbage_classes= ['Cabbage___Alternaria_Leaf_Spot', 'Cabbage___Black_Rot', 'Cabbage___Cabbage_aphid_colony', 'Cabbage___Downy_Mildew', 'Cabbage___Healthy', 'Cabbage___Ring_Spot']
@@ -245,6 +262,22 @@ def process(request):
              os.remove(temp_path)
              return render(request, 'index.html', {'error': 'Image does not appear to be a plant. Please upload a clear leaf photo.'})
         
+        # --- MONETIZATION: Gating ---
+        wallet = request.user.wallet
+        # Check if farmer exists
+        try:
+            farmer = request.user.farmer_profile
+            is_free_trial = farmer.scan_logs.count() < 2
+        except Exception:
+            # Buyers/Agencies don't get free trials or might not be allowed to scan
+            is_free_trial = False
+
+        if not is_free_trial and wallet.balance < 20:
+             os.remove(temp_path)
+             return render(request, 'index.html', {
+                 'error': 'Insufficient balance (KSh 20 required). Please top up your wallet to continue.',
+                 'needs_topup': True
+             })
         
         current_model = get_crop_model(crop_selection)
     
@@ -277,6 +310,9 @@ def process(request):
             except Exception as e:
                 pass # E.g., user is a Buyer/Agency, not Farmer
 
+        if not is_free_trial:
+            wallet.balance -= 20
+            wallet.save()
         
         os.remove(temp_path)
 
@@ -304,6 +340,15 @@ def chat(request):
         if not user_message:
              return JsonResponse({"response": "Please enter a message."})
         
+        # --- MONETIZATION: Gating ---
+        wallet = request.user.wallet
+        is_free_trial = wallet.chat_count < 5
+        if not is_free_trial and wallet.balance < 10:
+            return JsonResponse({
+                "response": "Insufficient balance (KSh 10 required). Please top up your wallet to continue chatting.",
+                "needs_topup": True
+            })
+
         user_location = None
         if request.user.is_authenticated:
             try:
@@ -482,6 +527,11 @@ def chat(request):
                 except Exception as e:
                     return JsonResponse({"response": "Groq did not return a valid AI message after tool call."})
                 
+                # --- MONETIZATION: Deduct and Increment ---
+                wallet.chat_count += 1
+                if not is_free_trial:
+                    wallet.balance -= 10
+                wallet.save()
                 return JsonResponse({"response": reply})
 
         try:
@@ -491,6 +541,11 @@ def chat(request):
             print("RESULT STRUCTURE:", result)
             return JsonResponse({"response": "Groq did not return a valid AI message."})
 
+        # --- MONETIZATION: Deduct and Increment ---
+        wallet.chat_count += 1
+        if not is_free_trial:
+            wallet.balance -= 10
+        wallet.save()
         return JsonResponse({"response": reply})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
@@ -585,6 +640,9 @@ def signin_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            
+            if user.is_superuser:
+                return redirect('revenue_dashboard')
             
             if hasattr(user, 'farmer_profile'):
                 return redirect('page')
@@ -747,6 +805,7 @@ def farmer_profile_view(request):
         'weather_data': weather_data,
         'success_message': success_message,
         'error_message': error_message,
+        'wallet': request.user.wallet
     }
     return render(request, 'farmer_profile.html', context)
 
@@ -864,7 +923,21 @@ def agency_dashboard_view(request):
     except AgencyProfile.DoesNotExist:
         return redirect('page')
 
+    try:
+        sub = agency_profile.subscription
+        is_subscribed = sub.is_active and sub.expiry_date > timezone.now()
+    except AgrovetSubscription.DoesNotExist:
+        is_subscribed = False
+
     if request.method == 'POST':
+        if not is_subscribed:
+             products = agency_profile.products.all()
+             return render(request, 'agency_dashboard.html', {
+                 'agency_profile': agency_profile,
+                 'products': products,
+                 'error': 'An active subscription is required to add or manage product listings.'
+             })
+             
         name = request.POST.get('name')
         description = request.POST.get('description')
         price = request.POST.get('price')
@@ -887,7 +960,8 @@ def agency_dashboard_view(request):
 
     context = {
         'agency_profile': agency_profile,
-        'products': products
+        'products': products,
+        'is_subscribed': is_subscribed
     }
     return render(request, 'agency_dashboard.html', context)
 
@@ -901,3 +975,104 @@ def delete_product(request, product_id):
     except (AgencyProduct.DoesNotExist, AttributeError):
         pass
     return redirect('agency_dashboard_view')
+
+@csrf_exempt
+def mpesa_callback(request):
+    """Handles Safaricom's M-Pesa STK Push results."""
+    try:
+        data = json.loads(request.body)
+        stk_callback = data['Body']['stkCallback']
+        result_code = stk_callback['ResultCode']
+        checkout_request_id = stk_callback['CheckoutRequestID']
+        
+        with transaction.atomic():
+            try:
+                mpesa_txn = MpesaTransaction.objects.get(checkout_request_id=checkout_request_id)
+                if result_code == 0:
+                    # Success
+                    mpesa_txn.status = 'Success'
+                    # Extract receipt number (usually at index 1 of Item list)
+                    meta = stk_callback['CallbackMetadata']['Item']
+                    receipt = next((item['Value'] for item in meta if item['Name'] == 'MpesaReceiptNumber'), None)
+                    mpesa_txn.receipt_number = receipt
+                    mpesa_txn.save()
+                    
+                    # Update Wallet or Subscription
+                    user = mpesa_txn.user
+                    if hasattr(user, 'agency_profile') and mpesa_txn.amount >= 1500:
+                        # Handle Agency Subscription
+                        agency = user.agency_profile
+                        expiry = timezone.now() + timedelta(days=30)
+                        AgrovetSubscription.objects.update_or_create(
+                            agency=agency,
+                            defaults={
+                                'is_active': True,
+                                'expiry_date': expiry,
+                                'plan': 'premium' if mpesa_txn.amount >= 3500 else 'basic'
+                            }
+                        )
+                    else:
+                        # Update Wallet (Farmer/Buyer)
+                        wallet = user.wallet
+                        wallet.balance += mpesa_txn.amount
+                        wallet.save()
+                else:
+                    mpesa_txn.status = 'Failed'
+                    mpesa_txn.result_desc = stk_callback['ResultDesc']
+                    mpesa_txn.save()
+            except MpesaTransaction.DoesNotExist:
+                pass 
+    except Exception as e:
+        print("M-Pesa Callback Error:", e)
+
+    return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+
+@login_required(login_url='login')
+def initiate_topup(request):
+    """Initiates an M-Pesa STK Push for wallet top-up."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            amount = data.get('amount')
+            phone = data.get('phone_number')
+        except json.JSONDecodeError:
+            amount = request.POST.get('amount')
+            phone = request.POST.get('phone_number')
+        
+        if not amount or not phone:
+            return JsonResponse({"status": "Error", "message": "Amount and phone number are required."})
+
+        callback_url = request.build_absolute_uri('/mpesa/callback/')
+        response = mpesa_client.initiate_stk_push(phone, amount, callback_url)
+        
+        if 'CheckoutRequestID' in response:
+            MpesaTransaction.objects.create(
+                user=request.user,
+                phone_number=phone,
+                amount=amount,
+                checkout_request_id=response['CheckoutRequestID'],
+                merchant_request_id=response['MerchantRequestID']
+            )
+            return JsonResponse({"status": "Success", "message": "STK Push sent to your phone. Please enter your M-Pesa PIN."})
+        else:
+            return JsonResponse({"status": "Error", "message": response.get('errorMessage', 'Failed to initiate M-Pesa payment.')})
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+@login_required(login_url='login')
+@user_passes_test(lambda u: u.is_superuser)
+def revenue_dashboard(request):
+    """Admin dashboard to track MRR, total revenue, and user metrics."""
+    total_revenue = MpesaTransaction.objects.filter(status='Success').aggregate(Sum('amount'))['amount__sum'] or 0
+    active_subscriptions = AgrovetSubscription.objects.filter(is_active=True).count()
+    mrr = AgrovetSubscription.objects.filter(is_active=True, plan='basic').count() * 1500 + \
+          AgrovetSubscription.objects.filter(is_active=True, plan='premium').count() * 3500
+          
+    recent_transactions = MpesaTransaction.objects.order_by('-created_at')[:20]
+    
+    context = {
+        'total_revenue': total_revenue,
+        'active_subscriptions': active_subscriptions,
+        'mrr': mrr,
+        'recent_transactions': recent_transactions
+    }
+    return render(request, 'admin_revenue.html', context)

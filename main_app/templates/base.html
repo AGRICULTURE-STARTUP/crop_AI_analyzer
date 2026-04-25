@@ -11,7 +11,9 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <div id="page-progress"></div>
     <header>
+
         <h1><a href="{% url 'homepage' %}" style="color: inherit; text-decoration: none;">Agri<span>Scan</span></a></h1>
         <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
             <i class="fa-solid fa-bars open-icon"></i>
@@ -55,6 +57,58 @@
         {% block content %}
         {% endblock %}
     </main>
+
+    {% if user.is_authenticated and user.farmer_profile %}
+    <!-- Persistent AI Assistant -->
+    <div class="chat-widget-container" id="chat-widget">
+        <button class="chat-toggle-btn" id="chat-toggle" aria-label="Open Chat">
+            <i class="fa-solid fa-robot"></i>
+            <span>AgriBot</span>
+        </button>
+        <div class="chat-box-container hidden" id="chat-box-wrapper">
+            <div class="chat-header">
+                <i class="fa-solid fa-robot"></i>
+                <span>AgriBot</span>
+                <span class="wallet-mini" id="wallet-balance-chat">
+                    <i class="fa-solid fa-wallet"></i> KSh {{ user.wallet.balance|floatformat:2 }}
+                </span>
+                <button class="chat-close-btn" id="chat-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="chat-box">
+                <div class="messages" id="messages"></div>
+                <div class="chat-input-container">
+                    <input type="text" id="userInput" placeholder="Ask about your crop disease..." />
+                    <button class="btn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+    <!-- M-Pesa Top Up Overlay -->
+    <div class="topup-overlay" id="topup-overlay">
+        <div class="topup-card">
+            <h3>Top Up Wallet</h3>
+            <p>Enter amount and your M-Pesa phone number to top up your AgriScan wallet via STK Push.</p>
+            <div class="topup-form">
+                <div class="topup-input-group">
+                    <label>Amount (KSh)</label>
+                    <input type="number" id="topup-amount" placeholder="e.g. 100" min="10" />
+                </div>
+                <div class="topup-input-group">
+                    <label>M-Pesa Phone Number</label>
+                    <input type="text" id="topup-phone" placeholder="e.g. 0712345678" value="{{ user.farmer_profile.phone_number|default:user.agency_profile.support_phone|default:'' }}" />
+                </div>
+                <button class="btn-topup" id="btn-topup-submit">
+                    <i class="fa-solid fa-mobile-screen-button"></i> Pay with M-Pesa
+                </button>
+                <button class="topup-close" id="topup-close-btn">Maybe Later</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 
     <footer class="main-footer">
         <div class="footer-grid">

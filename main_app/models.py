@@ -114,3 +114,60 @@ def save_farm_health_profile(sender, instance, **kwargs):
         instance.health_profile.save()
     except FarmHealthProfile.DoesNotExist:
         FarmHealthProfile.objects.create(farmer=instance)
+
+
+# --- Monetization & Payment Models ---
+
+class Wallet(models.Model):
+    """Stores pre-paid credits for farmers to use AI services."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    scan_count = models.IntegerField(default=0)
+    chat_count = models.IntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} Wallet: KSh {self.balance}"
+
+class AgrovetSubscription(models.Model):
+    """Tracks monthly subscriptions for Agrovets to list products."""
+    PLAN_CHOICES = (
+        ('basic', 'Basic Storefront (KSh 1,500/mo)'),
+        ('premium', 'Premium Featured (KSh 3,500/mo)'),
+    )
+    agency = models.OneToOneField(AgencyProfile, on_delete=models.CASCADE, related_name='subscription')
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='basic')
+    start_date = models.DateTimeField(auto_now_add=True)
+    expiry_date = models.DateTimeField()
+    is_active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.agency.name} - {self.plan} ({'Active' if self.is_active else 'Expired'})"
+
+class MpesaTransaction(models.Model):
+    """Logs all M-Pesa STK Push transactions for auditing and fulfillment."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mpesa_transactions')
+    phone_number = models.CharField(max_length=15)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    checkout_request_id = models.CharField(max_length=100, unique=True)
+    merchant_request_id = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, default='Pending') # 'Pending', 'Success', 'Failed'
+    receipt_number = models.CharField(max_length=50, blank=True, null=True)
+    result_desc = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} - {self.status}"
+
+# Signal to automatically create Wallet when a User is created
+@receiver(post_save, sender=User)
+def create_user_wallet(sender, instance, created, **kwargs):
+    if created:
+        Wallet.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_wallet(sender, instance, **kwargs):
+    try:
+        instance.wallet.save()
+    except Wallet.DoesNotExist:
+        Wallet.objects.create(user=instance)
