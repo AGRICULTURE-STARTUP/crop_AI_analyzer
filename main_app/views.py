@@ -641,6 +641,11 @@ def signin_view(request):
             user = form.get_user()
             login(request, user)
             
+            # Respect the 'next' parameter if it exists
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            
             if user.is_superuser:
                 return redirect('revenue_dashboard')
             
