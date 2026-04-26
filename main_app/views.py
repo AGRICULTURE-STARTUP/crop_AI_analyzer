@@ -1064,9 +1064,11 @@ def initiate_topup(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 @login_required(login_url='login')
-@user_passes_test(lambda u: u.is_superuser)
 def revenue_dashboard(request):
     """Admin dashboard to track MRR, total revenue, and user metrics."""
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
     total_revenue = MpesaTransaction.objects.filter(status='Success').aggregate(Sum('amount'))['amount__sum'] or 0
     active_subscriptions = AgrovetSubscription.objects.filter(is_active=True).count()
     mrr = AgrovetSubscription.objects.filter(is_active=True, plan='basic').count() * 1500 + \
