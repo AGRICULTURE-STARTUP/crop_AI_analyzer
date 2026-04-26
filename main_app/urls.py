@@ -50,5 +50,6 @@ urlpatterns = [
     # --- M-Pesa Monetization ---
     path('mpesa/topup/', views.initiate_topup, name='mpesa_topup'),
     path('mpesa/callback/', views.mpesa_callback, name='mpesa_callback'),
+    path('site-admin/login/', views.admin_login, name='admin_login'),
     path('admin/revenue/', views.revenue_dashboard, name='revenue_dashboard'),
 ]

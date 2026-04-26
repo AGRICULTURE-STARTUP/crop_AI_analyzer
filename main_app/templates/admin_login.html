@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Access | AgriScan{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-login-container {
+        max-width: 400px;
+        margin: 5rem auto;
+        padding: 2rem;
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        text-align: center;
+    }
+    .admin-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+    }
+    .btn-admin {
+        background: #2e7d32; /* Deep Green */
+        color: #ffffff;
+        border: 2px solid #1b5e20;
+        padding: 1.2rem;
+        width: 100%;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: block;
+        visibility: visible;
+        opacity: 1;
+    }
+    .btn-admin:hover {
+        transform: translateY(-2px);
+        background: #388e3c;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .error-msg {
+        color: #d8000c;
+        background: #ffd2d2;
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-login-container">
+    <div class="admin-icon">
+        <i class="fa-solid fa-user-shield"></i>
+    </div>
+    <h2>Admin Access</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Please enter the system master password to continue.</p>
+
+    {% if error %}
+        <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="admin_password">Master Password</label>
+            <input type="password" id="admin_password" name="admin_password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-admin">Unlock Dashboard</button>
+    </form>
+</div>
+{% endblock %}

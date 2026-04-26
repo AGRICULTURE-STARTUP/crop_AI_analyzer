@@ -1063,15 +1063,28 @@ def initiate_topup(request):
             return JsonResponse({"status": "Error", "message": response.get('errorMessage', 'Failed to initiate M-Pesa payment.')})
     return JsonResponse({"error": "Invalid request"}, status=400)
 
-@login_required(login_url='login')
+def admin_login(request):
+    """Separate login for the admin using a master password."""
+    error = None
+    if request.method == 'POST':
+        password = request.POST.get('admin_password')
+        # Use ADMIN_PASSWORD from .env or a default if not set
+        master_password = os.getenv('ADMIN_PASSWORD', 'AgriScanAdmin2026')
+        
+        if password == master_password:
+            request.session['is_site_admin'] = True
+            return redirect('revenue_dashboard')
+        else:
+            error = "Invalid master password."
+            
+    return render(request, 'admin_login.html', {'error': error})
+
 def revenue_dashboard(request):
     """Admin dashboard to track MRR, total revenue, and user metrics."""
-    # This will show up in your Railway logs to help us debug
-    print(f"DEBUG: User '{request.user.username}' (Is Superuser: {request.user.is_superuser}) accessed revenue dashboard.")
+    # Check for the custom admin session flag
+    if not request.session.get('is_site_admin'):
+        return redirect('admin_login')
     
-    if not request.user.is_superuser:
-        from django.core.exceptions import PermissionDenied
-        raise PermissionDenied
     total_revenue = MpesaTransaction.objects.filter(status='Success').aggregate(Sum('amount'))['amount__sum'] or 0
     active_subscriptions = AgrovetSubscription.objects.filter(is_active=True).count()
     mrr = AgrovetSubscription.objects.filter(is_active=True, plan='basic').count() * 1500 + \

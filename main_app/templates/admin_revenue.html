@@ -1,73 +1,335 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}AgriScan | Revenue Dashboard{% endblock %}
+{% block title %}Executive Revenue Dashboard | AgriScan{% endblock %}
 
-{% block content %}
-<div class="hp-section" style="padding-top: 100px;">
-    <div class="container">
-        <h2 style="margin-bottom: 2rem;">Revenue & Performance Dashboard</h2>
-        
-        <div class="bento-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
-            <div class="bento-card">
-                <i class="fa-solid fa-coins bento-icon"></i>
-                <h3>KSh {{ total_revenue|floatformat:2 }}</h3>
-                <p>Total Revenue</p>
-            </div>
-            <div class="bento-card">
-                <i class="fa-solid fa-chart-line bento-icon"></i>
-                <h3>KSh {{ mrr|floatformat:2 }}</h3>
-                <p>Estimated MRR</p>
-            </div>
-            <div class="bento-card">
-                <i class="fa-solid fa-users-check bento-icon"></i>
-                <h3>{{ active_subscriptions }}</h3>
-                <p>Active Agency Subscriptions</p>
-            </div>
-        </div>
-
-        <div class="section-card" style="margin-top: 3rem;">
-            <h3>Recent Transactions</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
-                <thead>
-                    <tr style="text-align: left; border-bottom: 2px solid var(--border-color);">
-                        <th style="padding: 1rem;">User</th>
-                        <th style="padding: 1rem;">Amount</th>
-                        <th style="padding: 1rem;">Status</th>
-                        <th style="padding: 1rem;">Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for txn in recent_transactions %}
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 1rem;">{{ txn.user.username }}</td>
-                        <td style="padding: 1rem;">KSh {{ txn.amount }}</td>
-                        <td style="padding: 1rem;">
-                            <span class="status-badge {{ txn.status|lower }}">
-                                {{ txn.status }}
-                            </span>
-                        </td>
-                        <td style="padding: 1rem;">{{ txn.created_at|date:"M d, Y H:i" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" style="padding: 2rem; text-align: center;">No transactions found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
 <style>
-    .status-badge {
-        padding: 0.3rem 0.8rem;
-        border-radius: 100px;
+    :root {
+        --dash-primary: #1b5e20;
+        --dash-secondary: #2e7d32;
+        --dash-accent: #f59e0b;
+        --dash-bg: #f8fafc;
+        --dash-card: #ffffff;
+        --dash-text: #1e293b;
+        --dash-muted: #64748b;
+        --dash-border: #e2e8f0;
+    }
+
+    .dashboard-wrapper {
+        background-color: var(--dash-bg);
+        min-height: 100vh;
+        padding: 4rem 2rem;
+        margin-top: 2rem;
+    }
+
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* ── HEADER ── */
+    .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 3rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--dash-border);
+    }
+
+    .dash-header h2 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--dash-primary);
+        letter-spacing: -0.5px;
+    }
+
+    .dash-header p {
+        color: var(--dash-muted);
+        font-size: 1.1rem;
+    }
+
+    .refresh-btn {
+        background: white;
+        border: 1px solid var(--dash-border);
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--dash-text);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .refresh-btn:hover {
+        background: var(--dash-primary);
+        color: white;
+        border-color: var(--dash-primary);
+    }
+
+    /* ── METRIC CARDS ── */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .metric-card {
+        background: var(--dash-card);
+        padding: 2rem;
+        border-radius: 20px;
+        border: 1px solid var(--dash-border);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .metric-card::after {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 100px; height: 100px;
+        background: radial-gradient(circle, rgba(27, 94, 32, 0.05) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(30%, -30%);
+    }
+
+    .metric-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(27, 94, 32, 0.1);
+        color: var(--dash-primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--dash-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-label {
+        color: var(--dash-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.8rem;
+    }
+
+    .trend-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
         font-size: 0.85rem;
         font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 100px;
+        margin-left: 0.5rem;
     }
-    .status-badge.success { background: rgba(37, 211, 102, 0.15); color: #128C7E; }
-    .status-badge.failed { background: rgba(216, 0, 12, 0.15); color: #d8000c; }
-    .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+
+    .trend-up { background: #dcfce7; color: #166534; }
+
+    /* ── TRANSACTIONS TABLE ── */
+    .transactions-card {
+        background: var(--dash-card);
+        border-radius: 24px;
+        border: 1px solid var(--dash-border);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--dash-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dash-text);
+    }
+
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .dash-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .dash-table th {
+        background: #f1f5f9;
+        padding: 1rem 2rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--dash-muted);
+        letter-spacing: 1px;
+    }
+
+    .dash-table td {
+        padding: 1.2rem 2rem;
+        border-bottom: 1px solid var(--dash-border);
+        color: var(--dash-text);
+        font-size: 0.95rem;
+    }
+
+    .dash-table tr:hover {
+        background: #f8fafc;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        background: var(--dash-primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .status-badge.success { background: #dcfce7; color: #166534; }
+    .status-badge.failed { background: #fee2e2; color: #991b1b; }
+    .status-badge.pending { background: #fef3c7; color: #92400e; }
+
+    .amount-cell {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        color: var(--dash-primary);
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-wrapper { padding: 2rem 1rem; }
+        .dash-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="dashboard-container">
+        
+        <!-- DASHBOARD HEADER -->
+        <div class="dash-header">
+            <div>
+                <h2>Performance Overview</h2>
+                <p>Real-time revenue monitoring and agency metrics.</p>
+            </div>
+            <button class="refresh-btn" onclick="location.reload()">
+                <i class="fa-solid fa-rotate"></i> Refresh Data
+            </button>
+        </div>
+
+        <!-- KEY METRICS -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                <div class="metric-value">KSh {{ total_revenue|floatformat:2 }}</div>
+                <div class="metric-label">Total Revenue <span class="trend-indicator trend-up">+ Live</span></div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                <div class="metric-value">KSh {{ mrr|floatformat:2 }}</div>
+                <div class="metric-label">Monthly Recurring Revenue (MRR)</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fa-solid fa-building-circle-check"></i></div>
+                <div class="metric-value">{{ active_subscriptions }}</div>
+                <div class="metric-label">Active Agency Partners</div>
+            </div>
+        </div>
+
+        <!-- TRANSACTIONS SECTION -->
+        <div class="transactions-card">
+            <div class="card-header">
+                <h3>Recent Activity Log</h3>
+                <div style="font-size: 0.85rem; color: var(--dash-muted);">Last 20 transactions</div>
+            </div>
+            <div class="table-container">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>Originating User</th>
+                            <th>Amount (KES)</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                            <th>Transaction ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in recent_transactions %}
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-avatar">{{ txn.user.username|slice:":1"|upper }}</div>
+                                    <div>
+                                        <div style="font-weight: 700;">{{ txn.user.username }}</div>
+                                        <div style="font-size: 0.75rem; color: var(--dash-muted);">{{ txn.phone_number }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="amount-cell">+ {{ txn.amount|floatformat:2 }}</td>
+                            <td>
+                                <span class="status-badge {{ txn.status|lower }}">
+                                    {{ txn.status }}
+                                </span>
+                            </td>
+                            <td style="color: var(--dash-muted);">{{ txn.created_at|date:"d M Y" }} <br> <span style="font-size: 0.7rem;">{{ txn.created_at|date:"H:i" }}</span></td>
+                            <td style="font-family: monospace; font-size: 0.8rem; color: var(--dash-muted);">{{ txn.checkout_request_id|slice:":12" }}...</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 5rem; color: var(--dash-muted);">
+                                <i class="fa-solid fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem; opacity: 0.3;"></i>
+                                No financial data recorded in the system yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
 {% endblock %}
