@@ -1066,6 +1066,9 @@ def initiate_topup(request):
 @login_required(login_url='login')
 def revenue_dashboard(request):
     """Admin dashboard to track MRR, total revenue, and user metrics."""
+    # This will show up in your Railway logs to help us debug
+    print(f"DEBUG: User '{request.user.username}' (Is Superuser: {request.user.is_superuser}) accessed revenue dashboard.")
+    
     if not request.user.is_superuser:
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
