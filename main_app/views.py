@@ -82,31 +82,44 @@ def is_plant_image(img_path):
         print(f"{i + 1}: {label} ({score * 100:.2f}%)")
     print("----------------------------------------\n")
     
-    # Strict whitelist of ImageNet classes related to plants, crops, and foliage.
+    # Expanded whitelist of ImageNet classes related to plants, crops, foliage, and fungi.
     plant_whitelist = [
         'plant', 'leaf', 'flower', 'tree', 'grass', 'daisy', 'pot', 'earthstar',
         'corn', 'cabbage', 'cucumber', 'zucchini', 'bell_pepper', 'strawberry', 
         'orange', 'lemon', 'fig', 'pineapple', 'banana', 'apple', 'broccoli', 
         'cauliflower', 'artichoke', 'turnip', 'mushroom', 'agaric', 'gyromitra', 
         'stinkhorn', 'bolete', 'buckeye', 'acorn', 'rapeseed',
-        'head_cabbage', 'vegetable', 'fruit', 'greenhouse', 'hay', 'thistle'
+        'head_cabbage', 'vegetable', 'fruit', 'greenhouse', 'hay', 'thistle',
+        'cardoon', 'squash', 'pomegranate', 'jackfruit', 'custard_apple', 
+        'granny_smith', 'lady\'s_slipper', 'hip', 'coral_fungus', 'hen-of-the-woods',
+        'velvet', 'sponge', 'tuber', 'root', 'stalk', 'vine', 'pod', 'seed', 'grain'
     ]
     
-    # Analyze the top-3 predictions
+    # Analyze the predictions
     top_label = decoded[0][1].lower()
     top_score = decoded[0][2]
     
-    # 1. If the top prediction is extremely confident (>70%) and NOT in whitelist, reject immediately.
-    # This caught the Linux logo (Tux) which ImageNet likely sees as a penguin or toy with high confidence.
+    # 1. Strict Rejection: Only if extremely confident (>80%) and NOT in whitelist.
+    # This prevents obvious non-plants (like the Linux logo or a car) from passing.
     is_top_plant = any(w in top_label for w in plant_whitelist)
-    if not is_top_plant and top_score > 0.6:
+    if not is_top_plant and top_score > 0.8:
+        print(f"Gatekeeper: Strict rejection - Highly confident non-plant: {top_label} ({top_score*100:.1f}%)")
         return False
 
-    # 2. Otherwise, check if ANY of the top-3 predictions are plant-related with decent confidence.
-    for _, label, conf in decoded[:3]:
+    # 2. Whitelist Check: If any of the top-5 are plant-related with even low confidence.
+    # Diseased leaves often get low scores or get classified as fungi.
+    for _, label, conf in decoded:
         if any(w in label.lower() for w in plant_whitelist):
-            if conf > 0.15: # Must be at least 15% confident it's a plant
+            if conf > 0.05: # Lowered threshold to be more inclusive
                 return True
+
+    # 3. Uncertainty Fallback: If the model is generally confused (top score < 30%), 
+    # we allow it unless it's a very specific non-plant object.
+    non_plant_strict = ['car', 'truck', 'bus', 'vehicle', 'tire', 'wheel', 'logo', 'sign', 'building', 'furniture', 'person', 'dog', 'cat']
+    if top_score < 0.3:
+        if not any(w in top_label for w in non_plant_strict):
+            print(f"Gatekeeper: Low confidence fallback - allowing uncertain image '{top_label}' ({top_score*100:.1f}%)")
+            return True
             
     return False
 
