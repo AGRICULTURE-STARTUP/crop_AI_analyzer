@@ -4,9 +4,10 @@
   --bg-primary: #f4faf4;
   --bg-secondary: #ffffff;
   --text-primary: #2c3e50;
-  --text-secondary: #666666;
-  --text-muted: #888888;
+  --text-secondary: #444444;
+  --text-muted: #555555;
   --header-bg: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%);
+  --primary-color: #27ae60;
   --accent-color: #388e3c;
   --accent-light: #81c784;
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);

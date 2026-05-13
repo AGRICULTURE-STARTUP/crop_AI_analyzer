@@ -126,6 +126,10 @@ Contributions are what make the open-source community such an amazing place to l
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📬 Contact
-**Job Nyaribari** - Founder & AI Lead - [Email](mailto:jobnyaribari808@gmail.com)
+
+**Job Nyaribari** — Founder & AI Lead  
+
+- **Phone:** +254 758 503819 (0758503819)  
+- **Email:** [jobnyaribari808@gmail.com](mailto:jobnyaribari808@gmail.com)
 
 Project Link: [https://github.com/jobcode003/AgriScan](https://github.com/jobcode003/AgriScan)

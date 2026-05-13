@@ -28,6 +28,7 @@ class BuyerProfile(models.Model):
 
 class AgencyProfile(models.Model):
     AGENCY_TYPES = (
+        ('agrovet', 'Agrovet / All-in-One Supplier'),
         ('fertiliser', 'Fertiliser Company'),
         ('pesticide', 'Pesticide Company'),
         ('seed','Seed Company')

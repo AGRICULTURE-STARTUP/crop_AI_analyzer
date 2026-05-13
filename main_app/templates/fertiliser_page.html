@@ -1,62 +1,154 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}AgriScan | Agrovet{% endblock %}
+{% block title %}AgriScan | Inputs & Agrovets Marketplace{% endblock %}
 
 {% block content %}
 
-
     <div class="fertilisers-container">
-        <div class="fertilisers-header">
-            <h2>Agrovet</h2>
-            <p>Connect with reputable suppliers and agricultural agencies.</p>
-            <div class="search-bar" style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
-                <input type="text" id="county-search" placeholder="Enter county or location..." style="padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; width: 100%; max-width: 300px; font-size: 1rem; outline: none; background: var(--input-bg); color: var(--text-primary);">
-                <button id="search-btn" class="btn-primary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer;">Search</button>
-                <button id="fetch-firms-btn" class="btn-secondary" style="padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);">Show All</button>
+        <div class="fertilisers-header" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.1), rgba(41, 128, 185, 0.05)); padding: 2.5rem 1.5rem; border-radius: 16px; border: 1px solid rgba(39, 174, 96, 0.2); margin-bottom: 2rem;">
+            <span style="background: #27ae60; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 2px 4px rgba(39, 174, 96, 0.2);">Hybrid Access Layer</span>
+            <h2 style="font-size: 2.2rem; margin: 0.5rem 0; color: var(--text-primary);">Agricultural Inputs & Agrovet Finder</h2>
+            <p style="font-size: 1.1rem; color: var(--text-muted); max-width: 700px; margin: 0 auto;">
+                Find nearby stockists, high-yield seeds, crop protection pesticides, and balanced fertilizers. Includes verified onboarded dashboards and comprehensive nearby local indexes.
+            </p>
+            
+            <div class="search-bar" style="margin-top: 1.8rem; display: flex; justify-content: center; gap: 0.6rem; flex-wrap: wrap; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <div style="position: relative; flex: 1; min-width: 250px;">
+                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                    <input type="text" id="county-search" placeholder="Search inputs, stockists, or county..." style="padding: 0.85rem 1rem 0.85rem 2.8rem; border: 1px solid var(--border-color); border-radius: 10px; width: 100%; font-size: 1rem; outline: none; background: var(--input-bg); color: var(--text-primary); transition: border-color 0.3s, box-shadow 0.3s;">
+                </div>
+                <button id="search-btn" class="btn-primary" style="padding: 0.85rem 1.5rem; border-radius: 10px; cursor: pointer; font-weight: 600;">Search</button>
+                <button id="fetch-firms-btn" class="btn-secondary" style="padding: 0.85rem 1.5rem; border-radius: 10px; cursor: pointer; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); font-weight: 600;">Reset</button>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="filter-pills" style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.5rem;">
+                <button class="filter-pill active" data-filter="all">🌟 All Inputs & Stores</button>
+                <button class="filter-pill" data-filter="verified">🛡️ Verified Partners</button>
+                <button class="filter-pill" data-filter="external">📍 Nearby Directory</button>
+                <button class="filter-pill" data-filter="seed">🌾 Seeds</button>
+                <button class="filter-pill" data-filter="pesticide">🧪 Pesticides</button>
+                <button class="filter-pill" data-filter="fertiliser">🟢 Fertilisers</button>
             </div>
         </div>
 
         <div class="table-responsive">
             <div id="firms-grid" class="firms-grid">
-                <!-- Data will be populated here -->
+                <!-- Data populated dynamically via JS -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                    <p>Loading inputs catalog and hybrid stockist indices...</p>
+                </div>
             </div>
         </div>
     </div>
 
     <style>
+        /* Premium Design Aesthetics */
+        .filter-pill {
+            background: var(--surface-color, #fff);
+            border: 1px solid var(--border-color, #ddd);
+            color: var(--text-muted, #666);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .filter-pill:hover {
+            border-color: var(--primary-color);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+        .filter-pill.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+        }
+
+        /* Product & Stockist Cards */
         .product-card {
             background: var(--surface-color, #fff);
             border: 1px solid var(--border-color, #ddd);
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
         }
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
         }
+
+        /* Verified Card Accent */
+        .product-card.verified-item {
+            border-top: 4px solid var(--primary-color);
+        }
+        .product-card.external-item {
+            border-top: 4px solid #3498db;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            z-index: 2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .badge-verified {
+            background: rgba(39, 174, 96, 0.95);
+            color: white;
+            backdrop-filter: blur(4px);
+        }
+        .badge-external {
+            background: rgba(52, 152, 219, 0.95);
+            color: white;
+            backdrop-filter: blur(4px);
+        }
+
         .product-image {
             width: 100%;
-            height: auto;
-            max-height: 250px;
+            height: 180px;
             object-fit: contain;
             display: block;
-            background: #fdfdfd;
-            padding: 5px;
+            background: #fafafa;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
         }
         .product-image-placeholder {
             width: 100%;
-            height: 200px;
-            background: #f8f9fa;
+            height: 180px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #ccc;
-            font-size: 3rem;
+            color: #adb5bd;
+            border-bottom: 1px solid var(--border-color);
         }
+        .product-image-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            opacity: 0.8;
+        }
+        .placeholder-external {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(52, 152, 219, 0.1));
+        }
+        .placeholder-external i {
+            color: #3498db;
+        }
+
         .product-details {
             padding: 1.5rem;
             display: flex;
@@ -64,130 +156,327 @@
             flex: 1;
         }
         .product-title {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-color, #333);
+            font-size: 1.2rem;
+            margin-bottom: 0.4rem;
+            color: var(--text-color, #2c3e50);
+            font-weight: 700;
+            line-height: 1.3;
         }
         .product-price {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: var(--primary-color, #27ae60);
-            font-weight: bold;
-            margin-bottom: 1rem;
+            font-weight: 800;
+            margin-bottom: 0.6rem;
+        }
+        .price-external {
+            color: #3498db;
+            font-size: 1.1rem;
         }
         .product-meta {
             font-size: 0.9rem;
-            color: var(--text-muted, #777);
+            color: var(--text-muted, #7f8c8d);
             margin-bottom: 0.5rem;
+            line-height: 1.4;
         }
+        
+        .inputs-tag {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        .inputs-tag span {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
         .product-agency {
             margin-top: auto;
-            border-top: 1px solid var(--border-color, #eee);
+            border-top: 1px solid var(--border-color, #ecf0f1);
             padding-top: 1rem;
         }
-        .buy-btn {
-            display: block;
-            text-align: center;
-            background: #25D366; /* WhatsApp Green */
-            color: white;
-            padding: 0.8rem;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-top: 1rem;
-            transition: background 0.3s;
+        .agency-name {
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
-        .buy-btn:hover {
-            background: #128C7E;
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-align: center;
             color: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+        .btn-whatsapp {
+            background: #25D366;
+        }
+        .btn-whatsapp:hover {
+            background: #128C7E;
+            transform: translateY(-1px);
+        }
+        .btn-call {
+            background: #3498db;
+        }
+        .btn-call:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        .btn-directions {
+            background: #e67e22;
+            margin-top: 0.5rem;
+        }
+        .btn-directions:hover {
+            background: #d35400;
+            transform: translateY(-1px);
+        }
+
+        /* Focus & Search states */
+        #county-search:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
         }
     </style>
 
     <script>
-        function renderProducts(productList) {
+        let allItemsList = [];
+        let currentFilter = 'all';
+
+        function getCategoryIcon(type) {
+            switch(type) {
+                case 'seed': return 'fa-seedling';
+                case 'pesticide': return 'fa-flask';
+                case 'fertiliser': return 'fa-cubes-stacked';
+                default: return 'fa-store';
+            }
+        }
+
+        function renderItems(items) {
             const grid = document.getElementById('firms-grid');
             grid.innerHTML = '';
-            if (productList && productList.length > 0) {
-                productList.forEach((prod, index) => {
+            
+            if (items && items.length > 0) {
+                items.forEach((item, index) => {
                     const card = document.createElement('div');
-                    card.className = 'product-card animate-up';
-                    card.style.animationDelay = `${index * 0.1}s`;
+                    const isVerified = item.is_onboarded;
+                    card.className = `product-card animate-up ${isVerified ? 'verified-item' : 'external-item'}`;
+                    card.style.animationDelay = `${(index % 10) * 0.05}s`;
                     
-                    let imageHtml = prod.image_url 
-                        ? `<img src="${prod.image_url}" class="product-image" alt="${prod.name}">` 
-                        : `<div class="product-image-placeholder"><i class="fa-solid fa-box"></i></div>`;
+                    // Badges
+                    const badgeHtml = isVerified 
+                        ? `<span class="card-badge badge-verified"><i class="fa-solid fa-shield-halved"></i> Verified Partner</span>`
+                        : `<span class="card-badge badge-external"><i class="fa-solid fa-location-dot"></i> Nearby Index</span>`;
 
-                    let phone = prod.support_phone ? prod.support_phone.replace(/\D/g, '') : '';
-                    let contactBtn = phone 
-                        ? `<a href="https://wa.me/${phone}?text=Hi, Im interested in your ${encodeURIComponent(prod.name)} on AgriScan." target="_blank" class="buy-btn"><i class="fa-brands fa-whatsapp"></i> Buy via WhatsApp</a>`
-                        : `<p style="color:var(--text-muted); font-size: 0.85rem; margin-top:1rem; text-align:center;">No contact number available</p>`;
+                    // Images or Beautiful Visualizer
+                    let imageHtml = '';
+                    if (item.image_url) {
+                        imageHtml = `<img src="${item.image_url}" class="product-image" alt="${item.name}" onerror="this.onerror=null; this.src='/static/images/placeholder.png'; this.parentElement.classList.add('placeholder-external');">`;
+                    } else {
+                        const iconClass = getCategoryIcon(item.agency_type);
+                        const placeholderTypeClass = isVerified ? '' : 'placeholder-external';
+                        const labelText = isVerified ? 'Verified Listing' : 'Local Input Stockist';
+                        imageHtml = `
+                            <div class="product-image-placeholder ${placeholderTypeClass}">
+                                <i class="fa-solid ${iconClass}"></i>
+                                <span style="font-size: 0.85rem; font-weight: 600;">${labelText}</span>
+                            </div>
+                        `;
+                    }
+
+                    // Contacts/Actions
+                    let actionHtml = '';
+                    let phoneClean = item.support_phone ? item.support_phone.replace(/\D/g, '') : '';
+                    
+                    if (isVerified) {
+                        if (phoneClean) {
+                            actionHtml = `
+                                <a href="https://wa.me/${phoneClean}?text=Hi, Im interested in your listing '${encodeURIComponent(item.name)}' on AgriScan." target="_blank" class="action-btn btn-whatsapp">
+                                    <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> Buy via WhatsApp
+                                </a>
+                            `;
+                        } else {
+                            actionHtml = `<p style="color:var(--text-muted); font-size: 0.85rem; margin-top:1rem; text-align:center;">Dashboard Onboarded - No Phone Configured</p>`;
+                        }
+                    } else {
+                        // External Action buttons
+                        const mapQuery = encodeURIComponent(`${item.name} ${item.location || ''}`);
+                        actionHtml = `
+                            ${item.support_phone ? `
+                                <a href="tel:${item.support_phone}" class="action-btn btn-call">
+                                    <i class="fa-solid fa-phone" style="font-size: 1.1rem;"></i> Call Stockist
+                                </a>
+                            ` : ''}
+                            <a href="https://www.google.com/maps/search/?api=1&query=${mapQuery}" target="_blank" class="action-btn btn-directions">
+                                <i class="fa-solid fa-map-location-dot" style="font-size: 1.1rem;"></i> Map / Directions
+                            </a>
+                        `;
+                    }
+
+                    const priceClass = isVerified ? 'product-price' : 'product-price price-external';
+                    const pricePrefix = isVerified && item.price !== 'Contact Supplier' ? 'KES ' : '';
 
                     card.innerHTML = `
+                        ${badgeHtml}
                         ${imageHtml}
                         <div class="product-details">
-                            <h3 class="product-title">${prod.name || 'Unnamed Product'}</h3>
-                            <div class="product-price">KES ${prod.price || '0.00'}</div>
-                            ${prod.description ? `<p class="product-meta" style="margin-bottom: 1rem;">${prod.description}</p>` : ''}
+                            <h3 class="product-title">${item.name || 'Unnamed Record'}</h3>
+                            <div class="${priceClass}">${pricePrefix}${item.price || 'Market Pricing'}</div>
+                            
+                            ${item.inputs_offered ? `
+                                <div class="inputs-tag">
+                                    <span>Inputs:</span> ${item.inputs_offered}
+                                </div>
+                            ` : ''}
+
+                            ${item.description ? `<p class="product-meta" style="margin-bottom: 1rem; flex-grow: 1;">${item.description}</p>` : '<div style="flex-grow:1;"></div>'}
                             
                             <div class="product-agency">
-                                <p style="font-weight:600; color:var(--text-color); margin-bottom: 0.25rem;"><i class="fa-solid fa-store" style="color:var(--primary-color);"></i> ${prod.agency_name}</p>
-                                <p class="product-meta"><i class="fa-solid fa-location-dot"></i> ${prod.location || 'Unknown Location'}</p>
-                                <p class="product-meta" style="text-transform: capitalize;"><i class="fa-solid fa-tag"></i> ${prod.agency_type}</p>
-                                ${contactBtn}
+                                <div class="agency-name">
+                                    <i class="fa-solid fa-store" style="color: ${isVerified ? 'var(--primary-color)' : '#3498db'};"></i> 
+                                    ${item.agency_name || 'Agrovet Provider'}
+                                </div>
+                                <p class="product-meta" style="margin-bottom: 0.2rem;"><i class="fa-solid fa-location-dot" style="width: 16px;"></i> ${item.location || 'Kenya Region'}</p>
+                                <p class="product-meta" style="text-transform: capitalize;"><i class="fa-solid fa-tag" style="width: 16px;"></i> ${item.agency_type || 'Agrovet'}</p>
+                                ${actionHtml}
                             </div>
                         </div>
                     `;
                     grid.appendChild(card);
                 });
             } else {
-                grid.innerHTML = '<div class="no-results" style="grid-column: 1/-1; text-align:center; padding: 4rem;">No products found matching your search.</div>';
+                grid.innerHTML = `
+                    <div class="no-results" style="grid-column: 1/-1; text-align: center; padding: 4rem;">
+                        <i class="fa-solid fa-magnifying-glass-minus" style="font-size: 3rem; color: var(--border-color); margin-bottom: 1rem; display:block;"></i>
+                        <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">No input stockists found</h3>
+                        <p style="color: var(--text-muted);">Try adjusting your search criteria or resetting filters to browse all options.</p>
+                    </div>
+                `;
             }
         }
 
-        function loadProducts(searchTerm = '') {
-            const grid = document.getElementById('firms-grid');
-            const searchBtn = document.getElementById('search-btn');
-            const fetchAllBtn = document.getElementById('fetch-firms-btn');
+        function filterAndDisplay() {
+            const searchTerm = document.getElementById('county-search').value.toLowerCase().trim();
+            let filtered = [...allItemsList];
 
-            if(searchBtn) searchBtn.disabled = true;
-            if(fetchAllBtn) fetchAllBtn.disabled = true;
-            if(searchBtn) searchBtn.textContent = 'Searching...';
+            // 1. Filter by Category Pill
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'verified') {
+                    filtered = filtered.filter(item => item.is_onboarded);
+                } else if (currentFilter === 'external') {
+                    filtered = filtered.filter(item => !item.is_onboarded);
+                } else {
+                    // filter by seed, pesticide, fertiliser
+                    filtered = filtered.filter(item => item.agency_type === currentFilter);
+                }
+            }
+
+            // 2. Filter by Search input
+            if (searchTerm) {
+                filtered = filtered.filter(item => 
+                    (item.name && item.name.toLowerCase().includes(searchTerm)) ||
+                    (item.location && item.location.toLowerCase().includes(searchTerm)) ||
+                    (item.description && item.description.toLowerCase().includes(searchTerm)) ||
+                    (item.inputs_offered && item.inputs_offered.toLowerCase().includes(searchTerm)) ||
+                    (item.agency_name && item.agency_name.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            renderItems(filtered);
+        }
+
+        function loadItemsFromServer() {
+            const searchBtn = document.getElementById('search-btn');
+            if (searchBtn) searchBtn.textContent = 'Loading...';
 
             fetch('/fertiliser_firms/')
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
-                    let list = data.products || [];
-                    if (searchTerm) {
-                        const term = searchTerm.toLowerCase();
-                        list = list.filter(p => 
-                            (p.name && p.name.toLowerCase().includes(term)) || 
-                            (p.location && p.location.toLowerCase().includes(term)) ||
-                            (p.agency_name && p.agency_name.toLowerCase().includes(term))
-                        );
-                    }
-                    renderProducts(list);
+                    allItemsList = data.products || [];
+                    filterAndDisplay();
                 })
-                .catch(error => {
-                    console.error('Error fetching products:', error);
-                    grid.innerHTML = '<div class="error-msg" style="grid-column: 1/-1; text-align:center; padding: 4rem; color:red;">Failed to load catalogue. Please try again later.</div>';
+                .catch(err => {
+                    console.error('Failed fetching hybrid inputs:', err);
+                    document.getElementById('firms-grid').innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #e74c3c;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
+                            <p>Unable to load items database. Please verify network connectivity.</p>
+                        </div>
+                    `;
                 })
                 .finally(() => {
-                    if(searchBtn) { searchBtn.disabled = false; searchBtn.textContent = 'Search'; }
-                    if(fetchAllBtn) fetchAllBtn.disabled = false;
+                    if (searchBtn) searchBtn.textContent = 'Search';
                 });
         }
 
-        document.getElementById('search-btn').addEventListener('click', function() {
-            const term = document.getElementById('county-search').value.trim();
-            loadProducts(term);
-        });
+        // Event Listeners & Initialization
+        (function() {
+            const init = () => {
+                // Pill filter clicks
+                const pills = document.querySelectorAll('.filter-pill');
+                pills.forEach(pill => {
+                    pill.addEventListener('click', (e) => {
+                        pills.forEach(p => p.classList.remove('active'));
+                        pill.classList.add('active');
+                        currentFilter = pill.getAttribute('data-filter');
+                        filterAndDisplay();
+                    });
+                });
 
-        document.getElementById('fetch-firms-btn').addEventListener('click', function() {
-            document.getElementById('county-search').value = '';
-            loadProducts();
-        });
-        
-        // Initial load
-        loadProducts();
+                // Live input search debounce
+                let searchTimeout;
+                const searchInput = document.getElementById('county-search');
+                if (searchInput) {
+                    searchInput.addEventListener('input', () => {
+                        clearTimeout(searchTimeout);
+                        searchTimeout = setTimeout(filterAndDisplay, 250);
+                    });
+                }
+
+                // Buttons
+                const searchBtn = document.getElementById('search-btn');
+                if (searchBtn) {
+                    searchBtn.addEventListener('click', filterAndDisplay);
+                }
+
+                const resetBtn = document.getElementById('fetch-firms-btn');
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => {
+                        if (searchInput) searchInput.value = '';
+                        currentFilter = 'all';
+                        pills.forEach(p => p.classList.remove('active'));
+                        const allPill = document.querySelector('.filter-pill[data-filter="all"]');
+                        if (allPill) allPill.classList.add('active');
+                        filterAndDisplay();
+                    });
+                }
+
+                loadItemsFromServer();
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
     </script>
 
 {% endblock %}

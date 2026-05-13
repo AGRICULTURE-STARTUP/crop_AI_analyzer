@@ -33,3 +33,10 @@ AgriScan is delivered as a native mobile application via CapacitorJS, ensuring a
 
 ![Mobile Integration Diagram](https://private-us-east-1.manuscdn.com/sessionFile/xIrQ9ybXlzqHO2GNTQcxxq/sandbox/2xeStis7gt6iv3ygVd9EYq-images_1777204558338_na1fn_L2hvbWUvdWJ1bnR1L21vYmlsZV9pbnRlZ3JhdGlvbg.png?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUveElyUTl5YlhsenFITzJHTlRRY3h4cS9zYW5kYm94LzJ4ZVN0aXM3Z3Q2aXYzeWdWZDlFWXEtaW1hZ2VzXzE3NzcyMDQ1NTgzMzhfbmExZm5fTDJodmJXVXZkV0oxYm5SMUwyMXZZbWxzWlY5cGJuUmxaM0poZEdsdmJnLnBuZyIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=DFZx8qiIfQsY8GnrYY7ZrtpggOa7JdSnXbIRhCxL-oZpDNRn4ggMWZCl6FK3LtD73i4Aen7~AwoI14T4DFGBIk8Zh1o-fZr23Bx6yRd9CiW~of4noiUpqrR2OrO6U3DavV3~fIwH5GPrySdD0N~Hj60ekE6ijFJZnCY6vuqMnlAuCge9unYaLZ70P~rgXjR9dJX5BSMwDnJZ0-RATr5aPrKUIoJJ6EOOxxix14rNK2Jx4tiSqFotEbGiEx75fpk7xpG~tA~dWk4jiLSJAK~PWB1oqHqpG8KN4NNiuTPx400DYeZraOETuFXhGHh1ggAMvEckLX8-RKcbcEb1654i5A__)
 
+---
+
+## Document contact
+
+**Job Nyaribari**  
+**Phone:** +254 758 503819 (0758503819)  
+**Email:** [jobnyaribari808@gmail.com](mailto:jobnyaribari808@gmail.com)

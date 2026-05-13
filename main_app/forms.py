@@ -55,6 +55,7 @@ class SignupFormbuyer(UserCreationForm):
 
 class SignupFormagency(UserCreationForm):
     AGENCY_TYPES = (
+        ('agrovet', 'Agrovet / All-in-One Supplier'),
         ('fertiliser', 'Fertiliser Company'),
         ('pesticide', 'Pesticide Company'),
         ('seed','Seed Company')

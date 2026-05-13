@@ -28,7 +28,7 @@
                 
                 {% if user.farmer_profile %}
                     <li><a href="{% url 'page' %}">Scanner</a></li>
-                    <li><a href="{% url 'fertiliser' %}">Agrovet</a></li>
+                    <li><a href="{% url 'fertiliser' %}">Inputs & Agrovets</a></li>
                     <li><a href="{% url 'market_buyers' %}">Market</a></li>
                     <li><a href="{% url 'farmers' %}">Farmers</a></li>
                     <li><a href="{% url 'farmer_profile' %}">Profile</a></li>
@@ -40,7 +40,7 @@
                 {% else %}
                     <!-- Fallback -->
                     <li><a href="{% url 'page' %}">Scanner</a></li>
-                    <li><a href="{% url 'fertiliser' %}">Agrovet</a></li>
+                    <li><a href="{% url 'fertiliser' %}">Inputs & Agrovets</a></li>
                     <li><a href="{% url 'market_buyers' %}">Market</a></li>
                     <li><a href="{% url 'farmers' %}">Farmers</a></li>
                 {% endif %}
@@ -132,8 +132,9 @@
             </div>
             <div class="footer-column contact">
                 <h4>Contact Us</h4>
-                <p><i class="fa-solid fa-envelope"></i> info@agriscan.com</p>
-                <p><i class="fa-solid fa-phone"></i> +254 758 503819</p>
+                <p><i class="fa-solid fa-user"></i> Job Nyaribari</p>
+                <p><i class="fa-solid fa-envelope"></i> <a href="mailto:jobnyaribari808@gmail.com">jobnyaribari808@gmail.com</a></p>
+                <p><i class="fa-solid fa-phone"></i> +254 758 503819 (0758503819)</p>
                 <p><i class="fa-solid fa-location-dot"></i> Nairobi, Kenya</p>
                 <div class="social-icons">
                     <a href="https://x.com/job_nyaribari" target="_blank"><i class="fa-brands fa-twitter"></i></a>
