@@ -37,17 +37,6 @@
         border: 1px solid rgba(56, 142, 60, 0.2);
     }
 
-    /* ── Animations ─────────────────────────────────────────── */
-    .reveal {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .reveal.active {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
     /* ── Hero Section ───────────────────────────────────────── */
     .hero-premium {
         position: relative;
@@ -56,7 +45,7 @@
         align-items: center;
         justify-content: center;
         padding: 4rem 2rem;
-        background: url("{% static 'images/maize_potato.jpg' %}") center/cover no-repeat;
+        background: var(--primary-dark) url("{% static 'images/maize_potato.jpg' %}") center/cover no-repeat;
         border-radius: 0 0 80px 80px;
         overflow: hidden;
         margin-bottom: -60px;
@@ -67,7 +56,7 @@
     .hero-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, #1B5E20 0%, rgba(27, 94, 32, 0.9) 10%, rgba(255, 255, 255, 0.35) 100%);
+        background: linear-gradient(135deg, #1B5E20 0%, rgba(27, 94, 32, 0.9) 30%, rgba(10, 40, 15, 0.7) 100%);
         backdrop-filter: blur(1px);
     }
 
@@ -215,12 +204,7 @@
     }
 
     .bento-header p {
-        font-size: clamp(1rem, 1.5vw, 1.2rem);
-        color: var(--text-body);
-        max-width: 650px;
-        margin: 0 auto;
-        opacity: 0.9;
-        transition: color var(--transition-speed);
+        color: var(--text-muted); font-size: 1.1rem; max-width: 650px; margin: 0 auto;
     }
 
     .bento-grid {
@@ -353,7 +337,7 @@
 
     .journey-content p {
         font-size: 1.1rem;
-        color: var(--text-body);
+        color: #000000;
         line-height: 1.6;
     }
 
@@ -586,17 +570,15 @@
 {% endblock %}
 
 {% block content %}
-<!-- ════════════════════════════════════════════════════════════
-     1. HERO SECTION
-════════════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════════════════════════════════════════════ -->
 <section class="hero-premium">
     <div class="hero-overlay"></div>
-    <div class="hero-container reveal active">
+    <div class="hero-container">
         <div class="hero-badge">
-            <i class="fa-solid fa-sparkles"></i> AI-Powered Agricultural Intelligence
+            <i class="fa-solid fa-sparkles"></i> Protect Your Crops & Increase Yields
         </div>
         <h1 class="hero-title">Experience the Future of <span>Farming</span></h1>
-        <p class="hero-description">Detect crop diseases in seconds, get expert treatment plans in Kiswahili or English, and unlock financial growth with our AI-driven ecosystem.</p>
+        <p class="hero-description">Take a photo of a sick plant to instantly get treatment advice in English or Kiswahili, and connect with buyers to sell your harvest.</p>
         <div class="hero-btns">
             <a href="{% url 'login' %}" class="btn-hero-primary">Start Scanning Now</a>
             <a href="{% static 'downloads/app-debug.apk' %}" class="btn-hero-secondary" download>Download Android App</a>
@@ -607,7 +589,7 @@
 <!-- ════════════════════════════════════════════════════════════
      2. TRUST BAR
 ════════════════════════════════════════════════════════════ -->
-<div class="trust-bar reveal">
+<div class="trust-bar">
     <div class="trust-item">
         <span class="trust-num">100+</span>
         <span class="trust-label">Diseases Detected</span>
@@ -628,15 +610,15 @@
 
 
 <section id="features" class="section-bento">
-    <div class="bento-header reveal">
-        <span class="hp-label">Core Capabilities</span>
-        <h2>Precision Tools for Proactive Farmers</h2>
-        <p>Built on top-tier machine learning models to provide accurate, actionable insights for your farm.</p>
+    <div class="bento-header">
+        <span class="hp-label">How AgriScan Helps You</span>
+        <h2>Simple Tools for Better Farming</h2>
+        <p>Get the help you need to keep your crops healthy and find the right buyers.</p>
     </div>
 
     <div class="bento-grid">
         <!-- Feature 1: AI Scanner (Large) -->
-        <div class="bento-card card-large reveal" style="padding:0;">
+        <div class="bento-card card-large" style="padding:0;">
             <div style="height: 240px; overflow: hidden;">
                 <img src="{% static 'images/ai_diagnosis.png' %}" alt="AI Diagnosis" style="width:100%; height:100%; object-fit:cover;">
             </div>
@@ -649,7 +631,7 @@
         </div>
 
         <!-- Feature 2: Bilingual Assistant (Wide) -->
-        <div class="bento-card card-wide reveal">
+        <div class="bento-card card-wide">
             <i class="fa-solid fa-robot bento-icon"></i>
             <h3>The Bilingual AI Expert</h3>
             <p>Immediate treatment recommendations in <strong>English and Kiswahili</strong>. Get expert advice on pest control and soil health through natural conversation.</p>
@@ -657,7 +639,7 @@
         </div>
 
         <!-- Feature 3: Market -->
-        <div class="bento-card reveal">
+        <div class="bento-card">
             <i class="fa-solid fa-shop bento-icon"></i>
             <h3>Market Connection</h3>
             <p>Direct access to agrovet supplies and produce buyers in your locality.</p>
@@ -665,7 +647,7 @@
         </div>
 
         <!-- Feature 4: Weather -->
-        <div class="bento-card reveal">
+        <div class="bento-card">
             <i class="fa-solid fa-cloud-sun-rain bento-icon"></i>
             <h3>Weather Intelligence</h3>
             <p>Hyper-local weather data for precision planting and irrigation.</p>
@@ -673,7 +655,7 @@
         </div>
 
         <!-- Feature 5: Lending (Wide) -->
-        <div class="bento-card card-wide reveal">
+        <div class="bento-card card-wide">
             <i class="fa-solid fa-hand-holding-dollar bento-icon" style="color:var(--accent)"></i>
             <h3>Micro-Lending & Credit</h3>
             <p>Your agricultural activity builds a <strong>Farm Health Score</strong>. Access micro-loans and credit from financial partners tailored to your specific farm metrics.</p>
@@ -681,10 +663,10 @@
         </div>
 
         <!-- Feature 6: Dashboard -->
-        <div class="bento-card reveal">
+        <div class="bento-card">
             <i class="fa-solid fa-gauge-high bento-icon"></i>
             <h3>Pro Dashboard</h3>
-            <p>Unified control for Farmers, Buyers, and Agencies.</p>
+            <p>Unified control for Farmers and Buyers.</p>
             <i class="fa-solid fa-shield card-decoration"></i>
         </div>
     </div>
@@ -694,34 +676,34 @@
      4. JOURNEY TIMELINE
 ════════════════════════════════════════════════════════════ -->
 <section id="how-it-works" class="journey-section">
-    <div class="bento-header reveal">
+    <div class="bento-header">
         <span class="hp-label">Simple Workflow</span>
         <h2>Your Journey to a Healthier Farm</h2>
     </div>
 
     <div class="journey-container">
-        <div class="journey-step reveal">
+        <div class="journey-step active">
             <div class="journey-index">1</div>
             <div class="journey-content">
                 <h3>Select Your Role</h3>
-                <p>Register as a Farmer, Buyer, or Agency. Each role provides a custom set of tools focused on your specific agricultural goals.</p>
+                <p>Join the growing ecosystem of smart farmers and verified buyers across Kenya. Sign up today and transform your agricultural productivity.</p>
             </div>
         </div>
-        <div class="journey-step active reveal">
+        <div class="journey-step">
             <div class="journey-index">2</div>
             <div class="journey-content">
                 <h3>Scan & Identify</h3>
                 <p>Open the AI Scanner and take a photo of a crop leaf. Within 2 seconds, our model provides a detailed diagnosis of potential diseases.</p>
             </div>
         </div>
-        <div class="journey-step reveal">
+        <div class="journey-step">
             <div class="journey-index">3</div>
             <div class="journey-content">
                 <h3>Consult & Treat</h3>
                 <p>Use the AI Assistant to get step-by-step treatment plans. Ask about organic solutions or specific fertilizer types in your preferred language.</p>
             </div>
         </div>
-        <div class="journey-step reveal">
+        <div class="journey-step">
             <div class="journey-index">4</div>
             <div class="journey-content">
                 <h3>Trade & Grow</h3>
@@ -735,15 +717,15 @@
      5. PRICING SECTION
 ════════════════════════════════════════════════════════════ -->
 <section id="pricing" class="pricing-premium">
-    <div class="bento-header reveal">
+    <div class="bento-header">
         <span class="hp-label">Membership</span>
         <h2>Choose Your Path</h2>
         <p>Simple, transparent pricing for every stage of your harvest.</p>
     </div>
 
-    <div class="pricing-grid">
+    <div class="pricing-grid" style="display: flex; justify-content: center;">
         <!-- Farmer Pay-As-You-Go -->
-        <div class="pricing-card-modern reveal">
+        <div class="pricing-card-modern" style="max-width: 400px; width: 100%;">
             <h3>Farmer</h3>
             <p class="price-desc">Pay only for what you use</p>
             <div class="price-tag"><span class="price-amount">KSh 20</span><span>/scan</span></div>
@@ -751,49 +733,20 @@
                 <li><i class="fa-solid fa-circle-check"></i> 2 Free Scans (New Users)</li>
                 <li><i class="fa-solid fa-circle-check"></i> KSh 10 per AI Question</li>
                 <li><i class="fa-solid fa-circle-check"></i> 24/7 Disease Detection</li>
-                <li><i class="fa-solid fa-circle-check"></i> Market Access Included</li>
+                <li><i class="fa-solid fa-circle-check"></i> AI Agrovet Search Included</li>
             </ul>
-            <a href="{% url 'login' %}" class="btn-pricing outline">Start Scanning</a>
-        </div>
-
-        <!-- Agrovet Basic -->
-        <div class="pricing-card-modern featured reveal">
-            <div class="popular-badge">For Agrovets</div>
-            <h3>Professional</h3>
-            <p class="price-desc">List your products for farmers</p>
-            <div class="price-tag"><span class="price-amount">KSh 1,500</span><span>/mo</span></div>
-            <ul class="pricing-features-modern">
-                <li><i class="fa-solid fa-circle-check"></i> Unlimited Product Listings</li>
-                <li><i class="fa-solid fa-circle-check"></i> Lead Tracking Dashboard</li>
-                <li><i class="fa-solid fa-circle-check"></i> Direct Farmer Connection</li>
-                <li><i class="fa-solid fa-circle-check"></i> Sales Analytics</li>
-            </ul>
-            <a href="{% url 'login' %}" class="btn-pricing solid">Activate Store</a>
-        </div>
-
-        <!-- Agrovet Premium -->
-        <div class="pricing-card-modern reveal">
-            <h3>Enterprise</h3>
-            <p class="price-desc">Dominate the local market</p>
-            <div class="price-tag"><span class="price-amount">KSh 3,500</span><span>/mo</span></div>
-            <ul class="pricing-features-modern">
-                <li><i class="fa-solid fa-circle-check"></i> Everything in Pro</li>
-                <li><i class="fa-solid fa-circle-check"></i> Featured "Verified" Badge</li>
-                <li><i class="fa-solid fa-circle-check"></i> Top-of-Search Placement</li>
-                <li><i class="fa-solid fa-circle-check"></i> Priority Support</li>
-            </ul>
-            <a href="{% url 'login' %}" class="btn-pricing outline">Go Premium</a>
+            <a href="{% url 'login' %}" class="btn-pricing solid" style="background: var(--primary); color: white;">Start Scanning</a>
         </div>
     </div>
 </section>
 
 
 <section id="story" class="hp-section" style="background:var(--bg-secondary);">
-    <div class="bento-header reveal">
+    <div class="bento-header">
         <span class="hp-label">Our Story</span>
         <h2>Mission Driven Growth</h2>
     </div>
-    <div style="max-width:800px; margin:0 auto; text-align:center; padding:0 2rem;" class="reveal">
+    <div style="max-width:800px; margin:0 auto; text-align:center; padding:0 2rem;" >
         <p style="font-size:1.2rem; line-height:1.8; color:var(--text-body);">
             Founded in 2025, AgriScan was born from the need to solve late crop disease detection and fragmented market connectivity. We empower farmers to prevent yield loss, ensure food security, and build verifiable financial identities.
         </p>
@@ -805,22 +758,3 @@
 
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    // Scroll Reveal Animation
-    function reveal() {
-        var reveals = document.querySelectorAll(".reveal");
-        for (var i = 0; i < reveals.length; i++) {
-            var windowHeight = window.innerHeight;
-            var elementTop = reveals[i].getBoundingClientRect().top;
-            var elementVisible = 150;
-            if (elementTop < windowHeight - elementVisible) {
-                reveals[i].classList.add("active");
-            }
-        }
-    }
-    window.addEventListener("scroll", reveal);
-    // Trigger once on load
-    reveal();
-</script>
-{% endblock %}

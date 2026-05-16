@@ -418,11 +418,55 @@ async function sendMessage() {
         const reply = data.response || "Sorry, something went wrong.";
         botTextDiv.innerHTML = '';
         
+        // Simple markdown to HTML formatter
+        function formatMarkdown(text) {
+            let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            html = html.replace(/\n/g, '<br>');
+            return html;
+        }
+        
+        let formattedReply = "";
+        try {
+            // Try to parse as JSON first
+            const parsed = JSON.parse(reply);
+            
+            // Build nice HTML structure from JSON
+            let htmlParts = [];
+            
+            if (parsed.overview) {
+                htmlParts.push(`<h4>Overview</h4><p>${formatMarkdown(parsed.overview)}</p>`);
+            }
+            if (parsed.recommendations && parsed.recommendations.length > 0) {
+                htmlParts.push(`<h4>Recommendations</h4><ul>${parsed.recommendations.map(r => `<li>${formatMarkdown(r)}</li>`).join('')}</ul>`);
+            }
+            if (parsed.explanation && parsed.explanation.length > 0) {
+                htmlParts.push(`<h4>Explanation</h4><ul>${parsed.explanation.map(e => `<li>${formatMarkdown(e)}</li>`).join('')}</ul>`);
+            }
+            if (parsed.practical_tips && parsed.practical_tips.length > 0) {
+                htmlParts.push(`<h4>Practical Tips</h4><ul>${parsed.practical_tips.map(t => `<li>${formatMarkdown(t)}</li>`).join('')}</ul>`);
+            }
+            
+            formattedReply = htmlParts.join('');
+        } catch (e) {
+            // Fallback if not JSON
+            formattedReply = formatMarkdown(reply);
+        }
+
         let i = 0;
         function type() {
-            if (i < reply.length) {
-                botTextDiv.textContent += reply[i];
-                i++;
+            if (i < formattedReply.length) {
+                if (formattedReply[i] === '<') {
+                    let tagEnd = formattedReply.indexOf('>', i);
+                    if (tagEnd !== -1) {
+                        i = tagEnd + 1;
+                    } else {
+                        i++;
+                    }
+                } else {
+                    i++;
+                }
+                botTextDiv.innerHTML = formattedReply.substring(0, i);
                 const isAtBottom = messages.scrollHeight - messages.scrollTop <= messages.clientHeight + 100;
                 if (isAtBottom) messages.scrollTop = messages.scrollHeight;
                 setTimeout(type, 10); 

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
-from .models import FarmerProfile,BuyerProfile,AgencyProfile
+from .models import FarmerProfile,BuyerProfile
 from django.utils.html import strip_tags
 import re
 
@@ -51,35 +51,6 @@ class SignupFormbuyer(UserCreationForm):
 
     def clean_last_name(self):
         return strip_tags(self.cleaned_data.get('last_name')).strip()
-
-
-class SignupFormagency(UserCreationForm):
-    AGENCY_TYPES = (
-        ('agrovet', 'Agrovet / All-in-One Supplier'),
-        ('fertiliser', 'Fertiliser Company'),
-        ('pesticide', 'Pesticide Company'),
-        ('seed','Seed Company')
-    )
-    name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}))
-    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}))
-    agency_type = forms.ChoiceField(choices=AGENCY_TYPES, widget=forms.Select(attrs={'class': 'form-control'}))
-    location = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Location'}))
-    support_phone = forms.CharField(max_length=20, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Support Phone'}))
-
-    class Meta(UserCreationForm.Meta):
-        fields = UserCreationForm.Meta.fields + ('name', 'email','agency_type')
-
-    def clean_name(self):
-        return strip_tags(self.cleaned_data.get('name')).strip()
-
-    def clean_location(self):
-        return strip_tags(self.cleaned_data.get('location')).strip()
-
-    def clean_support_phone(self):
-        phone = self.cleaned_data.get('support_phone')
-        if phone and not re.match(r'^\+?[\d\s\-]+$', phone):
-            raise forms.ValidationError("Invalid phone number format.")
-        return strip_tags(phone).strip()
 
 
 

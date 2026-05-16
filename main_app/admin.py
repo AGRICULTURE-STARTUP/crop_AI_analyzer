@@ -1,9 +1,8 @@
 from django.contrib import admin
-from .models import FarmerProfile, BuyerProfile, AgencyProfile, CropScanLog, MarketConnection, FarmHealthProfile, PartnerAPIKey
+from .models import FarmerProfile, BuyerProfile, CropScanLog, MarketConnection, FarmHealthProfile, PartnerAPIKey
 
 admin.site.register(FarmerProfile)
 admin.site.register(BuyerProfile)
-admin.site.register(AgencyProfile)
 
 @admin.register(CropScanLog)
 class CropScanLogAdmin(admin.ModelAdmin):

@@ -32,7 +32,6 @@ urlpatterns = [
     path('logout/', views.signout_view, name='logout'),
     path('signup/farmer/', views.signup_farmer, name='signup_farmer'),
     path('signup/buyer/', views.signup_buyer, name='signup_buyer'),
-    path('signup/agency/', views.signup_agency, name='signup_agency'),
     path('fertiliser',views.fertiliser_view,name='fertiliser'),
     path('fertiliser_firms/',views.fertiliser_display,name="fertiliser_firms"),
     path('market/', views.market_view, name='market_buyers'),
@@ -41,8 +40,6 @@ urlpatterns = [
     path('farmer_data/', views.farmer_display, name='farmer_data'),
     path('profile/farmer/', views.farmer_profile_view, name='farmer_profile'),
     path('dashboard/buyer/', views.buyer_dashboard_view, name='buyer_dashboard_view'),
-    path('dashboard/agency/', views.agency_dashboard_view, name='agency_dashboard_view'),
-    path('dashboard/agency/delete/<int:product_id>/', views.delete_product, name='delete_product'),
     
     # --- Micro-Lending API ---
     path('api/v1/lending/score/', views.farm_health_score_api, name='farm_health_score_api'),

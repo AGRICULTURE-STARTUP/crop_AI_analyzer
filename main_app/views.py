@@ -7,13 +7,16 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import PasswordResetView
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
-from .forms import SignupFormfarmer, SignupFormbuyer, SignupFormagency
-from .models import FarmerProfile, BuyerProfile, AgencyProfile, CropScanLog, PartnerAPIKey, FarmHealthProfile, AgencyProduct
+from .forms import SignupFormfarmer, SignupFormbuyer
+from .models import FarmerProfile, BuyerProfile, CropScanLog, PartnerAPIKey, FarmHealthProfile
 from .utils_scoring import calculate_farm_health_score
 from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import Dense
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.efficientnet import preprocess_input, EfficientNetB0, decode_predictions
+from keras.preprocessing import image
+from keras.applications.efficientnet import preprocess_input, EfficientNetB0, decode_predictions
+from .agents import run_agrovet_agent
+from langchain_groq import ChatGroq
+from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 
 
 class SafeDense(Dense):
@@ -34,9 +37,9 @@ from django.utils.html import strip_tags, escape
 from .utils_weather import get_weather_data
 from .mpesa_utils import MpesaGateway
 from .models import (
-    FarmerProfile, BuyerProfile, AgencyProfile, CropScanLog, 
-    PartnerAPIKey, FarmHealthProfile, AgencyProduct, Wallet, 
-    MpesaTransaction, AgrovetSubscription
+    FarmerProfile, BuyerProfile, CropScanLog, 
+    PartnerAPIKey, FarmHealthProfile, Wallet, 
+    MpesaTransaction
 )
 from django.utils import timezone
 from datetime import timedelta
@@ -226,8 +229,6 @@ def get_crop_model(crop_selection):
 def page(request):
     if hasattr(request.user, 'buyer_profile'):
         return redirect('buyer_dashboard_view')
-    elif hasattr(request.user, 'agency_profile'):
-        return redirect('agency_dashboard_view')
     return render(request,"index.html")
 
 @login_required(login_url='login')
@@ -282,7 +283,7 @@ def process(request):
             farmer = request.user.farmer_profile
             is_free_trial = farmer.scan_logs.count() < 2
         except Exception:
-            # Buyers/Agencies don't get free trials or might not be allowed to scan
+            # Buyers don't get free trials or might not be allowed to scan
             is_free_trial = False
 
         if not is_free_trial and wallet.balance < 20:
@@ -321,7 +322,7 @@ def process(request):
                     location=farmer.county
                 )
             except Exception as e:
-                pass # E.g., user is a Buyer/Agency, not Farmer
+                pass # E.g., user is a Buyer, not Farmer
 
         if not is_free_trial:
             wallet.balance -= 20
@@ -368,11 +369,6 @@ def chat(request):
                 user_location = request.user.farmer_profile.county
             except Exception:
                 pass
-        if request.user.is_authenticated:
-            try:
-                user_location =request.user.agency_profile.location
-            except Exception:
-                pass
         
             if not user_location:
                 try:
@@ -390,7 +386,7 @@ def chat(request):
                 print("Error retrieving context:", e)
 
       
-        prompt = f"""
+        system_prompt = f"""
                     You are AgriBot, an expert-level agricultural advisor specialized in small-scale and semi-commercial farming in East Africa, particularly Kenya..
                     You must provide technically accurate, practical, and context-aware guidance for any type of agriculture question.
                     LANGUAGE RULE (VERY IMPORTANT):
@@ -403,162 +399,106 @@ def chat(request):
 
                     Then generate your response using EXACTLY this output structure.
 
-                    OUTPUT FORMAT (MUST FOLLOW EXACTLY):
-
-                    OVERVIEW
-                    Two short, direct sentence that answers the question with local context.
-
-                    RECOMMENDATIONS
-                    - clear actionable steps
-                    - clear actionable steps
-
-                    EXPLANATION
-                    - key reasons or important facts
-                    - supporting local details
-
-                    PRACTICAL TIPS
-                    - easy implementation tips
-                    - monitoring or follow-up steps
+                    OUTPUT FORMAT (MUST BE A VALID JSON OBJECT ONLY):
+                    {{
+                      "overview": "Two short, direct sentences that answer the question with local context.",
+                      "recommendations": [
+                        "clear actionable step 1",
+                        "clear actionable step 2"
+                      ],
+                      "explanation": [
+                        "key reason or important fact",
+                        "supporting local detail"
+                      ],
+                      "practical_tips": [
+                        "easy implementation tip",
+                        "monitoring or follow-up step"
+                      ]
+                    }}
 
                     DEPTH REQUIREMENTS:
                     - Be extremely specific: name exact varieties, fertilizer types/rates, timing, and local practices.
                     - Prioritize low-cost, sustainable solutions for farmers.
 
-                    FORMATTING RULES
-                    - Use bold only for crop names, fertilizer types, and key numbers.
-                    - Keep every bullet very short and scannable (one idea only).
-                    - Add one blank line after every section header.
+                    FORMATTING RULES:
+                    - Only output a pure JSON object. Do not wrap it in ```json blocks. Do not add any text before or after the JSON.
+                    - You may use **bold** inside the strings for crop names, fertilizer types, and key numbers.
+                    - Keep every array item very short and scannable (one idea only).
                     - Use simple, direct language. No long sentences.
-                    - Make the whole response easy to read quickly while working in the field.
 
                     STRICT RULES:
+                    - Must be valid parsable JSON.
                     - Never skip any section.
-                    - Never add extra sections or text.
                     - No greetings, no conclusions, no repetition.
                     - Stay concise — remove any repeated information.
 
                     CONTEXT:
                     {context_text}
-
-                    USER QUESTION:
-                    {user_message}
                 """
 
         if user_location:
-            prompt += f"\nNote: The user's registered location/county is {user_location}. Use this for location-specific advice if relevant."
+            system_prompt += f"\nNote: The user's registered location/county is {user_location}. Use this for location-specific advice if relevant."
 
-        url = "https://api.groq.com/openai/v1/chat/completions"
+        # Initialize LangChain ChatGroq with gpt-oss-120b
+        llm = ChatGroq(
+            model="openai/gpt-oss-120b",
+            groq_api_key=os.getenv("GROQ_API_KEY"),
+            temperature=0.3
+        )
 
-        headers = {
-            "Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}",
-            "Content-Type": "application/json",
-        }
+        # Define tools for LangChain
+        from langchain_core.tools import tool
         
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_weather_data",
-                    "description": "Get the current weather (temperature, humidity, wind, rainfall) in a given location. Use this to provide location-specific agricultural advice.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "location": {
-                                "type": "string",
-                                "description": "The city or county name, e.g. Nairobi, Kisumu"
-                            }
-                        },
-                        "required": ["location"]
-                    }
-                }
-            }
+        @tool
+        def get_weather(location: str):
+            """Get the current weather (temperature, humidity, wind, rainfall) in a given location. Use this to provide location-specific agricultural advice."""
+            return get_weather_data(location)
+
+        tools = [get_weather]
+        llm_with_tools = llm.bind_tools(tools)
+
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_message)
         ]
 
-        messages = [{"role": "system", "content": prompt}, {"role": "user", "content": user_message}]
-
-        payload = {
-            "model": "llama-3.3-70b-versatile",
-            "messages": messages,
-            "temperature": 0.3,
-            "max_tokens": 500,
-            "tools": tools,
-            "tool_choice": "auto"
-        }
-
-        response = requests.post(url, headers=headers, json=payload)
-        print("STATUS:", response.status_code)
-        print("RAW RESPONSE TEXT:", response.text)
-
-
         try:
-            result = response.json()
-        except Exception as e:
-            print("JSON PARSE ERROR:", e)
-            print("UNPARSED RESPONSE:", response.text)
-            return JsonResponse({"response": "Groq returned invalid JSON."})
-
-        print("PARSED RESULT:", result)
-
-                                                         
-        if "error" in result:
-            return JsonResponse({"response": f"Groq Error: {result['error']['message']}"})
-
-        message_obj = result["choices"][0]["message"]
-        
-    
-        if message_obj.get("tool_calls"):
-            tool_call = message_obj["tool_calls"][0]
-            function_name = tool_call["function"]["name"]
-            function_args = json.loads(tool_call["function"]["arguments"])
+            ai_msg = llm_with_tools.invoke(messages)
             
-            if function_name == "get_weather_data":
-                location_arg = function_args.get("location")
-                tool_output = get_weather_data(location_arg)
+            if ai_msg.tool_calls:
+                # Handle tool calls
+                messages.append(ai_msg)
+                for tool_call in ai_msg.tool_calls:
+                    if tool_call["name"] == "get_weather":
+                        tool_output = get_weather.invoke(tool_call["args"])
+                        messages.append(ToolMessage(content=tool_output, tool_call_id=tool_call["id"]))
                 
-                messages.append(message_obj)
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call["id"],
-                    "name": function_name,
-                    "content": tool_output
-                })
+                # Get final response after tool execution
+                final_msg = llm.invoke(messages)
+                reply = final_msg.content
+            else:
+                reply = ai_msg.content
                 
-                # Make a second request to Groq with the tool result included
-                payload["messages"] = messages
-                # We can optionally remove tools on the second call to force completion
-                payload.pop("tools", None)
-                payload.pop("tool_choice", None)
-                
-                second_response = requests.post(url, headers=headers, json=payload)
-                result = second_response.json()
-                
-                if "error" in result:
-                     return JsonResponse({"response": f"Groq Error on second pass: {result['error']['message']}"})
-                
-                try:
-                    reply = result["choices"][0]["message"]["content"]
-                except Exception as e:
-                    return JsonResponse({"response": "Groq did not return a valid AI message after tool call."})
-                
-                # --- MONETIZATION: Deduct and Increment ---
-                wallet.chat_count += 1
-                if not is_free_trial:
-                    wallet.balance -= 10
-                wallet.save()
-                return JsonResponse({"response": reply})
-
-        try:
-            reply = message_obj["content"]
         except Exception as e:
-            print("CHOICES ERROR:", e)
-            print("RESULT STRUCTURE:", result)
-            return JsonResponse({"response": "Groq did not return a valid AI message."})
+            print("LangChain Chat Error:", e)
+            return JsonResponse({"response": "I encountered an error processing your request. Please try again."})
+
+        # Process the reply to ensure it's clean JSON string
+        reply = reply.strip()
+        if reply.startswith("```json"):
+            reply = reply[7:]
+        if reply.startswith("```"):
+            reply = reply[3:]
+        if reply.endswith("```"):
+            reply = reply[:-3]
+        reply = reply.strip()
 
         # --- MONETIZATION: Deduct and Increment ---
         wallet.chat_count += 1
         if not is_free_trial:
             wallet.balance -= 10
         wallet.save()
+        
         return JsonResponse({"response": reply})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
@@ -615,31 +555,7 @@ def signup_buyer(request):
         form = SignupFormbuyer()
     return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer'})
 
-@ratelimit(key='ip', rate='3/m', block=False)
-def signup_agency(request):
-    was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
-    if was_limited:
-        return render(request, 'signup.html', {'form': SignupFormagency(), 'user_type': 'Agency', 'error': 'Too many registration attempts. Please try again later.'})
-    if request.method == 'POST':
-        form = SignupFormagency(request.POST)
-        if not request.POST.get('privacy-accept'):
-            return render(request, 'signup.html', {'form': form, 'user_type': 'Agency', 'error': 'You must accept the Privacy Policy to register.'})
-        if form.is_valid():
-            user = form.save()
-            AgencyProfile.objects.create(
-                user=user,
-                agency_type=form.cleaned_data.get('agency_type'),
-                location=form.cleaned_data.get('location'),
-                support_phone=form.cleaned_data.get('support_phone'),
-                name=form.cleaned_data.get('name'),
-                email=form.cleaned_data.get('email'),
-            )
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-
-            return redirect('page')
-    else:
-        form = SignupFormagency()
-    return render(request, 'signup.html', {'form': form, 'user_type': 'Agency'})
+    return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer'})
 
 @ratelimit(key='ip', rate='5/m', block=False)
 def signin_view(request):
@@ -666,8 +582,8 @@ def signin_view(request):
                 return redirect('page')
             elif hasattr(user, 'buyer_profile'):
                 return redirect('buyer_dashboard_view')
-            elif hasattr(user, 'agency_profile'):
-                return redirect('agency_dashboard_view')
+            elif hasattr(user, 'buyer_profile'):
+                return redirect('buyer_dashboard_view')
             else:
                 return redirect('page')
     else:
@@ -691,211 +607,21 @@ def privacy_policy_view(request):
 @login_required(login_url='login')
 def fertiliser_display(request):
     if request.method == 'GET':
-        # 1. Fetch onboarded verified products
-        products = AgencyProduct.objects.select_related('agency').all()
+        query = request.GET.get('query', '').strip()
         data = []
-        for p in products:
-            data.append({
-                'id': f"prod_{p.id}",
-                'name': p.name,
-                'price': str(p.price),
-                'description': p.description or '',
-                'image_url': request.build_absolute_uri(p.image.url) if p.image and hasattr(p.image, 'url') else '',
-                'agency_name': p.agency.name,
-                'agency_type': p.agency.agency_type,
-                'location': p.agency.location or 'Kenya',
-                'support_phone': p.agency.support_phone or '',
-                'agency_email': p.agency.email,
-                'is_onboarded': True,
-                'item_type': 'product',
-                'inputs_offered': p.name
-            })
             
-        # 2. Fetch onboarded agencies/agrovets storefronts directly (in case they have no active products listed yet)
-        agencies = AgencyProfile.objects.all()
-        onboarded_agency_names = {p.agency.name.lower() for p in products if p.agency}
-        for a in agencies:
-            # If agency hasn't listed specific items, still show their verified storefront
-            if a.name.lower() not in onboarded_agency_names:
-                data.append({
-                    'id': f"agency_{a.id}",
-                    'name': f"{a.name} (Verified Storefront)",
-                    'price': 'Contact Supplier',
-                    'description': f"Official partner storefront handling premium {a.get_agency_type_display().lower()}.",
-                    'image_url': '',
-                    'agency_name': a.name,
-                    'agency_type': a.agency_type,
-                    'location': a.location or 'Kenya',
-                    'support_phone': a.support_phone or '',
-                    'agency_email': a.email,
-                    'is_onboarded': True,
-                    'item_type': 'storefront',
-                    'inputs_offered': 'General Inputs & Store Access'
-                })
+        # AI AGENT LAYER: Dynamic search via Tavily & LangGraph
+        if query:
+            external_results = run_agrovet_agent(query)
+            # Add unique IDs to external results
+            for i, item in enumerate(external_results):
+                item['id'] = f"ai_ext_{i}"
+            data.extend(external_results)
+        else:
+            # If no query, we could show a default or message. 
+            # For now, we'll return an empty list or a prompt to search.
+            pass
 
-        # 3. Simulate Hybrid Layer: Pre-seeded real-world prominent nearby agrovets/stockists across Kenya counties
-        # Enables farmers to get immediate access to agricultural inputs even though some agrovets have not manually onboarded to the dashboard.
-        external_stockists = [
-            {
-                'id': 'ext_1',
-                'name': 'Eldoret Agrovet & Seeds Depot',
-                'price': 'Retail / Wholesale',
-                'description': 'Major regional distributor providing certified maize seeds, high-performance pesticides, and planting DAP/CAN fertilizers.',
-                'agency_name': 'Eldoret Agrovet Index',
-                'agency_type': 'agrovet',
-                'location': 'Eldoret, Uasin Gishu County (Uganda Road)',
-                'support_phone': '+254722000111',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Seeds, Pesticides, Fertilisers, Farm Tools'
-            },
-            {
-                'id': 'ext_2',
-                'name': 'Kitale Farmers Corner Store',
-                'price': 'Market Rates',
-                'description': 'Renowned input store stocking hybrid seeds, comprehensive fungicides, foliar feeds, and essential equipment.',
-                'agency_name': 'Kitale Local Directory',
-                'agency_type': 'agrovet',
-                'location': 'Kitale, Trans Nzoia County (Kenyatta Street)',
-                'support_phone': '+254733111222',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Maize/Bean Seeds, Pesticides, Planting Fertilisers'
-            },
-            {
-                'id': 'ext_3',
-                'name': 'Nakuru Premium Input Suppliers',
-                'price': 'Wholesale pricing',
-                'description': 'Direct suppliers of bulk standard NPK fertilizers, top-dressing CAN, soil conditioners, and lime products.',
-                'agency_name': 'Nakuru Business Registry',
-                'agency_type': 'fertiliser',
-                'location': 'Nakuru town, Nakuru County (Industrial Area)',
-                'support_phone': '+254720333444',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Bulk Fertilisers, Soil Care, Lime'
-            },
-            {
-                'id': 'ext_4',
-                'name': 'Nairobi Central Agrochemicals',
-                'price': 'Competitive',
-                'description': 'Specialized stockists of broad-spectrum herbicides, systemic insecticides, crop protection formulas, and safety gear.',
-                'agency_name': 'Nairobi Commercial Listing',
-                'agency_type': 'pesticide',
-                'location': 'Nairobi CBD, Nairobi County (River Road Hub)',
-                'support_phone': '+254711555666',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Pesticides, Insecticides, Herbicides, Sprayers'
-            },
-            {
-                'id': 'ext_5',
-                'name': 'Meru Highland Seed Stockists',
-                'price': 'Certified Pricing',
-                'description': 'Providing verified disease-resistant potato seeds, certified cabbage/tomato seeds, and early-stage crop boosters.',
-                'agency_name': 'Meru Agricultural Index',
-                'agency_type': 'seed',
-                'location': 'Meru town, Meru County (Makutano Center)',
-                'support_phone': '+254721777888',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Potato Seeds, Vegetable Seeds, Seedlings'
-            },
-            {
-                'id': 'ext_6',
-                'name': 'Kisumu Lake-Basin Agro-inputs',
-                'price': 'Affordable Rates',
-                'description': 'Serving local smallholders with flood-tolerant rice varieties, quick-maturing seeds, affordable pesticides, and drip tools.',
-                'agency_name': 'Kisumu Input Network',
-                'agency_type': 'agrovet',
-                'location': 'Kisumu CBD, Kisumu County (Oginga Odinga Street)',
-                'support_phone': '+254734999000',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Rice Seeds, Vegetable Packs, General Pesticides'
-            },
-            {
-                'id': 'ext_7',
-                'name': 'Kericho Tea & Crop Care Wholesalers',
-                'price': 'Direct Resale',
-                'description': 'Premium suppliers of micronutrient foliar fertilizers, copper-based fungicides, heavy-duty pruners, and protective wear.',
-                'agency_name': 'Kericho County Database',
-                'agency_type': 'pesticide',
-                'location': 'Kericho town, Kericho County (Temple Road)',
-                'support_phone': '+254722888111',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Fungicides, Foliar Feeds, Equipment'
-            },
-            {
-                'id': 'ext_8',
-                'name': 'Kakamega Greenfields Agro-dealers',
-                'price': 'Fair Market',
-                'description': 'Stocking trusted hybrid maize seeds, vegetable seed tins, nitrogen top-dressing inputs, and root knot nematode remedies.',
-                'agency_name': 'Western Agro Index',
-                'agency_type': 'agrovet',
-                'location': 'Kakamega CBD, Kakamega County',
-                'support_phone': '+254710222333',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Seeds, Fertilisers, Soil Care Products'
-            },
-            {
-                'id': 'ext_9',
-                'name': 'Nyeri Mount Kenya Agrovet',
-                'price': 'Standard Retail',
-                'description': 'Highly trusted storefront providing dedicated coffee specialty fertilizers, high-altitude vegetable seeds, and automated sprayers.',
-                'agency_name': 'Nyeri Agro Directory',
-                'agency_type': 'agrovet',
-                'location': 'Nyeri town, Nyeri County (Kimathi Way)',
-                'support_phone': '+254723444555',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Coffee Fertilisers, High-Yield Seeds, Knapsack Sprayers'
-            },
-            {
-                'id': 'ext_10',
-                'name': 'Machakos Dryland Input Hub',
-                'price': 'Subsidized & Retail',
-                'description': 'Certified dealer supplying drought-escaping sorghum/millet seeds, certified pigeon pea packs, bio-pesticides, and moisture retention aids.',
-                'agency_name': 'Eastern Dryland Registry',
-                'agency_type': 'seed',
-                'location': 'Machakos town, Machakos County (Syokimau Avenue)',
-                'support_phone': '+254735666777',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Drought-Tolerant Seeds, Bio-Pesticides'
-            },
-            {
-                'id': 'ext_11',
-                'name': 'Kiambu Farmers Input Center',
-                'price': 'Wholesale & Retail',
-                'description': 'Comprehensive stockist supporting intensive horticulture with specialized greenhouse NPK soluble fertilizers, pest strips, and premium seeds.',
-                'agency_name': 'Central Farming Index',
-                'agency_type': 'agrovet',
-                'location': 'Kiambu town, Kiambu County',
-                'support_phone': '+254724999888',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Greenhouse Feeds, Premium Seeds, Crop Care'
-            },
-            {
-                'id': 'ext_12',
-                'name': 'Bungoma Western Agro-Suppliers',
-                'price': 'Retail',
-                'description': 'Reliable source for local smallholders stocking basic planting DAP, seed packages, post-emergence weed control, and general farm tools.',
-                'agency_name': 'Bungoma Suppliers List',
-                'agency_type': 'agrovet',
-                'location': 'Bungoma town, Bungoma County',
-                'support_phone': '+254712000333',
-                'is_onboarded': False,
-                'item_type': 'external_stockist',
-                'inputs_offered': 'Seeds, Basic Fertilisers, Weed Control'
-            }
-        ]
-
-        # Combine onboarded data and external unonboarded nearby directories
-        data.extend(external_stockists)
         return JsonResponse({'products': data})
 @login_required(login_url='login')
 def market_view(request):
@@ -1124,65 +850,7 @@ def buyer_dashboard_view(request):
     return render(request, 'buyer_dashboard.html', context)
 
 
-@login_required(login_url='login')
-def agency_dashboard_view(request):
-    try:
-        agency_profile = request.user.agency_profile
-    except AgencyProfile.DoesNotExist:
-        return redirect('page')
-
-    try:
-        sub = agency_profile.subscription
-        is_subscribed = sub.is_active and sub.expiry_date > timezone.now()
-    except AgrovetSubscription.DoesNotExist:
-        is_subscribed = False
-
-    if request.method == 'POST':
-        if not is_subscribed:
-             products = agency_profile.products.all()
-             return render(request, 'agency_dashboard.html', {
-                 'agency_profile': agency_profile,
-                 'products': products,
-                 'error': 'An active subscription is required to add or manage product listings.'
-             })
-             
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        price = request.POST.get('price')
-        image = request.FILES.get('image')
-        
-        # Debugging print (will show in server console)
-        print(f"DEBUG: Processing upload for {name}. Image in FILES: {image}")
-
-        if name and price:
-            AgencyProduct.objects.create(
-                agency=agency_profile,
-                name=name,
-                description=description,
-                price=price,
-                image=image
-            )
-            return redirect('agency_dashboard_view')
-
-    products = agency_profile.products.all()
-
-    context = {
-        'agency_profile': agency_profile,
-        'products': products,
-        'is_subscribed': is_subscribed
-    }
-    return render(request, 'agency_dashboard.html', context)
-
-
-@login_required(login_url='login')
-def delete_product(request, product_id):
-    try:
-        # Ensure only the owner can delete
-        product = AgencyProduct.objects.get(id=product_id, agency=request.user.agency_profile)
-        product.delete()
-    except (AgencyProduct.DoesNotExist, AttributeError):
-        pass
-    return redirect('agency_dashboard_view')
+    return redirect('buyer_dashboard_view')
 
 @csrf_exempt
 def mpesa_callback(request):
@@ -1207,23 +875,10 @@ def mpesa_callback(request):
                     
                     # Update Wallet or Subscription
                     user = mpesa_txn.user
-                    if hasattr(user, 'agency_profile') and mpesa_txn.amount >= 1500:
-                        # Handle Agency Subscription
-                        agency = user.agency_profile
-                        expiry = timezone.now() + timedelta(days=30)
-                        AgrovetSubscription.objects.update_or_create(
-                            agency=agency,
-                            defaults={
-                                'is_active': True,
-                                'expiry_date': expiry,
-                                'plan': 'premium' if mpesa_txn.amount >= 3500 else 'basic'
-                            }
-                        )
-                    else:
-                        # Update Wallet (Farmer/Buyer)
-                        wallet = user.wallet
-                        wallet.balance += mpesa_txn.amount
-                        wallet.save()
+                    # Update Wallet (Farmer/Buyer)
+                    wallet = user.wallet
+                    wallet.balance += mpesa_txn.amount
+                    wallet.save()
                 else:
                     mpesa_txn.status = 'Failed'
                     mpesa_txn.result_desc = stk_callback['ResultDesc']
@@ -1289,15 +944,12 @@ def revenue_dashboard(request):
         return redirect('admin_login')
     
     total_revenue = MpesaTransaction.objects.filter(status='Success').aggregate(Sum('amount'))['amount__sum'] or 0
-    active_subscriptions = AgrovetSubscription.objects.filter(is_active=True).count()
-    mrr = AgrovetSubscription.objects.filter(is_active=True, plan='basic').count() * 1500 + \
-          AgrovetSubscription.objects.filter(is_active=True, plan='premium').count() * 3500
+    mrr = 0 # Agrovets removed
           
     recent_transactions = MpesaTransaction.objects.order_by('-created_at')[:20]
     
     context = {
         'total_revenue': total_revenue,
-        'active_subscriptions': active_subscriptions,
         'mrr': mrr,
         'recent_transactions': recent_transactions
     }

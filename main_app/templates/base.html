@@ -35,8 +35,6 @@
                 {% elif user.buyer_profile %}
                     <li><a href="{% url 'buyer_dashboard_view' %}">My Profile</a></li>
                     <li><a href="{% url 'farmers' %}">Farmers List</a></li>
-                {% elif user.agency_profile %}
-                    <li><a href="{% url 'agency_dashboard_view' %}">My Products</a></li>
                 {% else %}
                     <!-- Fallback -->
                     <li><a href="{% url 'page' %}">Scanner</a></li>
@@ -98,7 +96,7 @@
                 </div>
                 <div class="topup-input-group">
                     <label>M-Pesa Phone Number</label>
-                    <input type="text" id="topup-phone" placeholder="e.g. 0712345678" value="{{ user.farmer_profile.phone_number|default:user.agency_profile.support_phone|default:'' }}" />
+                    <input type="text" id="topup-phone" placeholder="e.g. 0712345678" value="{{ user.farmer_profile.phone_number|default:'' }}" />
                 </div>
                 <button class="btn-topup" id="btn-topup-submit">
                     <i class="fa-solid fa-mobile-screen-button"></i> Pay with M-Pesa

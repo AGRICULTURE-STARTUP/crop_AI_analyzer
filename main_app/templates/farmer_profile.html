@@ -240,6 +240,11 @@
         .alert-error   { background: hsl(0,60%,94%);   color: hsl(0,60%,32%);   border: 1px solid hsl(0,50%,80%); }
         @keyframes slideIn { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
 
+        /* ── DYNAMIC RISK COLORS ────────────────────────── */
+        .risk-tier-low { color: var(--green-500); }
+        .risk-tier-medium { color: var(--amber-dark); }
+        .risk-tier-high { color: #d32f2f; }
+
         /* ── CROP TAGS ──────────────────────────────────── */
         .crop-tags-wrap {
             display: flex;
@@ -578,7 +583,7 @@
                     </a>
                     <a href="{% url 'fertiliser' %}" class="quick-link-btn">
                         <i class="fa-solid fa-flask"></i>
-                        Find Agrovet Agencies
+                        Find Agricultural Inputs & Agrovets
                     </a>
                     <a href="{% url 'farmers' %}" class="quick-link-btn">
                         <i class="fa-solid fa-users"></i>
@@ -609,7 +614,7 @@
                     <div>
                         <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem;">
                             Risk Tier: 
-                            <span style="color: {% if health_profile.risk_tier == 'Low Risk' %}var(--green-500){% elif health_profile.risk_tier == 'Medium Risk' %}var(--amber-dark){% else %}#d32f2f{% endif %};">
+                            <span class="{% if health_profile.risk_tier == 'Low Risk' %}risk-tier-low{% elif health_profile.risk_tier == 'Medium Risk' %}risk-tier-medium{% else %}risk-tier-high{% endif %}">
                                 {{ health_profile.risk_tier|default:"High Risk" }}
                             </span>
                         </div>
@@ -634,7 +639,7 @@
                         <div>
                             <label for="opt_in_for_lending" style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); cursor: pointer;">Opt-in to Financial Data Sharing</label>
                             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">By checking this box, I legally allow AgriScan to securely share my Farm Health Score with partnered banks and fintechs.</p>
-                            <button type="submit" class="btn-save" style="margin-top: 1rem; padding: 0.6rem 1.5rem; font-size: 0.85rem;" onclick="this.innerHTML='<i class=\\'fa-solid fa-circle-notch spin\\'></i> Updating...';">
+                            <button type="submit" class="btn-save" style="margin-top: 1rem; padding: 0.6rem 1.5rem; font-size: 0.85rem;" onclick="this.innerHTML='<i class=&quot;fa-solid fa-circle-notch spin&quot;></i> Updating...';">
                                 <i class="fa-solid fa-shield-halved"></i> Update Consent
                             </button>
                         </div>

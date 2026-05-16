@@ -26,35 +26,6 @@ class BuyerProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} - Buyer"
 
-class AgencyProfile(models.Model):
-    AGENCY_TYPES = (
-        ('agrovet', 'Agrovet / All-in-One Supplier'),
-        ('fertiliser', 'Fertiliser Company'),
-        ('pesticide', 'Pesticide Company'),
-        ('seed','Seed Company')
-    )
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agency_profile')
-    agency_type = models.CharField(max_length=20, choices=AGENCY_TYPES, default='fertiliser')
-    location = models.CharField(max_length=255, blank=True, null=True)
-    support_phone = models.CharField(max_length=20, blank=True, null=True)
-    name = models.CharField(max_length=100, null=False, default='Unknown')
-    email = models.EmailField(null=False, default='unknown@example.com')  
-    def __str__(self):
-        return f"{self.user.username} - {self.get_agency_type_display()}"
-
-
-class AgencyProduct(models.Model):
-    agency = models.ForeignKey(AgencyProfile, on_delete=models.CASCADE, related_name='products')
-    name = models.CharField(max_length=150)
-    description = models.TextField(blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Cost in local currency")
-    image = models.ImageField(upload_to='uploads/', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.name} - {self.agency.name}"
-
-
 # --- Micro-Lending & Farm Health Models ---
 
 class CropScanLog(models.Model):
@@ -129,21 +100,6 @@ class Wallet(models.Model):
 
     def __str__(self):
         return f"{self.user.username} Wallet: KSh {self.balance}"
-
-class AgrovetSubscription(models.Model):
-    """Tracks monthly subscriptions for Agrovets to list products."""
-    PLAN_CHOICES = (
-        ('basic', 'Basic Storefront (KSh 1,500/mo)'),
-        ('premium', 'Premium Featured (KSh 3,500/mo)'),
-    )
-    agency = models.OneToOneField(AgencyProfile, on_delete=models.CASCADE, related_name='subscription')
-    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='basic')
-    start_date = models.DateTimeField(auto_now_add=True)
-    expiry_date = models.DateTimeField()
-    is_active = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.agency.name} - {self.plan} ({'Active' if self.is_active else 'Expired'})"
 
 class MpesaTransaction(models.Model):
     """Logs all M-Pesa STK Push transactions for auditing and fulfillment."""
