@@ -232,6 +232,9 @@ SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 # Optional: Disable click tracking if you want clean URLs in your emails
 SENDGRID_TRACK_CLICKS_PLAIN = False
 
+# Tavily API Key for search functionality
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+
 # Production Logging
 LOGGING = {
     'version': 1,

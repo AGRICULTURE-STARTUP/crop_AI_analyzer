@@ -5,9 +5,7 @@ from langgraph.graph import StateGraph, END
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_groq import ChatGroq
-from dotenv import load_dotenv
-
-load_dotenv()
+from django.conf import settings
 
 # State definition
 class AgentState(TypedDict):
@@ -16,7 +14,7 @@ class AgentState(TypedDict):
 
 # Lazy initialization for tools and model
 def get_tools():
-    return TavilySearchResults(k=10, tavily_api_key=os.getenv("TAVILY_API_KEY"))
+    return TavilySearchResults(k=10, tavily_api_key=settings.TAVILY_API_KEY)
 
 def get_llm():
     return ChatGroq(
