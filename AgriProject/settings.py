@@ -95,8 +95,24 @@ DATABASES = {
     }
 }
 
-if os.getenv("DATABASE_URL"):
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    import socket
+    from urllib.parse import urlparse
+    use_database_url = True
+    try:
+        parsed = urlparse(database_url)
+        if parsed.hostname and (parsed.hostname == "postgres.railway.internal" or parsed.hostname.endswith(".internal")):
+            # Try to resolve the hostname to verify if we are in the internal network
+            socket.gethostbyname(parsed.hostname)
+    except (socket.gaierror, Exception):
+        use_database_url = False
+
+    if use_database_url:
+        DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    else:
+        import sys
+        print("WARNING: DATABASE_URL host could not be resolved locally. Falling back to local SQLite database.", file=sys.stderr)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

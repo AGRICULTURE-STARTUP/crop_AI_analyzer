@@ -65,6 +65,28 @@ function initGlobalComponents() {
             wrapper.classList.add('hidden');
         });
     }
+
+    const clearBtn = document.getElementById('chat-clear');
+    if (clearBtn && messages) {
+        clearBtn.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to clear this conversation history?")) {
+                messages.innerHTML = '';
+                localStorage.removeItem(CHAT_STORAGE_KEY);
+                try {
+                    await fetch('/chat/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({ action: 'clear' })
+                    });
+                } catch (e) {
+                    console.error("Failed to clear chat on server:", e);
+                }
+            }
+        });
+    }
     
     // Load persisted chat history
     const history = localStorage.getItem(CHAT_STORAGE_KEY);
@@ -372,11 +394,15 @@ async function sendMessage() {
     const message = input.value.trim();
     if (!message) return;
 
+    // Remove any existing follow-up chips before sending the new message
+    messages.querySelectorAll('.follow-up-chip-wrapper').forEach(el => el.remove());
+
     const userDiv = document.createElement('div');
     userDiv.classList.add('user');
     userDiv.textContent = message;
     messages.appendChild(userDiv);
     input.value = '';
+    input.disabled = true;
     
     // Persist chat
     localStorage.setItem(CHAT_STORAGE_KEY, messages.innerHTML);
@@ -412,6 +438,7 @@ async function sendMessage() {
         
         if (data.needs_topup) {
             botTextDiv.innerHTML = `<p>${data.response}</p><button class="btn btn-topup-trigger" onclick="window.openTopupModal()">Top Up KSh 50</button>`;
+            input.disabled = false;
             return;
         }
 
@@ -427,9 +454,15 @@ async function sendMessage() {
         }
         
         let formattedReply = "";
+        let followUpQuestion = null;
         try {
             // Try to parse as JSON first
             const parsed = JSON.parse(reply);
+            
+            // Extract follow-up question before building the display HTML
+            if (parsed.follow_up_question) {
+                followUpQuestion = parsed.follow_up_question;
+            }
             
             // Build nice HTML structure from JSON
             let htmlParts = [];
@@ -471,12 +504,47 @@ async function sendMessage() {
                 if (isAtBottom) messages.scrollTop = messages.scrollHeight;
                 setTimeout(type, 10); 
             } else {
+                // After typing finishes, inject the follow-up chip if available
+                if (followUpQuestion) {
+                    const chipWrapper = document.createElement('div');
+                    chipWrapper.classList.add('follow-up-chip-wrapper');
+                    chipWrapper.innerHTML = `
+                        <span class="follow-up-label"><i class="fa-solid fa-circle-question"></i> AgriBot asks:</span>
+                        <button class="follow-up-chip" onclick="(function(){
+                            const inp = document.getElementById('userInput');
+                            if(inp){ inp.value = ''; inp.focus(); inp.placeholder = this.dataset.q; }
+                        }).call(this)" data-q="${followUpQuestion.replace(/"/g, '&quot;')}">${followUpQuestion}</button>
+                    `;
+                    // Clicking the chip puts the question text into the input
+                    chipWrapper.querySelector('.follow-up-chip').addEventListener('click', function() {
+                        const inp = document.getElementById('userInput');
+                        if (inp) {
+                            inp.value = this.dataset.q;
+                            inp.focus();
+                        }
+                    });
+                    messages.appendChild(chipWrapper);
+                    messages.scrollTop = messages.scrollHeight;
+                }
                 // Persist chat after typing finishes
                 localStorage.setItem(CHAT_STORAGE_KEY, messages.innerHTML);
+                input.disabled = false;
             }
         }
         type();
     } catch (err) {
         botTextDiv.innerHTML = "Error: Could not connect to AI service.";
+        input.disabled = false;
     }
 }
+
+// Allow pressing Enter to send a message
+document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('keydown', function (e) {
+        const input = document.getElementById('userInput');
+        if (e.key === 'Enter' && document.activeElement === input) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+});

@@ -16,7 +16,7 @@ from keras.preprocessing import image
 from keras.applications.efficientnet import preprocess_input, EfficientNetB0, decode_predictions
 from .agents import run_agrovet_agent
 from langchain_groq import ChatGroq
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
+from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage
 
 
 class SafeDense(Dense):
@@ -350,6 +350,12 @@ def chat(request):
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
             
+        # Handle clear chat history action
+        if data.get('action') == 'clear':
+            request.session['chat_history'] = []
+            request.session.modified = True
+            return JsonResponse({"response": "Conversation history cleared.", "status": "success"})
+            
         user_message = strip_tags(data.get('message', '')).strip()
         if not user_message:
              return JsonResponse({"response": "Please enter a message."})
@@ -385,10 +391,11 @@ def chat(request):
             except Exception as e:
                 print("Error retrieving context:", e)
 
-      
         system_prompt = f"""
-                    You are AgriBot, an expert-level agricultural advisor specialized in small-scale and semi-commercial farming in East Africa, particularly Kenya..
+                    You are AgriBot, an expert-level agricultural advisor specialized in small-scale and semi-commercial farming in East Africa, particularly Kenya.
                     You must provide technically accurate, practical, and context-aware guidance for any type of agriculture question.
+                    Maintain a friendly, highly conversational, and caring persona—just like a trusted local extension officer. Reference previous points or crops discussed in the conversation history where appropriate.
+
                     LANGUAGE RULE (VERY IMPORTANT):
                     - Always respond in the exact same language as the USER QUESTION.
                     - If the user writes in Kiswahili, answer in clear, natural Kiswahili.
@@ -401,7 +408,7 @@ def chat(request):
 
                     OUTPUT FORMAT (MUST BE A VALID JSON OBJECT ONLY):
                     {{
-                      "overview": "Two short, direct sentences that answer the question with local context.",
+                      "overview": "Two short, direct sentences that answer the question with local context. Acknowledge and build on previous conversation history if applicable.",
                       "recommendations": [
                         "clear actionable step 1",
                         "clear actionable step 2"
@@ -413,7 +420,8 @@ def chat(request):
                       "practical_tips": [
                         "easy implementation tip",
                         "monitoring or follow-up step"
-                      ]
+                      ],
+                      "follow_up_question": "A friendly, conversational, and highly specific follow-up question to ask the farmer (e.g. asking about their soil, irrigation frequency, severity of symptoms, crop variety, or local weather) to help gather more context for better advice."
                     }}
 
                     DEPTH REQUIREMENTS:
@@ -457,10 +465,22 @@ def chat(request):
         tools = [get_weather]
         llm_with_tools = llm.bind_tools(tools)
 
+        # Get session chat history (limited to last 8 messages / 4 turns to avoid token bloat)
+        chat_history = request.session.get('chat_history', [])
+        
         messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_message)
+            SystemMessage(content=system_prompt)
         ]
+        
+        # Load conversation history into LangChain messages
+        for msg in chat_history[-8:]:
+            if msg.get('role') == 'user':
+                messages.append(HumanMessage(content=msg.get('content', '')))
+            elif msg.get('role') == 'assistant':
+                messages.append(AIMessage(content=msg.get('content', '')))
+                
+        # Append current message
+        messages.append(HumanMessage(content=user_message))
 
         try:
             ai_msg = llm_with_tools.invoke(messages)
@@ -492,6 +512,12 @@ def chat(request):
         if reply.endswith("```"):
             reply = reply[:-3]
         reply = reply.strip()
+
+        # Update chat history in the session (keep last 5 turns / 10 messages)
+        chat_history.append({'role': 'user', 'content': user_message})
+        chat_history.append({'role': 'assistant', 'content': reply})
+        request.session['chat_history'] = chat_history[-10:]
+        request.session.modified = True
 
         # --- MONETIZATION: Deduct and Increment ---
         wallet.chat_count += 1

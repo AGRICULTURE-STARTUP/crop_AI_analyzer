@@ -158,6 +158,64 @@ body {
   100% { transform: translateX(100%); }
 }
 
+/* Follow-up Question Chip */
+.follow-up-chip-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0.2rem 0;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, rgba(56, 142, 60, 0.07), rgba(129, 199, 132, 0.07));
+  border: 1px dashed rgba(56, 142, 60, 0.35);
+  border-radius: 14px;
+  animation: chip-fade-in 0.4s ease;
+}
+
+@keyframes chip-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.follow-up-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.follow-up-chip {
+  display: inline-block;
+  background: transparent;
+  border: 1.5px solid var(--accent-color);
+  color: var(--text-primary);
+  border-radius: 100px;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.4;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.follow-up-chip:hover {
+  background: var(--accent-color);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(56, 142, 60, 0.25);
+}
+
+/* Disabled input while awaiting a response */
+#userInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
 /* Page Progress Bar */
 #page-progress {
   position: fixed;
