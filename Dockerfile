@@ -27,9 +27,9 @@ RUN pip install --upgrade pip && \
 # Copy project
 COPY . /app/
 
-# Environment variable to skip collectstatic during build if necessary, 
-# but Railway usually handles it or we run it on startup.
-# RUN python manage.py collectstatic --noinput
+# Run collectstatic during the build phase to avoid slow startups
+RUN SECRET_KEY=dummy-key-for-building-only DATABASE_URL="" python manage.py collectstatic --noinput
 
 # Run the project
-CMD sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn AgriProject.wsgi:application --bind 0.0.0.0:$PORT"
+CMD ["sh", "-c", "python manage.py migrate && gunicorn AgriProject.wsgi:application --bind 0.0.0.0:$PORT"]
+

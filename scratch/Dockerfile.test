@@ -1,0 +1,3 @@
+FROM alpine
+ENV PORT=8000
+CMD sh -c "echo The port is $PORT && sleep 2"
