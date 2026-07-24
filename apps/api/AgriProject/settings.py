@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'main_app',
     'scanner',
     'inference',
+    'accounts',
 ]
 
 

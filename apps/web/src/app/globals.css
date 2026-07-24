@@ -1,26 +1,156 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #142018;
+  --leaf: #1f6b3a;
+  --leaf-deep: #0f3d24;
+  --sprout: #7cbc3d;
+  --sun: #e8b84a;
+  --soil: #3d2a1a;
+  --mist: #e8f0e4;
+  --paper: #f4f7f1;
+  --card: rgba(255, 255, 255, 0.72);
+  --line: rgba(20, 32, 24, 0.12);
+  --danger: #b42318;
+  --ok: #1a7f37;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-leaf: var(--leaf);
+  --color-leaf-deep: var(--leaf-deep);
+  --color-sprout: var(--sprout);
+  --color-sun: var(--sun);
+  --color-soil: var(--soil);
+  --color-mist: var(--mist);
+  --color-paper: var(--paper);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(124, 188, 61, 0.22), transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, rgba(232, 184, 74, 0.18), transparent 50%),
+    linear-gradient(180deg, #f7faf4 0%, #eef4ea 40%, #e5efe0 100%);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand-mark {
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.03em;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+}
+
+.field {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+  color: var(--ink);
+}
+
+.field:focus {
+  outline: 2px solid rgba(31, 107, 58, 0.35);
+  border-color: var(--leaf);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.7rem 1.25rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--leaf) 0%, var(--leaf-deep) 100%);
+  color: white;
+  box-shadow: 0 10px 24px rgba(15, 61, 36, 0.22);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: white;
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(20, 32, 24, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 32, 24, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-rise {
+  animation: rise 0.7s ease both;
+}
+
+.animate-drift {
+  animation: drift 6s ease-in-out infinite;
 }

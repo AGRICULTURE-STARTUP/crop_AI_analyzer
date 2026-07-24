@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
@@ -235,6 +237,19 @@ class MeUpdateSerializer(serializers.Serializer):
         choices=AgencyProfile.AGENCY_TYPE_CHOICES, required=False
     )
     phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    organization_name = serializers.CharField(
+        required=False, allow_blank=True, max_length=200
+    )
+    organization_type = serializers.ChoiceField(
+        choices=LendingPartnerProfile.ORG_TYPE_CHOICES, required=False
+    )
+    registration_number = serializers.CharField(
+        required=False, allow_blank=True, max_length=100
+    )
+    contact_phone = serializers.CharField(
+        required=False, allow_blank=True, max_length=20
+    )
+    website = serializers.URLField(required=False, allow_blank=True)
 
 
 class LendingAPIKeySerializer(serializers.ModelSerializer):
@@ -285,5 +300,7 @@ class AdminLenderSerializer(serializers.ModelSerializer):
 
 
 class MpesaTopupSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=1)
+    amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=Decimal("1")
+    )
     phone_number = serializers.CharField(max_length=20)

@@ -1,103 +1,113 @@
-import Image from "next/image";
+import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
 
-export default function Home() {
+const ROLES = [
+  {
+    href: "/signup/farmer",
+    title: "Farmers",
+    copy: "Scan leaves, ask AgriBot, and build a Farm Health Score.",
+  },
+  {
+    href: "/signup/buyer",
+    title: "Buyers",
+    copy: "Discover produce listings and connect with growers near you.",
+  },
+  {
+    href: "/signup/agency",
+    title: "Input agencies",
+    copy: "List fertiliser, seed, and crop protection for local farmers.",
+  },
+  {
+    href: "/signup/lender",
+    title: "Lenders",
+    copy: "Self-serve API keys for Farm Health Score underwriting.",
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="relative min-h-screen overflow-hidden">
+      <SiteHeader />
+      <section className="hero-grid relative min-h-[100svh] px-4 pb-16 pt-28 md:pt-32">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_40%,rgba(31,107,58,0.18),transparent_45%)]" />
+        <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+          <div className="animate-rise space-y-6">
+            <p className="brand-mark text-5xl leading-[0.95] text-leaf-deep sm:text-6xl md:text-7xl lg:text-8xl">
+              AgriScan
+            </p>
+            <h1 className="max-w-xl text-2xl font-semibold leading-tight text-ink/90 sm:text-3xl">
+              Crop intelligence that fits in a farmer&apos;s pocket.
+            </h1>
+            <p className="max-w-md text-base text-ink/70 sm:text-lg">
+              Diagnose disease from a leaf photo, get practical advice in English
+              or Kiswahili, and share a consent-based Farm Health Score with
+              lenders who fund growth.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link href="/signup/farmer" className="btn btn-primary">
+                Start as a farmer
+              </Link>
+              <Link href="/signup/lender" className="btn btn-secondary">
+                Lending partner signup
+              </Link>
+            </div>
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <div className="animate-drift relative mx-auto w-full max-w-md">
+            <div className="panel relative overflow-hidden rounded-[2rem] p-6 shadow-[0_30px_80px_rgba(15,61,36,0.18)]">
+              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-sprout/30 blur-2xl" />
+              <div className="absolute -bottom-8 -left-8 h-36 w-36 rounded-full bg-sun/25 blur-2xl" />
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-leaf">
+                Live on Contabo API
+              </p>
+              <p className="brand-mark mt-3 text-3xl text-leaf-deep">
+                Scan → Score → Finance
+              </p>
+              <ul className="mt-6 space-y-3 text-sm text-ink/75">
+                <li className="rounded-2xl bg-white/70 px-4 py-3">
+                  MobileNet crop models with plant gatekeeper
+                </li>
+                <li className="rounded-2xl bg-white/70 px-4 py-3">
+                  AgriBot grounded on extension PDFs
+                </li>
+                <li className="rounded-2xl bg-white/70 px-4 py-3">
+                  M-Pesa wallet + lender API keys
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-24">
+        <div className="mb-8 max-w-xl">
+          <h2 className="brand-mark text-3xl text-leaf-deep sm:text-4xl">
+            One product, four doors
+          </h2>
+          <p className="mt-2 text-ink/65">
+            Pick the portal that matches how you work with AgriScan.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {ROLES.map((role) => (
+            <Link
+              key={role.href}
+              href={role.href}
+              className="panel group rounded-3xl p-6 transition hover:-translate-y-1 hover:shadow-lg"
+            >
+              <h3 className="text-xl font-semibold text-leaf-deep group-hover:text-leaf">
+                {role.title}
+              </h3>
+              <p className="mt-2 text-sm text-ink/65">{role.copy}</p>
+            </Link>
+          ))}
+        </div>
+        <p className="mt-10 text-center text-sm text-ink/50">
+          <Link href="/privacy" className="underline-offset-2 hover:underline">
+            Privacy policy
+          </Link>
+        </p>
+      </section>
     </div>
   );
 }
