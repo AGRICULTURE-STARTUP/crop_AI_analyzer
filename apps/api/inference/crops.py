@@ -136,15 +136,22 @@ KNOWN_CROP_CLASSES = {
 
 # Crops with on-disk / HF .h5 models shipped today.
 SUPPORTED_SCAN_CROPS = [
+    "apple",
+    "ball_pepper",
     "beans",
     "cabbage",
     "capsicum",
+    "cashew_nuts",
+    "cassava",
     "cauliflower",
+    "chilly",
     "cucumber",
+    "grape",
     "maize",
     "onion",
     "pea",
     "potato",
+    "sugarcane",
     "tomato",
     "wheat",
 ]

@@ -1,5 +1,5 @@
 import { SignupForm } from "@/components/SignupForm";
 
-export default function Page() {
-  return <SignupForm role="farmer" />;
+export default function FarmerSignupPage() {
+  return <SignupForm initialRole="farmer" />;
 }

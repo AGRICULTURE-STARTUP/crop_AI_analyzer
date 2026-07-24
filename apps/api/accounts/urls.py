@@ -1,3 +1,5 @@
+from django.urls import path
+
 from accounts.views import (
     AdminLenderApproveView,
     AdminLenderListView,
@@ -15,9 +17,18 @@ from accounts.views import (
     LogoutView,
     MeView,
     MpesaTopupView,
+    PartnerFarmHealthScoreView,
     WalletView,
+    WeatherView,
 )
 from accounts.chat_views import ChatMessageView
+from accounts.input_views import (
+    InputAgencyListView,
+    InputProductListView,
+    MyAgencyProductDetailView,
+    MyAgencyProductListCreateView,
+)
+from accounts.ussd_views import UssdGatewayView, UssdSimulateView
 
 urlpatterns = [
     # Auth
@@ -28,6 +39,7 @@ urlpatterns = [
     path("auth/logout/", LogoutView.as_view(), name="auth_logout"),
     # Current user
     path("me/", MeView.as_view(), name="me"),
+    path("weather/", WeatherView.as_view(), name="weather"),
     # AgriBot
     path("chat/messages/", ChatMessageView.as_view(), name="chat_messages"),
     # Lender portal
@@ -45,6 +57,12 @@ urlpatterns = [
     ),
     path("lender/usage/", LenderUsageView.as_view(), name="lender_usage"),
     path("lender/score/", LenderScoreView.as_view(), name="lender_score"),
+    # M2M Farm Health Score (Bearer LendingAPIKey; legacy PartnerAPIKey fallback)
+    path(
+        "lending/score/",
+        PartnerFarmHealthScoreView.as_view(),
+        name="farm_health_score_api",
+    ),
     # Admin lender moderation
     path("admin/lenders/", AdminLenderListView.as_view(), name="admin_lenders"),
     path(
@@ -60,4 +78,20 @@ urlpatterns = [
     # Wallet / payments
     path("wallet/", WalletView.as_view(), name="wallet"),
     path("mpesa/topup/", MpesaTopupView.as_view(), name="api_mpesa_topup"),
+    # Inputs marketplace (registered agencies only — no web agent)
+    path("inputs/agencies/", InputAgencyListView.as_view(), name="inputs_agencies"),
+    path("inputs/products/", InputProductListView.as_view(), name="inputs_products"),
+    path(
+        "inputs/my-products/",
+        MyAgencyProductListCreateView.as_view(),
+        name="inputs_my_products",
+    ),
+    path(
+        "inputs/my-products/<int:product_id>/",
+        MyAgencyProductDetailView.as_view(),
+        name="inputs_my_product_detail",
+    ),
+    # USSD / SMS gateway (+ homepage simulator)
+    path("ussd/", UssdGatewayView.as_view(), name="ussd_gateway"),
+    path("ussd/simulate/", UssdSimulateView.as_view(), name="ussd_simulate"),
 ]

@@ -603,8 +603,6 @@ def signout_view(request):
 @login_required(login_url='login')
 def fertiliser_view(request):
     return render(request,"fertiliser_page.html")
-def introduction_view(request):
-    return render(request,"intro.html")
 
 def homepage_view(request):
     return render(request,"homepage.html")
@@ -781,44 +779,31 @@ class CustomPasswordResetView(PasswordResetView):
 
 @csrf_exempt
 def farm_health_score_api(request):
-    """Secure endpoint for fintech/banks to fetch a farmer's health score."""
-    if request.method != 'GET':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-    auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return JsonResponse({'error': 'Unauthorized'}, status=401)
-    
-    token = auth_header.split(' ')[1]
-    try:
-        partner = PartnerAPIKey.objects.get(api_key=token, is_active=True)
-    except PartnerAPIKey.DoesNotExist:
-        return JsonResponse({'error': 'Invalid or inactive API key'}, status=401)
-        
-    phone = request.GET.get('phone')
+    """Legacy function view — prefer accounts.PartnerFarmHealthScoreView."""
+    from accounts.lending_auth import log_lending_usage, resolve_bearer_key
+    from accounts.views import _farmer_score_payload
+
+    if request.method != "GET":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    token = auth_header.split(" ", 1)[1].strip()
+    lending_key, _legacy, err = resolve_bearer_key(token)
+    if err:
+        return JsonResponse({"error": err}, status=401)
+
+    phone = request.GET.get("phone")
     if not phone:
-        return JsonResponse({'error': 'Phone parameter is required'}, status=400)
-    
-    try:
-        farmer = FarmerProfile.objects.get(phone_number=phone)
-        try:
-            health_profile = farmer.health_profile # Handled by signal
-        except FarmHealthProfile.DoesNotExist:
-            return JsonResponse({'error': 'Farmer profile not fully initialized'}, status=500)
-        
-        if not health_profile.opt_in_for_lending:
-            return JsonResponse({'error': 'User has not consented to data sharing'}, status=403)
-            
-        return JsonResponse({
-            'farmer_name': f"{farmer.user.first_name} {farmer.user.last_name}".strip() or farmer.user.username,
-            'county': farmer.county,
-            'health_score': health_profile.health_score,
-            'risk_tier': health_profile.risk_tier,
-            'active_connections': farmer.market_connections.filter(status='Completed').count(),
-            'total_scans': farmer.scan_logs.count()
-        }, status=200)
-    except FarmerProfile.DoesNotExist:
-         return JsonResponse({'error': 'Farmer not found'}, status=404)
+        return JsonResponse({"error": "Phone parameter is required"}, status=400)
+
+    payload, http_status, error = _farmer_score_payload(phone)
+    log_lending_usage(lending_key=lending_key, phone=phone, http_status=http_status)
+    if error:
+        return JsonResponse({"error": error}, status=http_status)
+    return JsonResponse(payload, status=http_status)
 
 
 @login_required(login_url='login')
@@ -862,12 +847,46 @@ def buyer_dashboard_view(request):
 @csrf_exempt
 def mpesa_callback(request):
     """Handles Safaricom's M-Pesa STK Push results."""
+    from django.conf import settings as dj_settings
+    from ipaddress import ip_address, ip_network
+
+    allowlist = getattr(dj_settings, "MPESA_CALLBACK_ALLOWLIST", []) or []
+    if allowlist and not getattr(dj_settings, "DEV_ENV", False):
+        # Prefer reverse-proxy client IP when present.
+        forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        client_ip = (
+            forwarded.split(",")[0].strip()
+            if forwarded
+            else request.META.get("REMOTE_ADDR", "")
+        )
+        try:
+            addr = ip_address(client_ip)
+            allowed = False
+            for entry in allowlist:
+                try:
+                    if "/" in entry:
+                        allowed = addr in ip_network(entry, strict=False)
+                    else:
+                        allowed = addr == ip_address(entry)
+                except ValueError:
+                    continue
+                if allowed:
+                    break
+            if not allowed:
+                return JsonResponse(
+                    {"ResultCode": 1, "ResultDesc": "Forbidden"}, status=403
+                )
+        except ValueError:
+            return JsonResponse(
+                {"ResultCode": 1, "ResultDesc": "Forbidden"}, status=403
+            )
+
     try:
         data = json.loads(request.body)
         stk_callback = data['Body']['stkCallback']
         result_code = stk_callback['ResultCode']
         checkout_request_id = stk_callback['CheckoutRequestID']
-        
+
         with transaction.atomic():
             try:
                 mpesa_txn = MpesaTransaction.objects.get(checkout_request_id=checkout_request_id)
@@ -879,7 +898,7 @@ def mpesa_callback(request):
                     receipt = next((item['Value'] for item in meta if item['Name'] == 'MpesaReceiptNumber'), None)
                     mpesa_txn.receipt_number = receipt
                     mpesa_txn.save()
-                    
+
                     # Update Wallet or Subscription
                     user = mpesa_txn.user
                     # Update Wallet (Farmer/Buyer)
@@ -891,7 +910,7 @@ def mpesa_callback(request):
                     mpesa_txn.result_desc = stk_callback['ResultDesc']
                     mpesa_txn.save()
             except MpesaTransaction.DoesNotExist:
-                pass 
+                pass
     except Exception as e:
         print("M-Pesa Callback Error:", e)
 

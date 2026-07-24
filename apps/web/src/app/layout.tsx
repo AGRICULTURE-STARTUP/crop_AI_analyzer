@@ -1,24 +1,21 @@
 import type { Metadata } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Roboto } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 
-const display = Fraunces({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const body = Manrope({
+const body = Roboto({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "AgriScan — Crop intelligence for East African farms",
+  title: "AgriScan — Empowering Farmers",
   description:
-    "Scan crop disease, chat with AgriBot, find inputs, and share Farm Health Scores with trusted lenders.",
+    "Take a photo of a sick plant to get treatment advice in English or Kiswahili, connect with buyers, and build a Farm Health Score.",
+  icons: {
+    icon: "/images/agriscan_favicon.png",
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${body.variable} antialiased`}>
+      <body className={`${body.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

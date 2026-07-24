@@ -27,6 +27,7 @@ class ScanJob(models.Model):
     )
     result_label = models.CharField(max_length=255, blank=True)
     confidence = models.FloatField(null=True, blank=True)
+    report = models.JSONField(null=True, blank=True)
     gatekeeper_passed = models.BooleanField(null=True, blank=True)
     error_message = models.TextField(blank=True)
     celery_task_id = models.CharField(max_length=255, blank=True)

@@ -832,18 +832,21 @@ Agency models were removed in migration `0013`; the rewrite should **reintroduce
 - Wire wallet modal + M-Pesa top-up against Contabo nginx.
 - Cut over DNS; deprecate Django templates.
 
-### Phase 3 — Hardening (1 week)
+### Phase 3 — Hardening (1 week) — **implemented**
 
-- Load tests: concurrent scans vs chat against Docker workers.
-- Tune `mem_limit` / restart policies; verify OOM isolation.
-- Partner API contract tests; backup/restore drill for `pgdata`.
-- Security: CORS lockdown, callback checks, rate limits, no DB/Redis ports published.
+- DRF scoped throttles on scans / chat / auth / USSD / lending score (disabled when `DEV_ENV=True`).
+- `DEV_ENV` regulator: relax CORS (`CORS_ALLOW_ALL_ORIGINS`), SSL redirect, hosts, throttles for laptop + Capacitor testing.
+- Partner API contract tests (`accounts.tests`); M2M score uses hashed `LendingAPIKey` with legacy `PartnerAPIKey` fallback.
+- Backup + restore scripts: `infra/scripts/backup-volumes.sh`, `infra/scripts/restore-volumes.sh`.
+- M-Pesa callback optional IP allowlist (`MPESA_CALLBACK_ALLOWLIST`; skipped in `DEV_ENV`).
+- Health payload includes `dev_env` flag.
+- Local QA procedure: `docs/LOCAL_TESTING.md`.
 
-### Phase 4 — Product completion extras
+### Phase 4 — Product completion extras — **partial (USSD sim + Capacitor)**
 
-- Capacitor wrap of Next.js.
-- USSD/SMS gateway calling the same Django API.
-- Agency subscription billing finalization.
+- Capacitor Android wrap under `apps/web/android/` (`@capacitor/*`, camera + cleartext for DEV).
+- USSD/SMS: **simulation first** — homepage phone UI + `POST /api/v1/ussd/simulate/` + production webhook stub `POST /api/v1/ussd/` (Africa's Talking `CON`/`END`). All farmer features except crop scan. Live Twilio / Africa's Talking / TextSMS credentials plug in later via `USSD_PROVIDER` + API keys.
+- Agency subscription billing finalization — still pending.
 
 ---
 

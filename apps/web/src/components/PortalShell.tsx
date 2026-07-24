@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
+import { AgriBotWidget } from "@/components/AgriBotWidget";
 import { useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/types";
 import { roleHome } from "@/lib/api";
@@ -12,7 +13,6 @@ type NavItem = { href: string; label: string };
 const NAV: Record<string, NavItem[]> = {
   farmer: [
     { href: "/farmer/scan", label: "Scan" },
-    { href: "/farmer/chat", label: "AgriBot" },
     { href: "/farmer/inputs", label: "Inputs" },
     { href: "/farmer/market", label: "Market" },
     { href: "/farmer/profile", label: "Profile" },
@@ -65,12 +65,12 @@ export function PortalShell({
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[rgba(244,247,241,0.88)] backdrop-blur-md">
+    <div className="min-h-screen bg-paper">
+      <header className="sticky top-0 z-20 border-b border-white/20 bg-[linear-gradient(135deg,rgba(27,94,32,0.88)_0%,rgba(56,142,60,0.82)_100%)] text-white shadow-[0_4px_24px_rgba(0,0,0,0.12)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
-            <Link href="/" className="brand-mark text-xl text-leaf-deep">
-              AgriScan
+            <Link href="/" className="brand-mark text-xl text-white">
+              Agri<span>Scan</span>
             </Link>
             <nav className="hidden gap-1 md:flex">
               {items.map((item) => {
@@ -79,10 +79,10 @@ export function PortalShell({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
                       active
-                        ? "bg-leaf text-white"
-                        : "text-ink/70 hover:bg-white/70"
+                        ? "bg-[var(--sprout)] !text-[var(--leaf-deep)] shadow-sm"
+                        : "text-white/90 hover:bg-white/15 hover:text-white"
                     }`}
                   >
                     {item.label}
@@ -92,9 +92,9 @@ export function PortalShell({
             </nav>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <span className="hidden text-ink/60 sm:inline">{title}</span>
+            <span className="hidden text-white/75 sm:inline">{title}</span>
             <button
-              className="btn btn-secondary !px-3 !py-1.5 text-sm"
+              className="btn !border-white/30 !bg-white/15 !px-3 !py-1.5 text-sm !text-white hover:!bg-white hover:!text-[var(--leaf-deep)]"
               onClick={async () => {
                 await logout();
                 router.push("/login");
@@ -104,15 +104,17 @@ export function PortalShell({
             </button>
           </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto border-t border-[var(--line)] px-4 py-2 md:hidden">
+        <nav className="flex gap-1 overflow-x-auto border-t border-white/15 px-4 py-2 md:hidden">
           {items.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm ${
-                  active ? "bg-leaf text-white" : "bg-white/60"
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                  active
+                    ? "bg-[var(--sprout)] !text-[var(--leaf-deep)] shadow-sm"
+                    : "bg-white/10 text-white/90"
                 }`}
               >
                 {item.label}
@@ -122,6 +124,7 @@ export function PortalShell({
         </nav>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      {role === "farmer" ? <AgriBotWidget /> : null}
     </div>
   );
 }

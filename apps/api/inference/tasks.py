@@ -1,9 +1,8 @@
-"""Celery tasks for crop scanning (queue: scan) and RAG retrieve (queue: rag)."""
+"""Celery tasks for crop scanning (queue: scan)."""
 
 from __future__ import annotations
 
 import logging
-import os
 from decimal import Decimal
 
 from celery import shared_task
@@ -16,13 +15,14 @@ SCAN_FEE = Decimal("20.00")
 FREE_SCANS = 2
 
 
-@shared_task(bind=True, name="inference.run_scan_job", max_retries=0, soft_time_limit=60)
+@shared_task(bind=True, name="inference.run_scan_job", max_retries=0, soft_time_limit=180)
 def run_scan_job(self, job_id: str):
-    """Gatekeeper → LRU crop model → predict. Runs only in worker_scanner."""
+    """Gatekeeper → LRU crop model → predict → Groq advisory report."""
     # Lazy TF imports happen inside gatekeeper / model_lru.
     from inference.crops import KNOWN_CROP_CLASSES
     from inference.gatekeeper import is_plant_image
     from inference.model_lru import get_crop_model, predict_locked
+    from inference.scan_report import generate_scan_report
     from main_app.models import CropScanLog, FarmerProfile, Wallet
     from scanner.models import ScanJob
 
@@ -33,7 +33,8 @@ def run_scan_job(self, job_id: str):
         return {"ok": False, "error": "missing_job"}
 
     job.status = ScanJob.Status.PROCESSING
-    job.save(update_fields=["status", "updated_at"])
+    job.report = None
+    job.save(update_fields=["status", "report", "updated_at"])
 
     image_path = job.image.path
     try:
@@ -69,6 +70,29 @@ def run_scan_job(self, job_id: str):
         labels = KNOWN_CROP_CLASSES.get(job.crop, [])
         label = labels[idx] if idx < len(labels) else str(idx)
 
+        # Persist diagnosis early so the UI can show model progress while Groq runs.
+        job.result_label = label
+        job.confidence = confidence
+        job.save(update_fields=["result_label", "confidence", "updated_at"])
+
+        farmer_county = ""
+        farmer_country = "Kenya"
+        farmer_profile = None
+        try:
+            farmer_profile = FarmerProfile.objects.get(user=job.user)
+            farmer_county = (farmer_profile.county or "").strip()
+            farmer_country = (farmer_profile.country or "Kenya").strip() or "Kenya"
+        except FarmerProfile.DoesNotExist:
+            logger.warning("No FarmerProfile for user %s; report without county weather", job.user_id)
+
+        report = generate_scan_report(
+            job.crop,
+            label,
+            confidence,
+            location=farmer_county,
+            country=farmer_country,
+        )
+
         with transaction.atomic():
             wallet, _ = Wallet.objects.select_for_update().get_or_create(user=job.user)
             if wallet.scan_count >= FREE_SCANS:
@@ -90,25 +114,37 @@ def run_scan_job(self, job_id: str):
             wallet.scan_count += 1
             wallet.save()
 
-            try:
-                farmer = FarmerProfile.objects.get(user=job.user)
+            if farmer_profile is not None:
                 CropScanLog.objects.create(
-                    farmer=farmer,
+                    farmer=farmer_profile,
                     crop_type=job.crop,
                     result=label,
                     confidence_score=confidence,
                 )
-            except FarmerProfile.DoesNotExist:
-                logger.warning("No FarmerProfile for user %s; skip CropScanLog", job.user_id)
+            else:
+                try:
+                    farmer = FarmerProfile.objects.get(user=job.user)
+                    CropScanLog.objects.create(
+                        farmer=farmer,
+                        crop_type=job.crop,
+                        result=label,
+                        confidence_score=confidence,
+                    )
+                except FarmerProfile.DoesNotExist:
+                    logger.warning(
+                        "No FarmerProfile for user %s; skip CropScanLog", job.user_id
+                    )
 
             job.result_label = label
             job.confidence = confidence
+            job.report = report
             job.status = ScanJob.Status.COMPLETED
             job.completed_at = timezone.now()
             job.save(
                 update_fields=[
                     "result_label",
                     "confidence",
+                    "report",
                     "status",
                     "wallet_debited",
                     "completed_at",
@@ -116,7 +152,7 @@ def run_scan_job(self, job_id: str):
                 ]
             )
 
-        return {"ok": True, "label": label, "confidence": confidence}
+        return {"ok": True, "label": label, "confidence": confidence, "report": report}
 
     except Exception as exc:  # noqa: BLE001
         logger.exception("Scan job %s failed", job_id)
@@ -127,14 +163,3 @@ def run_scan_job(self, job_id: str):
             update_fields=["status", "error_message", "completed_at", "updated_at"]
         )
         return {"ok": False, "error": str(exc)}
-
-
-@shared_task(bind=True, name="inference.retrieve_context_task", soft_time_limit=30)
-def retrieve_context_task(self, query: str, crop: str | None = None):
-    """Hybrid retrieve for AgriBot — runs only in worker_rag."""
-    from rag.retrieve import retrieve_context
-
-    rerank = os.getenv("RERANKER_ENABLED", "false").lower() in ("1", "true", "yes")
-    # retrieve_context currently uses module defaults; env toggles reranker inside rag if wired.
-    context = retrieve_context(query)
-    return {"context": context, "reranker_enabled": rerank}

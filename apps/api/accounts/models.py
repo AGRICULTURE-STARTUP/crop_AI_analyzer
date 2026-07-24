@@ -30,6 +30,45 @@ class AgencyProfile(models.Model):
         return f"{self.agency_name} ({self.user.username})"
 
 
+class AgencyProduct(models.Model):
+    """Product listed by a registered input / agrovet agency."""
+
+    CATEGORY_CHOICES = [
+        ("fertiliser", "Fertiliser"),
+        ("seed", "Seed"),
+        ("pesticide", "Pesticide"),
+        ("equipment", "Equipment"),
+        ("other", "Other"),
+    ]
+
+    agency = models.ForeignKey(
+        AgencyProfile,
+        on_delete=models.CASCADE,
+        related_name="products",
+    )
+    name = models.CharField(max_length=150)
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default="other"
+    )
+    description = models.TextField(blank=True, default="")
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    unit = models.CharField(max_length=40, blank=True, default="")
+    image = models.ImageField(
+        upload_to="agency_products/", blank=True, null=True
+    )
+    is_available = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} — {self.agency.agency_name}"
+
+
 class LendingPartnerProfile(models.Model):
     """Self-service lending / loan agency account."""
 

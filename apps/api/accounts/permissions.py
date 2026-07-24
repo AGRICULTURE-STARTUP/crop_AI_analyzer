@@ -6,6 +6,17 @@ class IsStaffUser(BasePermission):
         return bool(request.user and request.user.is_authenticated and request.user.is_staff)
 
 
+class IsAgency(BasePermission):
+    """Require an authenticated user with an AgencyProfile."""
+
+    message = "Only registered input agencies can manage products."
+
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        return hasattr(request.user, "agency_profile")
+
+
 class IsLendingPartner(BasePermission):
     def has_permission(self, request, view):
         if not (request.user and request.user.is_authenticated):

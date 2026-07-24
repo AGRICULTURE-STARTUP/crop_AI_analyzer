@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
+import { AuthShell } from "@/components/AuthShell";
 import { FormField } from "@/components/FormField";
-import { SiteHeader } from "@/components/SiteHeader";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
@@ -39,22 +39,34 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="panel space-y-4 rounded-3xl p-6 sm:p-8">
+    <form onSubmit={onSubmit} className="auth-panel space-y-4">
       <div>
-        <h1 className="brand-mark text-3xl text-leaf-deep">Welcome back</h1>
+        <h2 className="brand-mark text-3xl text-leaf-deep">Welcome back</h2>
         <p className="mt-1 text-sm text-ink/60">
-          Sign in with your AgriScan username and password.
+          Sign in with your AgriScan username and password. We send you to the
+          portal for your role.
         </p>
       </div>
-      <FormField label="Username" name="username" required />
-      <FormField label="Password" name="password" type="password" required />
+      <FormField
+        label="Username"
+        name="username"
+        required
+        autoComplete="username"
+      />
+      <FormField
+        label="Password"
+        name="password"
+        type="password"
+        required
+        autoComplete="current-password"
+      />
       {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
       <button className="btn btn-primary w-full" disabled={busy} type="submit">
         {busy ? "Signing in…" : "Log in"}
       </button>
       <p className="text-center text-sm text-ink/60">
         New here?{" "}
-        <Link href="/signup/farmer" className="font-semibold text-leaf">
+        <Link href="/signup" className="font-semibold text-leaf">
           Create an account
         </Link>
       </p>
@@ -64,13 +76,16 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="relative min-h-screen px-4 pb-16 pt-28">
-      <SiteHeader solid />
-      <div className="mx-auto mt-8 max-w-md animate-rise">
-        <Suspense fallback={<div className="panel rounded-3xl p-8">Loading…</div>}>
-          <LoginForm />
-        </Suspense>
-      </div>
-    </div>
+    <AuthShell
+      eyebrow="Secure access"
+      title="Your farm tools, ready when you are"
+      subtitle="Log in to scan crops, chat with AgriBot, check markets, or review Farm Health Scores — depending on your role."
+    >
+      <Suspense
+        fallback={<div className="auth-panel rounded-3xl p-8">Loading…</div>}
+      >
+        <LoginForm />
+      </Suspense>
+    </AuthShell>
   );
 }

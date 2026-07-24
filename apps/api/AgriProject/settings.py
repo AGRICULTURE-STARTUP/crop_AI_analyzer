@@ -20,11 +20,26 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
+# Local / laptop testing: relax CORS, hosts, SSL, and throttles so the SPA
+# and Capacitor WebView can hit the API without production lockdown.
+DEV_ENV = os.getenv("DEV_ENV", "False").lower() in ("1", "true", "yes")
+
 ALLOWED_HOSTS = [
     h.strip()
     for h in os.getenv("ALLOWED_HOSTS", "*").split(",")
     if h.strip()
 ]
+if DEV_ENV and "*" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS = list(
+        {
+            *ALLOWED_HOSTS,
+            "localhost",
+            "127.0.0.1",
+            "0.0.0.0",
+            "10.0.2.2",  # Android emulator → host
+            "[::1]",
+        }
+    )
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
@@ -44,15 +59,38 @@ CORS_ALLOWED_ORIGINS = [
     if o.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
+# Dev mode: allow any origin (Next.js, Capacitor, LAN IP) — never enable in prod.
+if DEV_ENV:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = False  # incompatible with allow-all in browsers
 
 
 # Security settings for production
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG and not DEV_ENV
+CSRF_COOKIE_SECURE = not DEBUG and not DEV_ENV
 SECURE_SSL_REDIRECT = (
-    os.getenv("SECURE_SSL_REDIRECT", str(not DEBUG)).lower() in ("1", "true", "yes")
+    False
+    if DEV_ENV
+    else os.getenv("SECURE_SSL_REDIRECT", str(not DEBUG)).lower()
+    in ("1", "true", "yes")
 )
+
+# Comma-separated CIDRs/IPs allowed to hit M-Pesa callback (empty = allow all).
+# In production set Safaricom egress ranges; ignored when DEV_ENV=True.
+MPESA_CALLBACK_ALLOWLIST = [
+    ip.strip()
+    for ip in os.getenv("MPESA_CALLBACK_ALLOWLIST", "").split(",")
+    if ip.strip()
+]
+
+# USSD gateway secrets (set when wiring Twilio / Africa's Talking / TextSMS).
+USSD_PROVIDER = os.getenv("USSD_PROVIDER", "simulate")  # simulate|africastalking|twilio|textsms
+USSD_SERVICE_CODE = os.getenv("USSD_SERVICE_CODE", "*384*55#")
+AFRICASTALKING_USERNAME = os.getenv("AFRICASTALKING_USERNAME", "")
+AFRICASTALKING_API_KEY = os.getenv("AFRICASTALKING_API_KEY", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+TEXTSMS_API_KEY = os.getenv("TEXTSMS_API_KEY", "")
 
 
 # Application definition
@@ -233,6 +271,16 @@ STATICFILES_DIRS = [str(_static_dir)] if _static_dir.is_dir() else []
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- DRF / JWT (SPA auth bridge) ---
+_THROTTLE_RATES = {
+    "anon": "1000/min" if DEV_ENV else "60/min",
+    "user": "2000/min" if DEV_ENV else "120/min",
+    "scans": "100/min" if DEV_ENV else "5/min",
+    "chat": "100/min" if DEV_ENV else "10/min",
+    "auth": "200/min" if DEV_ENV else "20/min",
+    "ussd": "200/min" if DEV_ENV else "30/min",
+    "lending_score": "200/min" if DEV_ENV else "60/min",
+}
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -241,7 +289,36 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "DEFAULT_THROTTLE_CLASSES": (
+        []
+        if DEV_ENV
+        else (
+            "rest_framework.throttling.AnonRateThrottle",
+            "rest_framework.throttling.UserRateThrottle",
+            "rest_framework.throttling.ScopedRateThrottle",
+        )
+    ),
+    "DEFAULT_THROTTLE_RATES": _THROTTLE_RATES,
 }
+
+# Cache: Redis when available (Compose), else local memory for laptop runs.
+_redis_cache_url = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+# Cache: LocMem in DEV_ENV (no Redis required on laptop); Redis in Compose/prod.
+if DEV_ENV or os.getenv("USE_LOCMEM_CACHE", "").lower() in ("1", "true", "yes"):
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "agriscan-local",
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": _redis_cache_url,
+            "KEY_PREFIX": "agriscan",
+        }
+    }
 
 from datetime import timedelta  # noqa: E402
 
@@ -262,7 +339,6 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_ROUTES = {
     "inference.run_scan_job": {"queue": "scan"},
-    "inference.retrieve_context_task": {"queue": "rag"},
 }
 CELERY_TASK_DEFAULT_QUEUE = "celery"
 

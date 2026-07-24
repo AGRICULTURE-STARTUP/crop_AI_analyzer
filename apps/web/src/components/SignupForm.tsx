@@ -3,42 +3,59 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { AuthShell } from "@/components/AuthShell";
 import { FormField } from "@/components/FormField";
-import { SiteHeader } from "@/components/SiteHeader";
 import { apiRequest, ApiError, roleHome } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { TokenPair } from "@/lib/types";
 
-type Role = "farmer" | "buyer" | "agency" | "lender";
+export type SignupRole = "farmer" | "buyer" | "agency" | "lender";
 
-const META: Record<
-  Role,
-  { title: string; endpoint: string; blurb: string }
-> = {
-  farmer: {
-    title: "Farmer signup",
-    endpoint: "/api/v1/auth/register/farmer/",
+const ROLES: {
+  value: SignupRole;
+  label: string;
+  blurb: string;
+  endpoint: string;
+}[] = [
+  {
+    value: "farmer",
+    label: "Farmer",
     blurb: "Scan crops, chat with AgriBot, and manage your Farm Health Score.",
+    endpoint: "/api/v1/auth/register/farmer/",
   },
-  buyer: {
-    title: "Buyer signup",
-    endpoint: "/api/v1/auth/register/buyer/",
+  {
+    value: "buyer",
+    label: "Buyer",
     blurb: "Browse farmer listings and build market connections.",
+    endpoint: "/api/v1/auth/register/buyer/",
   },
-  agency: {
-    title: "Input agency signup",
-    endpoint: "/api/v1/auth/register/agency/",
+  {
+    value: "agency",
+    label: "Input agency",
     blurb: "Publish fertiliser, seed, and crop-protection products.",
+    endpoint: "/api/v1/auth/register/agency/",
   },
-  lender: {
-    title: "Lending partner signup",
+  {
+    value: "lender",
+    label: "Lending partner",
+    blurb: "Banks, MFIs, and SACCOs — review Farm Health Scores with farmer consent.",
     endpoint: "/api/v1/auth/register/lender/",
-    blurb: "Banks, MFIs, and SACCOs — manage Farm Health Score API keys.",
   },
-};
+];
 
-export function SignupForm({ role }: { role: Role }) {
-  const meta = META[role];
+function isSignupRole(value: string): value is SignupRole {
+  return ROLES.some((r) => r.value === value);
+}
+
+export function SignupForm({
+  initialRole = "farmer",
+}: {
+  initialRole?: SignupRole;
+}) {
+  const [role, setRole] = useState<SignupRole>(
+    isSignupRole(initialRole) ? initialRole : "farmer"
+  );
+  const meta = ROLES.find((r) => r.value === role)!;
   const { acceptTokens } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
@@ -49,8 +66,19 @@ export function SignupForm({ role }: { role: Role }) {
     setBusy(true);
     setError("");
     const fd = new FormData(e.currentTarget);
+    const password = String(fd.get("password") || "");
+    const confirm = String(fd.get("password_confirm") || "");
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      setBusy(false);
+      return;
+    }
+
     const body: Record<string, string> = {};
     fd.forEach((v, k) => {
+      if (k === "password_confirm" || k === "privacy_accept" || k === "role") {
+        return;
+      }
       body[k] = String(v);
     });
 
@@ -89,96 +117,139 @@ export function SignupForm({ role }: { role: Role }) {
   }
 
   return (
-    <div className="relative min-h-screen px-4 pb-16 pt-28">
-      <SiteHeader solid />
-      <form
-        onSubmit={onSubmit}
-        className="panel mx-auto mt-8 max-w-lg animate-rise space-y-4 rounded-3xl p-6 sm:p-8"
-      >
+    <AuthShell
+      eyebrow="Join AgriScan"
+      title="One platform. Four roles."
+      subtitle="Pick how you take part — farmer, buyer, input shop, or lender — and we open the right portal for you."
+    >
+      <form onSubmit={onSubmit} className="auth-panel space-y-4">
         <div>
-          <h1 className="brand-mark text-3xl text-leaf-deep">{meta.title}</h1>
+          <h2 className="brand-mark text-3xl text-leaf-deep">Create account</h2>
           <p className="mt-1 text-sm text-ink/60">{meta.blurb}</p>
         </div>
 
+        <label className="block space-y-1.5 text-sm">
+          <span className="font-medium text-ink/80">I am signing up as</span>
+          <select
+            className="field"
+            name="role"
+            value={role}
+            required
+            onChange={(e) => {
+              const next = e.target.value;
+              if (isSignupRole(next)) {
+                setRole(next);
+                setError("");
+              }
+            }}
+          >
+            {ROLES.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Username" name="username" required />
-          <FormField label="Email" name="email" type="email" required />
+          <FormField label="Username" name="username" required autoComplete="username" />
+          <FormField
+            label="Email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+          />
           <FormField label="First name" name="first_name" required />
           <FormField label="Last name" name="last_name" required />
-          <FormField label="Password" name="password" type="password" required />
+          <FormField
+            label="Password"
+            name="password"
+            type="password"
+            required
+            autoComplete="new-password"
+          />
           <FormField
             label="Confirm password"
             name="password_confirm"
             type="password"
             required
+            autoComplete="new-password"
           />
         </div>
 
-        {role === "farmer" || role === "buyer" ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Phone" name="phone_number" required />
-            <FormField label="County" name="county" required />
-            <FormField label="Country" name="country" required defaultValue="Kenya" />
-            {role === "farmer" ? (
+        <div key={role} className="grid gap-4 sm:grid-cols-2">
+          {role === "farmer" || role === "buyer" ? (
+            <>
+              <FormField label="Phone" name="phone_number" required />
+              <FormField label="County" name="county" required />
               <FormField
-                label="Crops / products"
-                name="products"
-                as="textarea"
-                placeholder="Maize, tomato, beans"
+                label="Country"
+                name="country"
+                required
+                defaultValue="Kenya"
               />
-            ) : null}
-          </div>
-        ) : null}
+              {role === "farmer" ? (
+                <FormField
+                  label="Crops / products"
+                  name="products"
+                  as="textarea"
+                  placeholder="Maize, tomato, beans"
+                />
+              ) : null}
+            </>
+          ) : null}
 
-        {role === "agency" ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Agency name" name="agency_name" required />
-            <FormField
-              label="Agency type"
-              name="agency_type"
-              as="select"
-              options={[
-                { value: "agrovet", label: "Agrovet" },
-                { value: "seed", label: "Seed" },
-                { value: "fertiliser", label: "Fertiliser" },
-                { value: "pesticide", label: "Pesticide" },
-                { value: "other", label: "Other" },
-              ]}
-            />
-            <FormField label="Phone" name="phone" required />
-            <FormField label="County" name="county" required />
-          </div>
-        ) : null}
+          {role === "agency" ? (
+            <>
+              <FormField label="Agency name" name="agency_name" required />
+              <FormField
+                label="Agency type"
+                name="agency_type"
+                as="select"
+                options={[
+                  { value: "agrovet", label: "Agrovet" },
+                  { value: "seed", label: "Seed" },
+                  { value: "fertiliser", label: "Fertiliser" },
+                  { value: "pesticide", label: "Pesticide" },
+                  { value: "other", label: "Other" },
+                ]}
+              />
+              <FormField label="Phone" name="phone" required />
+              <FormField label="County" name="county" required />
+            </>
+          ) : null}
 
-        {role === "lender" ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField
-              label="Organization name"
-              name="organization_name"
-              required
-            />
-            <FormField
-              label="Organization type"
-              name="organization_type"
-              as="select"
-              options={[
-                { value: "bank", label: "Bank" },
-                { value: "mfi", label: "MFI" },
-                { value: "sacco", label: "SACCO" },
-                { value: "fintech", label: "Fintech" },
-                { value: "other", label: "Other" },
-              ]}
-            />
-            <FormField
-              label="Registration number"
-              name="registration_number"
-              required
-            />
-            <FormField label="Contact phone" name="contact_phone" required />
-            <FormField label="County" name="county" required />
-            <FormField label="Website" name="website" type="url" />
-          </div>
-        ) : null}
+          {role === "lender" ? (
+            <>
+              <FormField
+                label="Organization name"
+                name="organization_name"
+                required
+              />
+              <FormField
+                label="Organization type"
+                name="organization_type"
+                as="select"
+                options={[
+                  { value: "bank", label: "Bank" },
+                  { value: "mfi", label: "MFI" },
+                  { value: "sacco", label: "SACCO" },
+                  { value: "fintech", label: "Fintech" },
+                  { value: "other", label: "Other" },
+                ]}
+              />
+              <FormField
+                label="Registration number"
+                name="registration_number"
+                required
+              />
+              <FormField label="Contact phone" name="contact_phone" required />
+              <FormField label="County" name="county" required />
+              <FormField label="Website" name="website" type="url" />
+            </>
+          ) : null}
+        </div>
 
         <label className="flex items-start gap-2 text-sm text-ink/70">
           <input type="checkbox" name="privacy_accept" required className="mt-1" />
@@ -193,7 +264,9 @@ export function SignupForm({ role }: { role: Role }) {
 
         {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
         <button className="btn btn-primary w-full" disabled={busy} type="submit">
-          {busy ? "Creating account…" : "Create account"}
+          {busy
+            ? "Creating account…"
+            : `Create ${meta.label.toLowerCase()} account`}
         </button>
         <p className="text-center text-sm text-ink/60">
           Already registered?{" "}
@@ -202,6 +275,6 @@ export function SignupForm({ role }: { role: Role }) {
           </Link>
         </p>
       </form>
-    </div>
+    </AuthShell>
   );
 }

@@ -6,6 +6,7 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from scanner.models import ScanJob
@@ -50,6 +51,7 @@ class HealthView(APIView):
             "status": "ok" if db_ok and redis_ok else "degraded",
             "postgres": db_ok,
             "redis": redis_ok,
+            "dev_env": bool(getattr(settings, "DEV_ENV", False)),
         }
         code = status.HTTP_200_OK if db_ok else status.HTTP_503_SERVICE_UNAVAILABLE
         return Response(payload, status=code)
@@ -87,6 +89,8 @@ def _wallet_gate(user):
 
 class ScanJobListCreateView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "scans"
 
     def get(self, request):
         jobs = ScanJob.objects.filter(user=request.user)[:50]

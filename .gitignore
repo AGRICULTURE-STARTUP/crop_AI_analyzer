@@ -31,3 +31,9 @@ infra/.env
 node_modules/
 .next/
 apps/web/.env*.local
+apps/web/android/.gradle/
+apps/web/android/app/build/
+apps/web/android/build/
+apps/web/android/local.properties
+apps/web/ios/App/Pods/
+apps/web/ios/DerivedData/

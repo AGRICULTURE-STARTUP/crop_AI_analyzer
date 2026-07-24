@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from accounts.models import (
     AgencyProfile,
+    AgencyProduct,
     LendingAPIKey,
     LendingAPIUsageLog,
     LendingPartnerProfile,
@@ -12,6 +13,22 @@ from accounts.models import (
 class AgencyProfileAdmin(admin.ModelAdmin):
     list_display = ("agency_name", "agency_type", "county", "user", "created_at")
     search_fields = ("agency_name", "user__username", "user__email")
+    list_filter = ("agency_type", "county")
+
+
+@admin.register(AgencyProduct)
+class AgencyProductAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "category",
+        "price",
+        "agency",
+        "is_available",
+        "created_at",
+    )
+    list_filter = ("category", "is_available")
+    search_fields = ("name", "agency__agency_name")
+    raw_id_fields = ("agency",)
 
 
 @admin.register(LendingPartnerProfile)

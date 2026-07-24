@@ -1,22 +1,29 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import logging
 
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.keys import generate_raw_api_key, hash_api_key, key_prefix
+from accounts.lending_auth import log_lending_usage, resolve_bearer_key
 from accounts.models import LendingAPIKey, LendingAPIUsageLog, LendingPartnerProfile
 from accounts.permissions import IsApprovedLendingPartner, IsLendingPartner, IsStaffUser
+from rest_framework.throttling import ScopedRateThrottle
+
 from accounts.serializers import (
     AdminLenderSerializer,
     AgencyRegisterSerializer,
     BuyerRegisterSerializer,
+    FarmerProfileSerializer,
     FarmerRegisterSerializer,
     LendingAPIKeyCreateSerializer,
     LendingAPIKeySerializer,
@@ -33,6 +40,9 @@ from accounts.serializers import (
 from main_app.models import FarmerProfile, FarmHealthProfile, MpesaTransaction, Wallet
 from main_app.mpesa_utils import MpesaGateway
 from main_app.utils_scoring import calculate_farm_health_score
+from main_app.utils_weather import get_weather_data
+
+logger = logging.getLogger(__name__)
 
 
 def _registration_response(user: User) -> Response:
@@ -48,16 +58,12 @@ def _registration_response(user: User) -> Response:
     )
 
 
-def _get_role_profile(user: User):
+def _get_role_profile(user: User, request=None):
     role = resolve_user_role(user)
     if role == "farmer" and hasattr(user, "farmer_profile"):
-        p = user.farmer_profile
-        return {
-            "phone_number": p.phone_number,
-            "county": p.county,
-            "country": p.country,
-            "products": p.products,
-        }
+        return FarmerProfileSerializer(
+            user.farmer_profile, context={"request": request}
+        ).data
     if role == "buyer" and hasattr(user, "buyer_profile"):
         p = user.buyer_profile
         return {
@@ -80,7 +86,7 @@ def _get_role_profile(user: User):
     return None
 
 
-def _me_payload(user: User) -> dict:
+def _me_payload(user: User, request=None) -> dict:
     role = resolve_user_role(user)
     wallet_data = None
     if role == "farmer":
@@ -89,9 +95,37 @@ def _me_payload(user: User) -> dict:
     return {
         "user": UserBriefSerializer(user).data,
         "role": role,
-        "profile": _get_role_profile(user),
+        "profile": _get_role_profile(user, request=request),
         "wallet": wallet_data,
     }
+
+
+def _weather_for_location(location: str, country: str = "Kenya") -> dict | None:
+    if not (location or "").strip():
+        return None
+    try:
+        query = location.strip()
+        if country and country.lower() not in query.lower():
+            query = f"{query},{country}"
+        raw = get_weather_data(query)
+        data = json.loads(raw) if isinstance(raw, str) else raw
+        if not isinstance(data, dict) or data.get("error"):
+            if "," in query:
+                raw2 = get_weather_data(location.strip())
+                data = json.loads(raw2) if isinstance(raw2, str) else raw2
+            if not isinstance(data, dict) or data.get("error"):
+                logger.warning("Weather lookup failed for %s: %s", query, data)
+                return None
+        return {
+            "location": data.get("location") or location,
+            "temperature_celsius": data.get("temperature_celsius"),
+            "humidity_percent": data.get("humidity_percent"),
+            "wind_speed_m_s": data.get("wind_speed_m_s"),
+            "rainfall_1h_mm": data.get("rainfall_1h_mm", 0),
+        }
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Weather fetch error: %s", exc)
+        return None
 
 
 def _farmer_score_payload(phone: str) -> tuple[dict | None, int, str | None]:
@@ -193,12 +227,31 @@ class LogoutView(APIView):
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
-        return Response(_me_payload(request.user))
+        return Response(_me_payload(request.user, request=request))
 
     def patch(self, request):
-        serializer = MeUpdateSerializer(data=request.data, partial=True)
+        if hasattr(request.data, "dict"):
+            raw = request.data.dict()
+        elif hasattr(request.data, "copy"):
+            raw = dict(request.data.copy())
+        else:
+            raw = dict(request.data)
+        if raw.get("farm_size_acres") in ("", "null", None):
+            if "farm_size_acres" in raw:
+                raw["farm_size_acres"] = None
+        clear_flag = raw.get("clear_profile_photo")
+        if isinstance(clear_flag, str):
+            raw["clear_profile_photo"] = clear_flag.strip().lower() in (
+                "1",
+                "true",
+                "yes",
+                "on",
+            )
+
+        serializer = MeUpdateSerializer(data=raw, partial=True)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         user = request.user
@@ -211,9 +264,25 @@ class MeView(APIView):
         role = resolve_user_role(user)
         if role == "farmer" and hasattr(user, "farmer_profile"):
             profile = user.farmer_profile
-            for field in ("phone_number", "county", "country", "products"):
+            for field in (
+                "phone_number",
+                "county",
+                "country",
+                "products",
+                "farm_name",
+                "farm_size_acres",
+            ):
                 if field in data:
                     setattr(profile, field, data[field])
+            photo = request.FILES.get("profile_photo")
+            if photo is not None:
+                if profile.profile_photo:
+                    profile.profile_photo.delete(save=False)
+                profile.profile_photo = photo
+            elif data.get("clear_profile_photo"):
+                if profile.profile_photo:
+                    profile.profile_photo.delete(save=False)
+                profile.profile_photo = None
             profile.save()
         elif role == "buyer" and hasattr(user, "buyer_profile"):
             profile = user.buyer_profile
@@ -245,7 +314,42 @@ class MeView(APIView):
                     setattr(profile, field, data[field])
             profile.save()
 
-        return Response(_me_payload(user))
+        return Response(_me_payload(user, request=request))
+
+
+class WeatherView(APIView):
+    """Current weather for the authenticated farmer's county (OpenWeather)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        role = resolve_user_role(request.user)
+        if role != "farmer" or not hasattr(request.user, "farmer_profile"):
+            return Response(
+                {"detail": "Weather is available for farmer accounts."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        profile = request.user.farmer_profile
+        county = (request.query_params.get("location") or profile.county or "").strip()
+        country = (profile.country or "Kenya").strip() or "Kenya"
+        if not county:
+            return Response(
+                {
+                    "weather": None,
+                    "detail": "Set your county on your profile to load local weather.",
+                }
+            )
+
+        weather = _weather_for_location(county, country)
+        if weather is None:
+            return Response(
+                {
+                    "weather": None,
+                    "detail": f"Could not load weather for {county}.",
+                }
+            )
+        return Response({"weather": weather})
 
 
 class LenderMeView(APIView):
@@ -429,6 +533,42 @@ class AdminLenderSuspendView(APIView):
         partner.save(update_fields=["verification_status"])
         partner.api_keys.filter(is_active=True).update(is_active=False)
         return Response(AdminLenderSerializer(partner).data)
+
+
+class PartnerFarmHealthScoreView(APIView):
+    """
+    Machine-to-machine Farm Health Score.
+    Authorization: Bearer <LendingAPIKey raw secret>
+    Legacy PartnerAPIKey plaintext still accepted during migration.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "lending_score"
+
+    def get(self, request):
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        raw = auth_header.split(" ", 1)[1].strip()
+        lending_key, _legacy, err = resolve_bearer_key(raw)
+        if err:
+            return Response({"error": err}, status=status.HTTP_401_UNAUTHORIZED)
+
+        phone = request.query_params.get("phone")
+        if not phone:
+            return Response(
+                {"error": "Phone parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        payload, http_status, error = _farmer_score_payload(phone)
+        log_lending_usage(lending_key=lending_key, phone=phone, http_status=http_status)
+        if error:
+            return Response({"error": error}, status=http_status)
+        return Response(payload, status=http_status)
 
 
 class WalletView(APIView):

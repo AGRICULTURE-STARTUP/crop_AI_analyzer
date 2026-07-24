@@ -27,6 +27,7 @@ class ScanJobSerializer(serializers.ModelSerializer):
             "status",
             "result_label",
             "confidence",
+            "report",
             "gatekeeper_passed",
             "error_message",
             "created_at",

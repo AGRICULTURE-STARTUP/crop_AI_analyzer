@@ -1,5 +1,5 @@
 import { SignupForm } from "@/components/SignupForm";
 
-export default function Page() {
-  return <SignupForm role="buyer" />;
+export default function BuyerSignupPage() {
+  return <SignupForm initialRole="buyer" />;
 }

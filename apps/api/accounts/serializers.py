@@ -49,22 +49,28 @@ class UserBriefSerializer(serializers.ModelSerializer):
 
 
 class FarmerProfileSerializer(serializers.ModelSerializer):
+    profile_photo = serializers.SerializerMethodField()
+
     class Meta:
         model = FarmerProfile
-        fields = ("phone_number", "county", "country", "products")
+        fields = (
+            "phone_number",
+            "county",
+            "country",
+            "products",
+            "farm_name",
+            "farm_size_acres",
+            "profile_photo",
+        )
 
-
-class BuyerProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BuyerProfile
-        fields = ("phone_number", "county", "country", "first_name", "email")
-
-
-class AgencyProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AgencyProfile
-        fields = ("agency_name", "agency_type", "phone", "county", "created_at")
-        read_only_fields = ("created_at",)
+    def get_profile_photo(self, obj):
+        if not obj.profile_photo:
+            return None
+        request = self.context.get("request")
+        url = obj.profile_photo.url
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class LendingPartnerProfileSerializer(serializers.ModelSerializer):
@@ -95,13 +101,6 @@ class WalletSerializer(serializers.ModelSerializer):
         model = Wallet
         fields = ("balance", "scan_count", "chat_count", "last_updated")
         read_only_fields = fields
-
-
-class MeSerializer(serializers.Serializer):
-    user = UserBriefSerializer()
-    role = serializers.CharField()
-    profile = serializers.DictField(allow_null=True)
-    wallet = WalletSerializer(allow_null=True)
 
 
 class BaseRegisterSerializer(serializers.Serializer):
@@ -232,6 +231,15 @@ class MeUpdateSerializer(serializers.Serializer):
     county = serializers.CharField(required=False, allow_blank=True, max_length=100)
     country = serializers.CharField(required=False, allow_blank=True, max_length=100)
     products = serializers.CharField(required=False, allow_blank=True)
+    farm_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
+    farm_size_acres = serializers.DecimalField(
+        required=False,
+        allow_null=True,
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+    )
+    clear_profile_photo = serializers.BooleanField(required=False, default=False)
     agency_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
     agency_type = serializers.ChoiceField(
         choices=AgencyProfile.AGENCY_TYPE_CHOICES, required=False

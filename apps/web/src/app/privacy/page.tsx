@@ -3,7 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen px-4 pb-16 pt-28">
+    <div className="min-h-screen bg-paper px-4 pb-16 pt-28">
       <SiteHeader solid />
       <article className="panel mx-auto mt-8 max-w-3xl rounded-3xl p-6 sm:p-10">
         <h1 className="brand-mark text-4xl text-leaf-deep">Privacy policy</h1>

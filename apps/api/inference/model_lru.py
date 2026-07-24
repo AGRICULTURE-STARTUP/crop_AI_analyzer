@@ -32,18 +32,8 @@ def _models_dir() -> Path:
 
 
 def resolve_model_path(crop_selection: str) -> str:
-    """Resolve .h5 path via HF hub (optional) or local MODELS_DIR / CropModels."""
+    """Resolve .h5 path: local MODELS_DIR / CropModels first, then optional HF hub."""
     filename = f"{crop_selection}.h5"
-    repo_id = os.getenv("HF_MODEL_REPO_ID")
-    if repo_id:
-        try:
-            from huggingface_hub import hf_hub_download
-
-            logger.info("Fetching %s from Hugging Face repo %s", filename, repo_id)
-            return hf_hub_download(repo_id=repo_id, filename=filename)
-        except Exception as exc:  # noqa: BLE001 — fall back to local
-            logger.warning("HF download failed, falling back to local: %s", exc)
-
     models_dir = _models_dir()
     candidates = [
         models_dir / filename,
@@ -52,7 +42,22 @@ def resolve_model_path(crop_selection: str) -> str:
     ]
     for path in candidates:
         if path.exists():
+            logger.info("Using local crop model: %s", path)
             return str(path)
+
+    repo_id = os.getenv("HF_MODEL_REPO_ID", "").strip()
+    if repo_id:
+        try:
+            from huggingface_hub import hf_hub_download
+
+            logger.info(
+                "Local model missing; fetching %s from Hugging Face repo %s",
+                filename,
+                repo_id,
+            )
+            return hf_hub_download(repo_id=repo_id, filename=filename)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("HF download failed: %s", exc)
 
     raise FileNotFoundError(
         f"Model file '{filename}' not found in {models_dir} or HF."
@@ -103,12 +108,3 @@ def predict_locked(model, batch):
     """Serialize TF predict calls inside one worker process."""
     with _predict_lock:
         return model.predict(batch)
-
-
-def cache_info() -> dict:
-    with _lru_lock:
-        return {
-            "max_loaded": _max_loaded(),
-            "loaded": list(_lru.keys()),
-            "count": len(_lru),
-        }

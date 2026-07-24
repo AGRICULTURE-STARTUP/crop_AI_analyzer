@@ -12,6 +12,14 @@ class FarmerProfile(models.Model):
     county = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     products = models.TextField(blank=True, null=True, help_text="Products/plants")
+    farm_name = models.CharField(max_length=150, blank=True, null=True)
+    farm_size_acres = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True,
+        help_text="Total farm size in acres",
+    )
+    profile_photo = models.ImageField(
+        upload_to="farmer_profiles/", blank=True, null=True
+    )
 
     def __str__(self):
         return f"{self.user.username} - Farmer"
