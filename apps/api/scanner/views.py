@@ -36,20 +36,15 @@ class HealthView(APIView):
             logger.warning("Health DB check failed: %s", exc)
 
         try:
-            from django.core.cache import cache
+            import redis
 
-            cache.set("healthcheck", "1", 5)
-            redis_ok = cache.get("healthcheck") == "1"
-        except Exception:
-            # Fall back to raw Redis ping if Django cache is not Redis-backed yet
-            try:
-                import redis
-
-                url = os.getenv("REDIS_URL", getattr(settings, "REDIS_URL", "redis://localhost:6379/0"))
-                client = redis.from_url(url)
-                redis_ok = client.ping()
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("Health Redis check failed: %s", exc)
+            url = os.getenv(
+                "REDIS_URL", getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+            )
+            client = redis.from_url(url, socket_connect_timeout=1)
+            redis_ok = bool(client.ping())
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Health Redis check failed: %s", exc)
 
         payload = {
             "status": "ok" if db_ok and redis_ok else "degraded",

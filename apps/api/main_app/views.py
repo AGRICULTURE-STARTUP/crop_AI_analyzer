@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse,JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Sum, Count
@@ -10,24 +10,7 @@ from django.utils.decorators import method_decorator
 from .forms import SignupFormfarmer, SignupFormbuyer
 from .models import FarmerProfile, BuyerProfile, CropScanLog, PartnerAPIKey, FarmHealthProfile
 from .utils_scoring import calculate_farm_health_score
-from tensorflow.keras.models import load_model
-from tensorflow.keras.layers import Dense
-from keras.preprocessing import image
-from keras.applications.efficientnet import preprocess_input, EfficientNetB0, decode_predictions
 from .agents import run_agrovet_agent
-from langchain_groq import ChatGroq
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage
-
-
-class SafeDense(Dense):
-    @classmethod
-    def from_config(cls, config):
-        if 'quantization_config' in config:
-            del config['quantization_config']
-        return super().from_config(config)
-
-safe_custom_objs = {'Dense': SafeDense}
-import numpy as np
 import os
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -37,8 +20,8 @@ from django.utils.html import strip_tags, escape
 from .utils_weather import get_weather_data
 from .mpesa_utils import MpesaGateway
 from .models import (
-    FarmerProfile, BuyerProfile, CropScanLog, 
-    PartnerAPIKey, FarmHealthProfile, Wallet, 
+    FarmerProfile, BuyerProfile, CropScanLog,
+    PartnerAPIKey, FarmHealthProfile, Wallet,
     MpesaTransaction
 )
 from django.utils import timezone
@@ -47,83 +30,81 @@ from django.db import transaction
 
 mpesa_client = MpesaGateway()
 
-from tensorflow.keras import mixed_precision
-mixed_precision.set_global_policy('float32')
-from huggingface_hub import hf_hub_download
-from rag.retrieve import retrieve_context
+# NOTE: TensorFlow, HuggingFace, and rag.retrieve are imported lazily inside
+# scan/chat helpers so the slim `api` container never loads them at startup.
 
-# Cache for dynamically loaded models
+# Legacy in-process cache (template /process path). Prefer inference.model_lru in workers.
 loaded_models = {}
-
-# Gatekeeper model cache
 _gatekeeper_model = None
+
 
 def get_gatekeeper():
     global _gatekeeper_model
     if _gatekeeper_model is None:
-        _gatekeeper_model = EfficientNetB0(weights='imagenet')
+        from keras.applications.efficientnet import EfficientNetB0
+        from tensorflow.keras import mixed_precision
+
+        mixed_precision.set_global_policy("float32")
+        _gatekeeper_model = EfficientNetB0(weights="imagenet")
     return _gatekeeper_model
+
 
 def is_plant_image(img_path):
     """
     Returns True if the image is likely a plant/crop, False if it's a known non-plant.
     Uses a pre-trained ImageNet EfficientNetB0 to filter out obvious out-of-distribution images.
     """
+    import numpy as np
+    from keras.applications.efficientnet import decode_predictions, preprocess_input
+    from keras.preprocessing import image
+
     model = get_gatekeeper()
     img = image.load_img(img_path, target_size=(224, 224))
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)
     img_array = preprocess_input(img_array)
-    
+
     preds = model.predict(img_array)
     decoded = decode_predictions(preds, top=5)[0]
-    
-    # Debugging: Print exactly what ImageNet thinks it is
+
     print(f"\n--- GATEKEEPER IMAGE-NET PREDICTIONS ---")
     for i, (imagenet_id, label, score) in enumerate(decoded):
         print(f"{i + 1}: {label} ({score * 100:.2f}%)")
     print("----------------------------------------\n")
-    
-    # Expanded whitelist of ImageNet classes related to plants, crops, foliage, and fungi.
+
     plant_whitelist = [
         'plant', 'leaf', 'flower', 'tree', 'grass', 'daisy', 'pot', 'earthstar',
-        'corn', 'cabbage', 'cucumber', 'zucchini', 'bell_pepper', 'strawberry', 
-        'orange', 'lemon', 'fig', 'pineapple', 'banana', 'apple', 'broccoli', 
-        'cauliflower', 'artichoke', 'turnip', 'mushroom', 'agaric', 'gyromitra', 
+        'corn', 'cabbage', 'cucumber', 'zucchini', 'bell_pepper', 'strawberry',
+        'orange', 'lemon', 'fig', 'pineapple', 'banana', 'apple', 'broccoli',
+        'cauliflower', 'artichoke', 'turnip', 'mushroom', 'agaric', 'gyromitra',
         'stinkhorn', 'bolete', 'buckeye', 'acorn', 'rapeseed',
         'head_cabbage', 'vegetable', 'fruit', 'greenhouse', 'hay', 'thistle',
-        'cardoon', 'squash', 'pomegranate', 'jackfruit', 'custard_apple', 
+        'cardoon', 'squash', 'pomegranate', 'jackfruit', 'custard_apple',
         'granny_smith', 'lady\'s_slipper', 'hip', 'coral_fungus', 'hen-of-the-woods',
         'velvet', 'sponge', 'tuber', 'root', 'stalk', 'vine', 'pod', 'seed', 'grain'
     ]
-    
-    # Analyze the predictions
+
     top_label = decoded[0][1].lower()
     top_score = decoded[0][2]
-    
-    # 1. Strict Rejection: Only if extremely confident (>80%) and NOT in whitelist.
-    # This prevents obvious non-plants (like the Linux logo or a car) from passing.
+
     is_top_plant = any(w in top_label for w in plant_whitelist)
     if not is_top_plant and top_score > 0.8:
         print(f"Gatekeeper: Strict rejection - Highly confident non-plant: {top_label} ({top_score*100:.1f}%)")
         return False
 
-    # 2. Whitelist Check: If any of the top-5 are plant-related with even low confidence.
-    # Diseased leaves often get low scores or get classified as fungi.
     for _, label, conf in decoded:
         if any(w in label.lower() for w in plant_whitelist):
-            if conf > 0.05: # Lowered threshold to be more inclusive
+            if conf > 0.05:
                 return True
 
-    # 3. Uncertainty Fallback: If the model is generally confused (top score < 30%), 
-    # we allow it unless it's a very specific non-plant object.
     non_plant_strict = ['car', 'truck', 'bus', 'vehicle', 'tire', 'wheel', 'logo', 'sign', 'building', 'furniture', 'person', 'dog', 'cat']
     if top_score < 0.3:
         if not any(w in top_label for w in non_plant_strict):
             print(f"Gatekeeper: Low confidence fallback - allowing uncertain image '{top_label}' ({top_score*100:.1f}%)")
             return True
-            
+
     return False
+
 
 beans_classes = ['angular_leaf_spot', 'anthracnose', 'bean_rust', 'healthy', 'mosaic_virus']
 cabbage_classes= ['Cabbage___Alternaria_Leaf_Spot', 'Cabbage___Black_Rot', 'Cabbage___Cabbage_aphid_colony', 'Cabbage___Downy_Mildew', 'Cabbage___Healthy', 'Cabbage___Ring_Spot']
@@ -163,44 +144,58 @@ KNOWN_CROP_CLASSES = {
     'chilly': chilly_classes,
     'sugarcane': sugarcane_classes,
     'grape': grape_classes,
-  
+
 }
 
 def get_crop_model(crop_selection):
     """Determines model path, downloads from HF if needed, and loads it."""
+    from huggingface_hub import hf_hub_download
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.models import load_model
+
+    class SafeDense(Dense):
+        @classmethod
+        def from_config(cls, config):
+            if "quantization_config" in config:
+                del config["quantization_config"]
+            return super().from_config(config)
+
+    safe_custom_objs = {"Dense": SafeDense}
     filename = f"{crop_selection}.h5"
     repo_id = os.getenv("HF_MODEL_REPO_ID")
-    
-    # Priority 1: Download from Hugging Face if REPO_ID matches
+
     if repo_id:
         try:
             print(f"Fetching {filename} from Hugging Face repo: {repo_id}...")
             model_path = hf_hub_download(repo_id=repo_id, filename=filename)
         except Exception as e:
             print(f"HF download failed, falling back to local: {e}")
-            model_path = os.path.join('main_app', 'CropModels', filename)
+            model_path = os.path.join("main_app", "CropModels", filename)
     else:
-        # Priority 2: Standard local fallback
-        model_path = os.path.join('main_app', 'CropModels', filename)
+        model_path = os.path.join("main_app", "CropModels", filename)
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model file '{filename}' not found locally or on HF.")
-    
-    # Load the model and cache it
+
     if model_path not in loaded_models:
         try:
-            loaded_models[model_path] = load_model(model_path, compile=False, custom_objects=safe_custom_objs)
+            loaded_models[model_path] = load_model(
+                model_path, compile=False, custom_objects=safe_custom_objs
+            )
         except Exception as e:
             import h5py
+
             try:
-                with h5py.File(model_path, 'r') as f:
+                with h5py.File(model_path, "r") as f:
                     pass
                 signature_status = "Valid H5 signature but load failed."
             except Exception as h5_err:
                 signature_status = f"Invalid H5 signature (possibly an LFS pointer): {str(h5_err)}"
-            
-            raise OSError(f"Failed to load model '{crop_selection}': {str(e)}. {signature_status}") from e
-        
+
+            raise OSError(
+                f"Failed to load model '{crop_selection}': {str(e)}. {signature_status}"
+            ) from e
+
     return loaded_models[model_path]
 
 
@@ -274,7 +269,11 @@ def process(request):
              })
         
         current_model = get_crop_model(crop_selection)
-    
+
+        import numpy as np
+        from keras.applications.efficientnet import preprocess_input
+        from keras.preprocessing import image
+
         img = image.load_img(temp_path, target_size=(224, 224))
         img_array = image.img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
@@ -364,6 +363,8 @@ def chat(request):
 
         context_text = ""
         try:
+            from rag.retrieve import retrieve_context
+
             context_text, _ = retrieve_context(user_message)
         except Exception as e:
             print("Error retrieving context:", e)
@@ -425,6 +426,9 @@ def chat(request):
             system_prompt += f"\nNote: The user's registered location/county is {user_location}. Use this for location-specific advice if relevant."
 
         # Initialize LangChain ChatGroq with gpt-oss-120b
+        from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+        from langchain_groq import ChatGroq
+
         llm = ChatGroq(
             model="openai/gpt-oss-120b",
             groq_api_key=os.getenv("GROQ_API_KEY"),
