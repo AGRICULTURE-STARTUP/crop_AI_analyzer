@@ -1,22 +1,16 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
+"""Repo-root shim — delegates to apps/api/manage.py for monorepo convenience."""
 import os
 import sys
+from pathlib import Path
 
+API_ROOT = Path(__file__).resolve().parent / "apps" / "api"
+sys.path.insert(0, str(API_ROOT))
+os.chdir(API_ROOT)
 
-def main():
-    """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AgriProject.settings')
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "AgriProject.settings")
+
+if __name__ == "__main__":
+    from django.core.management import execute_from_command_line
+
     execute_from_command_line(sys.argv)
-
-
-if __name__ == '__main__':
-    main()

@@ -1,0 +1,35 @@
+# Worker image — scanner (TensorFlow) or RAG (embeddings) depending on WORKER_KIND.
+ARG WORKER_KIND=scanner
+FROM python:3.10-slim
+
+ARG WORKER_KIND=scanner
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    WORKER_KIND=${WORKER_KIND} \
+    OMP_NUM_THREADS=1 \
+    TOKENIZERS_PARALLELISM=false \
+    TF_NUM_INTEROP_THREADS=1 \
+    TF_NUM_INTRAOP_THREADS=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    gcc \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements-api.txt requirements-scanner.txt requirements-rag.txt /app/
+
+RUN pip install --upgrade pip && \
+    if [ "$WORKER_KIND" = "rag" ]; then \
+      pip install --no-cache-dir -r requirements-rag.txt; \
+    else \
+      pip install --no-cache-dir -r requirements-scanner.txt; \
+    fi
+
+COPY . /app/
+
+# Default command overridden by Compose.
+CMD ["celery", "-A", "AgriProject", "worker", "-l", "INFO"]

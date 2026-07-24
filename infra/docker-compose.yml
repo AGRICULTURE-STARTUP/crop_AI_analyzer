@@ -1,0 +1,167 @@
+# AgriScan Contabo stack — tuned for 4 vCPU / 8 GB RAM (see docs/service_separation_plan.md §7.8).
+# Usage (from infra/):
+#   cp .env.example .env   # fill secrets
+#   docker compose up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agriscan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-agriscan}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    mem_limit: 1g
+    networks: [agriscan_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redisdata:/data
+    mem_limit: 256m
+    networks: [agriscan_net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-agriscan}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agriscan}
+      DB_SSL_REQUIRE: "false"
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      GUNICORN_WORKERS: "2"
+      DEBUG: ${DEBUG:-False}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [agriscan_net]
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn AgriProject.wsgi:application
+             --bind 0.0.0.0:8000 --workers $${GUNICORN_WORKERS:-2} --timeout 60"
+    mem_limit: 1g
+    volumes:
+      - media_tmp:/app/media
+
+  worker_scanner:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile.worker
+      args:
+        WORKER_KIND: scanner
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-agriscan}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agriscan}
+      DB_SSL_REQUIRE: "false"
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      MAX_LOADED_CROP_MODELS: "2"
+      MODELS_DIR: /models
+      OMP_NUM_THREADS: "1"
+      TF_NUM_INTRAOP_THREADS: "1"
+      TF_NUM_INTEROP_THREADS: "1"
+    volumes:
+      - models_data:/models
+      - media_tmp:/app/media
+    mem_limit: 2.5g
+    cpus: "1.5"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+    networks: [agriscan_net]
+    command: celery -A AgriProject worker -Q scan -c 1 -l INFO
+
+  worker_rag:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile.worker
+      args:
+        WORKER_KIND: rag
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-agriscan}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agriscan}
+      DB_SSL_REQUIRE: "false"
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      RERANKER_ENABLED: "false"
+      OMP_NUM_THREADS: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    volumes:
+      - chroma_data:/app/chroma_db
+      - kb_data:/app/Data
+    mem_limit: 1.75g
+    cpus: "1.0"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks: [agriscan_net]
+    command: celery -A AgriProject worker -Q rag -c 1 -l INFO
+
+  nginx:
+    build: ./nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    depends_on:
+      - api
+    networks: [agriscan_net]
+    mem_limit: 128m
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    profiles: ["certs"]
+    entrypoint: >
+      sh -c "echo 'Run: docker compose --profile certs run --rm certbot certonly
+      --webroot -w /var/www/certbot -d api.example.com'"
+
+volumes:
+  pgdata:
+  redisdata:
+  models_data:
+  chroma_data:
+  kb_data:
+  media_tmp:
+  certbot_www:
+  certbot_certs:
+
+networks:
+  agriscan_net:
+    driver: bridge

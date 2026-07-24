@@ -1,0 +1,41 @@
+# Local development overrides — published DB/API ports, hot reload, lighter limits.
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  api:
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "True"
+      SECURE_SSL_REDIRECT: "False"
+    volumes:
+      - ../apps/api:/app
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  worker_scanner:
+    volumes:
+      - ../apps/api:/app
+      - models_data:/models
+    environment:
+      DEBUG: "True"
+
+  worker_rag:
+    volumes:
+      - ../apps/api:/app
+      - ../apps/api/Data:/app/Data
+      - chroma_data:/app/chroma_db
+    environment:
+      DEBUG: "True"
+      RERANKER_ENABLED: "false"
+
+  nginx:
+    # Optional: comment out nginx locally and hit api:8000 directly
+    profiles: ["with-nginx"]
