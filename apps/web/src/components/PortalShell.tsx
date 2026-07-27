@@ -17,7 +17,10 @@ const NAV: Record<string, NavItem[]> = {
     { href: "/farmer/market", label: "Market" },
     { href: "/farmer/profile", label: "Profile" },
   ],
-  buyer: [{ href: "/buyer/dashboard", label: "Dashboard" }],
+  buyer: [
+    { href: "/buyer/dashboard", label: "Dashboard" },
+    { href: "/buyer/profile", label: "Profile" },
+  ],
   agency: [{ href: "/agency/dashboard", label: "Products" }],
   lender: [
     { href: "/lender/dashboard", label: "Overview" },

@@ -136,6 +136,38 @@ class BaseRegisterSerializer(serializers.Serializer):
         )
 
 
+class OrganizationRegisterSerializer(serializers.Serializer):
+    """Email + password only — no username / personal names for org accounts."""
+
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_email(self, value):
+        email = value.strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return email
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
+    def _create_org_user(self, validated_data: dict) -> User:
+        """Create a User identified by email (username = email, names blank)."""
+        email = validated_data["email"]
+        if User.objects.filter(username=email).exists():
+            raise serializers.ValidationError(
+                {"email": "A user with this email already exists."}
+            )
+        return User.objects.create_user(
+            username=email,
+            email=email,
+            password=validated_data["password"],
+            first_name="",
+            last_name="",
+        )
+
+
 class FarmerRegisterSerializer(BaseRegisterSerializer):
     phone_number = serializers.CharField(max_length=20)
     county = serializers.CharField(max_length=100)
@@ -158,8 +190,10 @@ class BuyerRegisterSerializer(BaseRegisterSerializer):
     phone_number = serializers.CharField(max_length=20)
     county = serializers.CharField(max_length=100)
     country = serializers.CharField(max_length=100, required=False, default="Kenya")
+    photo = serializers.ImageField(required=True)
 
     def create(self, validated_data):
+        photo = validated_data.pop("photo")
         user = self._create_user(validated_data)
         BuyerProfile.objects.create(
             user=user,
@@ -168,55 +202,50 @@ class BuyerRegisterSerializer(BaseRegisterSerializer):
             country=validated_data.get("country") or "Kenya",
             first_name=validated_data.get("first_name") or "",
             email=validated_data["email"],
+            photo=photo,
         )
         return user
 
 
-class AgencyRegisterSerializer(BaseRegisterSerializer):
+class AgencyRegisterSerializer(OrganizationRegisterSerializer):
     agency_name = serializers.CharField(max_length=150)
     agency_type = serializers.ChoiceField(
         choices=AgencyProfile.AGENCY_TYPE_CHOICES, default="agrovet"
     )
-    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
-    county = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    phone = serializers.CharField(max_length=20)
+    county = serializers.CharField(max_length=100)
 
     def create(self, validated_data):
-        user = self._create_user(validated_data)
+        user = self._create_org_user(validated_data)
         AgencyProfile.objects.create(
             user=user,
             agency_name=validated_data["agency_name"],
             agency_type=validated_data.get("agency_type") or "agrovet",
-            phone=validated_data.get("phone") or "",
-            county=validated_data.get("county") or "",
+            phone=validated_data["phone"],
+            county=validated_data["county"],
         )
         return user
 
 
-class LenderRegisterSerializer(BaseRegisterSerializer):
+class LenderRegisterSerializer(OrganizationRegisterSerializer):
     organization_name = serializers.CharField(max_length=200)
     organization_type = serializers.ChoiceField(
         choices=LendingPartnerProfile.ORG_TYPE_CHOICES, default="other"
     )
-    registration_number = serializers.CharField(
-        max_length=100, required=False, allow_blank=True, default=""
-    )
-    contact_phone = serializers.CharField(
-        max_length=20, required=False, allow_blank=True, default=""
-    )
-    county = serializers.CharField(
-        max_length=100, required=False, allow_blank=True, default=""
-    )
+    registration_number = serializers.CharField(max_length=100)
+    contact_phone = serializers.CharField(max_length=20)
+    county = serializers.CharField(max_length=100)
     website = serializers.URLField(required=False, allow_blank=True, default="")
 
     def create(self, validated_data):
-        user = self._create_user(validated_data)
+        user = self._create_org_user(validated_data)
         LendingPartnerProfile.objects.create(
             user=user,
             organization_name=validated_data["organization_name"],
             organization_type=validated_data.get("organization_type") or "other",
-            registration_number=validated_data.get("registration_number") or "",
-            contact_phone=validated_data.get("contact_phone") or "",
-            county=validated_data.get("county") or "",
+            registration_number=validated_data["registration_number"],
+            contact_phone=validated_data["contact_phone"],
+            county=validated_data["county"],
             website=validated_data.get("website") or "",
             verification_status="pending",
         )
@@ -224,6 +253,7 @@ class LenderRegisterSerializer(BaseRegisterSerializer):
 
 
 class MeUpdateSerializer(serializers.Serializer):
+    # Personal names apply to farmer/buyer only; org roles use profile org fields.
     first_name = serializers.CharField(required=False, allow_blank=True, max_length=30)
     last_name = serializers.CharField(required=False, allow_blank=True, max_length=30)
     email = serializers.EmailField(required=False)

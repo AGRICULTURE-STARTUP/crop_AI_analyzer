@@ -26,7 +26,7 @@
                 <p>Join the AgriScan community and empower your farming journey.</p>
              
             </div>
-            <form method="post" novalidate>
+            <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
                 <div class="form-grid">
                     {% for field in form %}

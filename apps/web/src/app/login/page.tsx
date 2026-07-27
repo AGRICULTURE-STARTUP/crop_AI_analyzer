@@ -43,12 +43,12 @@ function LoginForm() {
       <div>
         <h2 className="brand-mark text-3xl text-leaf-deep">Welcome back</h2>
         <p className="mt-1 text-sm text-ink/60">
-          Sign in with your AgriScan username and password. We send you to the
+          Sign in with your email (or username) and password. We send you to the
           portal for your role.
         </p>
       </div>
       <FormField
-        label="Username"
+        label="Email or username"
         name="username"
         required
         autoComplete="username"

@@ -10,6 +10,8 @@ __pycache__/
 # Django
 db.sqlite3
 *.sqlite3
+# Keep the offline KAMIS price cache commit-able for deploys / Actions
+!apps/api/data/kamis_prices.db
 media/
 staticfiles/
 chroma_db/

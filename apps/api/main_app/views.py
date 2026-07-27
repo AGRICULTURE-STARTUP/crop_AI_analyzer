@@ -541,7 +541,7 @@ def signup_buyer(request):
     if was_limited:
         return render(request, 'signup.html', {'form': SignupFormbuyer(), 'user_type': 'Buyer', 'error': 'Too many registration attempts. Please try again later.'})
     if request.method == 'POST':
-        form = SignupFormbuyer(request.POST)
+        form = SignupFormbuyer(request.POST, request.FILES)
         if not request.POST.get('privacy-accept'):
             return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer', 'error': 'You must accept the Privacy Policy to register.'})
         if form.is_valid():
@@ -552,16 +552,14 @@ def signup_buyer(request):
                 county=form.cleaned_data.get('county'),
                 country=form.cleaned_data.get('country'),
                 first_name=form.cleaned_data.get('first_name'),
-                email=form.cleaned_data.get("email")
-
+                email=form.cleaned_data.get("email"),
+                photo=form.cleaned_data.get("photo"),
             )
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
             return redirect('page')
     else:
         form = SignupFormbuyer()
-    return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer'})
-
     return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer'})
 
 @ratelimit(key='ip', rate='5/m', block=False)
@@ -635,9 +633,40 @@ def market_view(request):
 @login_required(login_url='login')
 def market_display(request):
     if request.method == "GET":
-        buyer_list= BuyerProfile.objects.all().values()
-        data=list(buyer_list)
-        return JsonResponse({"buyer_list":data})
+        qs = BuyerProfile.objects.all().order_by("first_name", "id")
+        location = (request.GET.get("location") or "").strip()
+        if location:
+            qs = qs.filter(county__icontains=location)
+
+        buyer_list = []
+        for buyer in qs:
+            location_label = ", ".join(
+                part for part in [buyer.county, buyer.country] if part
+            )
+            photo_url = None
+            if buyer.photo:
+                try:
+                    photo_url = request.build_absolute_uri(buyer.photo.url)
+                except Exception:
+                    photo_url = buyer.photo.url
+            buyer_list.append(
+                {
+                    "id": buyer.id,
+                    "name": buyer.first_name or buyer.user.get_username(),
+                    "first_name": buyer.first_name,
+                    "email": buyer.email,
+                    "phone_number": buyer.phone_number or "",
+                    "contact": buyer.phone_number or buyer.email or "",
+                    "county": buyer.county or "",
+                    "country": buyer.country or "",
+                    "location": location_label,
+                    "photo": photo_url,
+                    # Registered via buyer signup = verified AgriScan buyer
+                    "verified": True,
+                    "verification_badge": "Verified",
+                }
+            )
+        return JsonResponse({"buyer_list": buyer_list, "count": len(buyer_list)})
 
 @login_required(login_url='login')
 def farmer_view(request):
@@ -646,18 +675,50 @@ def farmer_view(request):
 @login_required(login_url='login')
 def farmer_display(request):
     if request.method == "GET":
-        # We need the username from the related user object, so we'll construct the list manually
-        farmers = FarmerProfile.objects.select_related('user').all()
+        farmers = FarmerProfile.objects.select_related("user").all()
+        county_q = (request.GET.get("county") or request.GET.get("location") or "").strip()
+        crop_q = (request.GET.get("crop") or request.GET.get("products") or "").strip()
+        if county_q:
+            farmers = farmers.filter(county__icontains=county_q)
+        if crop_q:
+            farmers = farmers.filter(products__icontains=crop_q)
+
         data = []
         for farmer in farmers:
-            data.append({
-                'username': farmer.user.username,
-                'phone_number': farmer.phone_number,
-                'county': farmer.county,
-                'country': farmer.country,
-                'products': farmer.products
-            })
-        return JsonResponse({"farmer_list": data})
+            photo_url = None
+            if farmer.profile_photo:
+                try:
+                    photo_url = request.build_absolute_uri(farmer.profile_photo.url)
+                except Exception:
+                    photo_url = farmer.profile_photo.url
+            name = " ".join(
+                part
+                for part in [farmer.user.first_name, farmer.user.last_name]
+                if part
+            ).strip() or farmer.user.username
+            location_label = ", ".join(
+                part for part in [farmer.county, farmer.country] if part
+            )
+            data.append(
+                {
+                    "id": farmer.id,
+                    "username": farmer.user.username,
+                    "name": name,
+                    "phone_number": farmer.phone_number or "",
+                    "county": farmer.county or "",
+                    "country": farmer.country or "",
+                    "location": location_label,
+                    "products": farmer.products or "",
+                    "farm_name": farmer.farm_name or "",
+                    "farm_size_acres": (
+                        str(farmer.farm_size_acres)
+                        if farmer.farm_size_acres is not None
+                        else ""
+                    ),
+                    "photo": photo_url,
+                }
+            )
+        return JsonResponse({"farmer_list": data, "count": len(data)})
 
 
 

@@ -30,7 +30,14 @@ class BuyerProfile(models.Model):
     county = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     first_name = models.CharField(max_length=100, null=False, default='Unknown')
-    email = models.EmailField(null=False, default='unknown@example.com')  
+    email = models.EmailField(null=False, default='unknown@example.com')
+    photo = models.ImageField(
+        upload_to="buyer_profiles/",
+        blank=True,
+        null=True,
+        help_text="Buyer profile photo shown on the farmer market page",
+    )
+
     def __str__(self):
         return f"{self.user.username} - Buyer"
 

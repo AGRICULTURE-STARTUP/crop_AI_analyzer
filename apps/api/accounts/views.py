@@ -66,12 +66,22 @@ def _get_role_profile(user: User, request=None):
         ).data
     if role == "buyer" and hasattr(user, "buyer_profile"):
         p = user.buyer_profile
+        photo_url = None
+        if p.photo:
+            url = p.photo.url
+            if request is not None:
+                photo_url = request.build_absolute_uri(url)
+            else:
+                photo_url = url
         return {
             "phone_number": p.phone_number,
             "county": p.county,
             "country": p.country,
             "first_name": p.first_name,
             "email": p.email,
+            "photo": photo_url,
+            "verified": True,
+            "verification_badge": "Verified",
         }
     if role == "agency" and hasattr(user, "agency_profile"):
         p = user.agency_profile
@@ -188,6 +198,7 @@ class FarmerRegisterView(APIView):
 
 class BuyerRegisterView(APIView):
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
         serializer = BuyerRegisterSerializer(data=request.data)
@@ -255,13 +266,31 @@ class MeView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         user = request.user
+        role = resolve_user_role(user)
 
-        for field in ("first_name", "last_name", "email"):
+        # Org accounts (agency / lender) have no personal name fields.
+        user_fields = ("email",)
+        if role in ("farmer", "buyer", "admin", "user"):
+            user_fields = ("first_name", "last_name", "email")
+        for field in user_fields:
             if field in data:
                 setattr(user, field, data[field])
+        if "email" in data and role in ("agency", "lender"):
+            email = data["email"].strip().lower()
+            user.email = email
+            # Keep login identity in sync: org accounts use email as username.
+            if (
+                User.objects.filter(username=email)
+                .exclude(pk=user.pk)
+                .exists()
+            ):
+                return Response(
+                    {"email": "A user with this email already exists."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            user.username = email
         user.save()
 
-        role = resolve_user_role(user)
         if role == "farmer" and hasattr(user, "farmer_profile"):
             profile = user.farmer_profile
             for field in (
@@ -293,6 +322,15 @@ class MeView(APIView):
                 profile.first_name = data["first_name"]
             if "email" in data:
                 profile.email = data["email"]
+            photo = request.FILES.get("photo") or request.FILES.get("profile_photo")
+            if photo is not None:
+                if profile.photo:
+                    profile.photo.delete(save=False)
+                profile.photo = photo
+            elif data.get("clear_photo") or data.get("clear_profile_photo"):
+                if profile.photo:
+                    profile.photo.delete(save=False)
+                profile.photo = None
             profile.save()
         elif role == "agency" and hasattr(user, "agency_profile"):
             profile = user.agency_profile
@@ -324,15 +362,20 @@ class WeatherView(APIView):
 
     def get(self, request):
         role = resolve_user_role(request.user)
-        if role != "farmer" or not hasattr(request.user, "farmer_profile"):
+        if role == "farmer" and hasattr(request.user, "farmer_profile"):
+            profile = request.user.farmer_profile
+            county = (request.query_params.get("location") or profile.county or "").strip()
+            country = (profile.country or "Kenya").strip() or "Kenya"
+        elif role == "buyer" and hasattr(request.user, "buyer_profile"):
+            profile = request.user.buyer_profile
+            county = (request.query_params.get("location") or profile.county or "").strip()
+            country = (profile.country or "Kenya").strip() or "Kenya"
+        else:
             return Response(
-                {"detail": "Weather is available for farmer accounts."},
+                {"detail": "Weather is available for farmer and buyer accounts."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        profile = request.user.farmer_profile
-        county = (request.query_params.get("location") or profile.county or "").strip()
-        country = (profile.country or "Kenya").strip() or "Kenya"
         if not county:
             return Response(
                 {

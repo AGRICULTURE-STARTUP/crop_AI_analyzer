@@ -36,6 +36,7 @@ class SignupFormbuyer(UserCreationForm):
     phone_number = forms.CharField(max_length=20, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}))
     county = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'County'}))
     country = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Country'}))
+    photo = forms.ImageField(required=True, widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}))
 
     class Meta(UserCreationForm.Meta):
         fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email')

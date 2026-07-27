@@ -65,7 +65,8 @@ export function SignupForm({
     e.preventDefault();
     setBusy(true);
     setError("");
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const password = String(fd.get("password") || "");
     const confirm = String(fd.get("password_confirm") || "");
     if (password !== confirm) {
@@ -74,20 +75,47 @@ export function SignupForm({
       return;
     }
 
-    const body: Record<string, string> = {};
-    fd.forEach((v, k) => {
-      if (k === "password_confirm" || k === "privacy_accept" || k === "role") {
+    if (role === "buyer") {
+      const photo = fd.get("photo");
+      if (!(photo instanceof File) || photo.size === 0) {
+        setError("Please upload a photo to continue as a buyer.");
+        setBusy(false);
         return;
       }
-      body[k] = String(v);
-    });
+    }
 
     try {
-      const res = await apiRequest<TokenPair & { role?: string }>(meta.endpoint, {
-        method: "POST",
-        auth: false,
-        body,
-      });
+      let res: TokenPair & { role?: string };
+
+      if (role === "buyer") {
+        // Multipart — buyer photo is required
+        const payload = new FormData();
+        fd.forEach((v, k) => {
+          if (k === "password_confirm" || k === "privacy_accept" || k === "role") {
+            return;
+          }
+          payload.append(k, v);
+        });
+        res = await apiRequest<TokenPair & { role?: string }>(meta.endpoint, {
+          method: "POST",
+          auth: false,
+          formData: payload,
+        });
+      } else {
+        const body: Record<string, string> = {};
+        fd.forEach((v, k) => {
+          if (k === "password_confirm" || k === "privacy_accept" || k === "role") {
+            return;
+          }
+          body[k] = String(v);
+        });
+        res = await apiRequest<TokenPair & { role?: string }>(meta.endpoint, {
+          method: "POST",
+          auth: false,
+          body,
+        });
+      }
+
       const home = await acceptTokens({
         access: res.access,
         refresh: res.refresh,
@@ -152,16 +180,35 @@ export function SignupForm({
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Username" name="username" required autoComplete="username" />
-          <FormField
-            label="Email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-          />
-          <FormField label="First name" name="first_name" required />
-          <FormField label="Last name" name="last_name" required />
+          {role === "farmer" || role === "buyer" ? (
+            <>
+              <FormField
+                label="Username"
+                name="username"
+                required
+                autoComplete="username"
+              />
+              <FormField
+                label="Email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+              />
+              <FormField label="First name" name="first_name" required />
+              <FormField label="Last name" name="last_name" required />
+            </>
+          ) : (
+            <div className="sm:col-span-2">
+              <FormField
+                label="Work email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+              />
+            </div>
+          )}
           <FormField
             label="Password"
             name="password"
@@ -196,7 +243,24 @@ export function SignupForm({
                   as="textarea"
                   placeholder="Maize, tomato, beans"
                 />
-              ) : null}
+              ) : (
+                <label className="block space-y-1.5 text-sm sm:col-span-2">
+                  <span className="font-medium text-ink/80">
+                    Photo <span className="text-[var(--danger)]">*</span>
+                  </span>
+                  <input
+                    className="field"
+                    type="file"
+                    name="photo"
+                    accept="image/*"
+                    required
+                  />
+                  <span className="block text-xs text-ink/50">
+                    A clear photo of yourself — shown to farmers on the market
+                    page with a Verified badge.
+                  </span>
+                </label>
+              )}
             </>
           ) : null}
 

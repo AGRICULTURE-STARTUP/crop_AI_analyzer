@@ -26,10 +26,21 @@ export type FarmerProfile = {
   profile_photo?: string | null;
 };
 
+export type BuyerProfile = {
+  phone_number?: string | null;
+  county?: string | null;
+  country?: string | null;
+  first_name?: string | null;
+  email?: string | null;
+  photo?: string | null;
+  verified?: boolean;
+  verification_badge?: string;
+};
+
 export type MeResponse = {
   user: AuthUser;
   role: UserRole;
-  profile: FarmerProfile | Record<string, unknown> | null;
+  profile: FarmerProfile | BuyerProfile | Record<string, unknown> | null;
   wallet: Wallet | null;
 };
 

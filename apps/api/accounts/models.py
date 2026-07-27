@@ -3,7 +3,13 @@ from django.db import models
 
 
 class AgencyProfile(models.Model):
-    """Minimal input/agrovet agency profile for SPA signup."""
+    """
+    Input / agrovet agency account.
+
+    Identity is organizational (agency_name + user.email). Personal fields such as
+    first/last name or a separate username are not used for this role — the linked
+    User is created with username=email and blank names at registration.
+    """
 
     AGENCY_TYPE_CHOICES = [
         ("agrovet", "Agrovet / All-in-One Supplier"),
@@ -22,12 +28,12 @@ class AgencyProfile(models.Model):
     agency_type = models.CharField(
         max_length=20, choices=AGENCY_TYPE_CHOICES, default="agrovet"
     )
-    phone = models.CharField(max_length=20, blank=True, default="")
-    county = models.CharField(max_length=100, blank=True, default="")
+    phone = models.CharField(max_length=20)
+    county = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.agency_name} ({self.user.username})"
+        return f"{self.agency_name} ({self.user.email or self.user.username})"
 
 
 class AgencyProduct(models.Model):
@@ -70,7 +76,13 @@ class AgencyProduct(models.Model):
 
 
 class LendingPartnerProfile(models.Model):
-    """Self-service lending / loan agency account."""
+    """
+    Self-service lending / loan agency account.
+
+    Identity is organizational (organization_name + user.email). Personal fields
+    such as first/last name or a separate username are not used — the linked User
+    is created with username=email and blank names at registration.
+    """
 
     ORG_TYPE_CHOICES = [
         ("bank", "Bank"),
@@ -95,9 +107,9 @@ class LendingPartnerProfile(models.Model):
     organization_type = models.CharField(
         max_length=20, choices=ORG_TYPE_CHOICES, default="other"
     )
-    registration_number = models.CharField(max_length=100, blank=True, default="")
-    contact_phone = models.CharField(max_length=20, blank=True, default="")
-    county = models.CharField(max_length=100, blank=True, default="")
+    registration_number = models.CharField(max_length=100)
+    contact_phone = models.CharField(max_length=20)
+    county = models.CharField(max_length=100)
     website = models.URLField(blank=True, default="")
     verification_status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="pending"

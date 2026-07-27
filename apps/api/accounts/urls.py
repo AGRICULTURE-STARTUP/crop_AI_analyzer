@@ -29,6 +29,11 @@ from accounts.input_views import (
     MyAgencyProductListCreateView,
 )
 from accounts.ussd_views import UssdGatewayView, UssdSimulateView
+from main_app.kamis_views import (
+    BuyersDirectoryView,
+    FarmersDirectoryView,
+    KamisMarketPricesView,
+)
 
 urlpatterns = [
     # Auth
@@ -40,6 +45,22 @@ urlpatterns = [
     # Current user
     path("me/", MeView.as_view(), name="me"),
     path("weather/", WeatherView.as_view(), name="weather"),
+    # Offline KAMIS market prices (SQLite cache; no live scrape)
+    path(
+        "market/kamis-prices/",
+        KamisMarketPricesView.as_view(),
+        name="kamis_market_prices",
+    ),
+    path(
+        "market/farmers/",
+        FarmersDirectoryView.as_view(),
+        name="market_farmers_directory",
+    ),
+    path(
+        "market/buyers/",
+        BuyersDirectoryView.as_view(),
+        name="market_buyers_directory",
+    ),
     # AgriBot
     path("chat/messages/", ChatMessageView.as_view(), name="chat_messages"),
     # Lender portal
