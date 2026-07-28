@@ -1,8 +1,10 @@
 # AgriScan Deployment Guide
 
-**Target:** Contabo Cloud VPS (~$5 / Cloud VPS 4 · 4 vCPU · 8 GB RAM) + Vercel (Next.js)  
-**Stack:** Docker Compose API / workers on Contabo · frontend on Vercel · managed add-ons for media & email  
-**Last updated:** 27 July 2026
+**Target:** Contabo Cloud VPS (~$5–6 / Cloud VPS 4 · **4 vCPU · 8 GB RAM**) + Vercel (Next.js)  
+**Stack:** Docker Compose API / workers on Contabo · frontend on Vercel · Cloudinary for media  
+**Last updated:** 28 July 2026
+
+This guide assumes **Contabo** is your production API host. Compose (`infra/docker-compose.yml`) is already tuned for Contabo’s 8 GB plan.
 
 ---
 
@@ -11,19 +13,18 @@
 | Layer | Status | Notes |
 |-------|--------|--------|
 | **Monorepo** | Ready | `apps/api` (Django), `apps/web` (Next.js), `infra/` (Compose + nginx + scripts) |
-| **Compose stack** | Ready | Postgres, Redis, API, scanner worker, RAG worker, nginx, certbot profile — tuned for **8 GB** |
+| **Compose stack** | Ready | Postgres, Redis, API, scanner worker, RAG worker, nginx, certbot — tuned for Contabo **8 GB** |
 | **Deploy script** | Ready | `infra/scripts/deploy.sh` (build → migrate → collectstatic → up) |
-| **Backups** | Ready | `infra/scripts/backup-volumes.sh` (Postgres dump) |
+| **Backups** | Ready | `infra/scripts/backup-volumes.sh` (Postgres dump) + Contabo panel snapshots |
 | **Frontend** | Vercel-ready | Set `NEXT_PUBLIC_API_URL` to Contabo IP or `https://api.yourdomain.com` |
-| **CI/CD Contabo** | Workflow ready | `.github/workflows/deploy-contabo.yml` — SSH + `deploy.sh` on push to `main` (needs secrets) |
+| **CI/CD Contabo** | Workflow ready | `.github/workflows/deploy-contabo.yml` — SSH + `deploy.sh` on push to `main` |
 | **CI/CD Vercel** | Platform-native | Connect GitHub repo; auto-deploys `apps/web` on push |
-| **Custom domain** | Optional day-one | Not required to buy Contabo; use VPS IP + `*.vercel.app` until HTTPS / pilot |
-| **Media** | Code-ready | Uses Cloudinary when `CLOUDINARY_URL` is set; otherwise ephemeral Docker volume |
-| **KAMIS prices** | Partial | GitHub Action refreshes `kamis_prices.db` in git every 3h; VPS needs that file present (pull or cron) |
-| **TLS** | Manual | HTTP nginx works on IP; HTTPS needs a domain + Let’s Encrypt (certbot profile) |
-| **Formal runbook** | This doc | Replaces the missing `deploy_runbook.md` |
+| **Custom domain** | Optional day-one | Not required; use Contabo IP + `*.vercel.app` until HTTPS / pilot |
+| **Media** | Code-ready | Cloudinary when `CLOUDINARY_URL` is set; else ephemeral `media_tmp` volume |
+| **KAMIS prices** | Partial | GitHub Action refreshes DB in git; Contabo needs file present (pull or cron) |
+| **TLS** | Manual | HTTP on Contabo IP first; HTTPS after domain + Let’s Encrypt |
 
-**Verdict:** Buy Contabo tomorrow and deploy **without** a custom domain if you want. Use the public IP + Vercel free URL first; add DNS + TLS when you are ready for public/pilot traffic. Do **not** skip Cloudinary and production env hardening — those are what make the system reliable, not “nice to have.”
+**Verdict:** Deploy on **Contabo Cloud VPS 4** (Ubuntu 24.04, 8 GB). Keep the UI on **Vercel**. Use Cloudinary for uploads. Domain can wait until you want HTTPS / public pilot.
 
 ### Memory budget (matches `infra/docker-compose.yml`)
 
@@ -64,53 +65,66 @@ Users / Capacitor app
 | Django API + Celery | **Contabo Docker** | Needs RAM for TF models; long-running workers |
 | Postgres | **Contabo container** | Included in Compose; keep data on the VPS |
 | Redis | **Contabo container** (recommended) | Low latency for Celery; Upstash optional (see §6) |
-| Images | **Cloudinary** | Durable media; VPS disk/volumes are not enough alone |
+| Images | **Cloudinary** | Durable media; Contabo volumes alone are not enough |
 | LLM / search / weather | **External APIs** | Groq, Tavily, OpenWeather via env keys |
 
 ---
 
-## 3. Before you buy Contabo (checklist)
+## 3. Before you order Contabo (checklist)
 
-### Do you need to buy a domain *right now*?
+### Contabo plan to buy
 
-**No.** You can deploy and test without a custom domain.
+| Setting | Choose |
+|---------|--------|
+| Plan | **Cloud VPS 4** (or equivalent ~**4 vCPU / 8 GB RAM**) — ~€5–6 / ~$5–6 |
+| OS | **Ubuntu 24.04 LTS** |
+| Disk | ≥75–100 GB SSD or **NVMe** if free upgrade |
+| Region | Contabo default (EU) is fine for day one |
+| Access | Add your **SSH public key** in the panel if offered; note the **public IPv4** |
+
+Compose memory limits assume this 8 GB box. Do not buy a 4 GB plan — the scanner worker alone can use ~2.5 GB.
+
+### If Contabo payment declines
+
+Retry with another card, PayPal (if offered), monthly term first, or Contabo support. If it still fails, the same §4 steps work on Hetzner / Hostinger (8 GB Ubuntu) — only the provider panel changes. Prefer sticking with Contabo when payment clears.
+
+### Do you need a domain *right now*?
+
+**No.** Deploy on the Contabo **public IP** + Vercel `*.vercel.app` first.
 
 | Phase | Domain needed? | What to use |
 |-------|----------------|-------------|
-| **Tomorrow (first Contabo + Vercel)** | Optional | Contabo **public IP** for API (`http://YOUR_IP/...`); Vercel free URL (`https://….vercel.app`) |
-| **HTTPS on Contabo (Let’s Encrypt)** | Yes | Certbot needs a hostname pointing at the VPS |
-| **Production / pilot** | Strongly yes | Stable URLs for CORS, Google OAuth, M-Pesa callbacks, farmer trust |
+| **First Contabo + Vercel** | Optional | `http://CONTABO_IP/...` + `https://….vercel.app` |
+| **HTTPS (Let’s Encrypt)** | Yes | `api.yourdomain.com` → Contabo IP |
+| **Public pilot / M-Pesa / OAuth** | Strongly yes | Stable HTTPS URLs |
 
-**Practical plan:** Buy Contabo tomorrow, deploy on the IP, connect Vercel with `NEXT_PUBLIC_API_URL=http://YOUR_IP` (or temporary HTTP). Buy a domain within a few days when you want HTTPS and public sharing. Prefer something short (e.g. `.africa` / `.ke` / `.com`) you can use as `api.yourdomain.com`.
+Stay on HTTP only for private testing. Do not point farmers or M-Pesa at a bare IP over HTTP.
 
-Without a domain you cannot finish §4 Step 10 (TLS). Stay on HTTP only for private testing; do not point real farmers or M-Pesa at a bare IP over HTTP.
+### Checklist
 
-1. **Domain** — buy when ready for HTTPS / public URL; until then use VPS IP + `*.vercel.app`.
-2. **Accounts to create today/tonight** (free tiers are fine to start):
-   - [Cloudinary](https://cloudinary.com) — image uploads
-   - [Groq](https://console.groq.com) — AgriBot + scan reports (you likely have this)
-   - [SendGrid](https://sendgrid.com) — transactional email (optional but recommended)
-   - Google Cloud Console — OAuth client for production redirect URIs (if using Google login)
-3. **SSH key** on your laptop (`ssh-keygen -t ed25519` if you don’t have one)
-4. **Contabo order options** (recommended):
-   - Plan: **Cloud VPS 4** (~€5.50 / ~$5–6) — **4 vCPU, 8 GB RAM**, ≥75–100 GB SSD/NVMe
-   - OS: **Ubuntu 24.04 LTS**
-   - Region: closest to Kenya users if available (or EU default)
-   - Prefer **NVMe** if the order form offers it at no extra cost
+1. Order Contabo Cloud VPS 4 (Ubuntu 24.04, 8 GB) — domain can wait.
+2. Create accounts (free tiers OK):
+   - [Cloudinary](https://cloudinary.com) — image uploads (**required** for prod media)
+   - [Groq](https://console.groq.com) — AgriBot + scan reports
+   - [SendGrid](https://sendgrid.com) — email (optional)
+   - Google Cloud Console — OAuth (if using Google login)
+3. SSH key on your laptop (`ssh-keygen -t ed25519` if needed).
+4. Note Contabo IP + root credentials from the control panel.
 
-You do **not** need a separate managed Redis or managed Postgres on day one — Compose already runs both on the VPS.
+You do **not** need managed Redis or Postgres on day one — Compose runs both on Contabo.
 
 ---
 
 ## 4. Step-by-step: Contabo VPS setup
 
+Once Contabo email/panel gives you the IP, follow these steps on the server.
 ### Step 1 — Provision and first login
 
-1. Buy the VPS; note the **public IP** and root password (or inject your SSH key in Contabo panel).
+1. In Contabo Customer Control Panel, confirm the instance is **running**. Copy the **public IPv4** and root password (or use the SSH key you added at order).
 2. From your laptop:
 
 ```bash
-ssh root@YOUR_VPS_IP
+ssh root@YOUR_CONTABO_IP
 ```
 
 3. Create a deploy user (safer than living as root):
@@ -162,23 +176,23 @@ sudo ufw status
 
 ### Step 4 — DNS (skip until you buy a domain)
 
-**No domain yet?** Skip this step. Reach the API at `http://YOUR_VPS_IP/` (nginx on port 80). Set:
+**No domain yet?** Skip this step. Reach the API at `http://YOUR_CONTABO_IP/` (nginx on port 80). Set:
 
 ```bash
-ALLOWED_HOSTS=YOUR_VPS_IP,localhost
+ALLOWED_HOSTS=YOUR_CONTABO_IP,localhost
 CORS_ALLOWED_ORIGINS=https://your-app.vercel.app,http://localhost:3000
-CSRF_TRUSTED_ORIGINS=https://your-app.vercel.app,http://YOUR_VPS_IP
+CSRF_TRUSTED_ORIGINS=https://your-app.vercel.app,http://YOUR_CONTABO_IP
 ```
 
-Browsers may warn on mixed content if the Vercel site is HTTPS and the API is HTTP — for private testing that is acceptable; for a public launch, buy a domain and finish Step 10.
+Browsers may warn on mixed content if the Vercel site is HTTPS and the Contabo API is HTTP — OK for private testing; for public launch, buy a domain and finish Step 10.
 
-**When you have a domain**, in your DNS provider:
+**When you have a domain**, point DNS at Contabo:
 
 | Type | Name | Value |
 |------|------|--------|
-| A | `api` | `YOUR_VPS_IP` |
+| A | `api` | `YOUR_CONTABO_IP` |
 
-Wait until `dig +short api.yourdomain.com` returns the VPS IP before enabling HTTPS.
+Wait until `dig +short api.yourdomain.com` returns the Contabo IP before enabling HTTPS.
 
 ### Step 5 — Clone the repo on the VPS
 
@@ -213,7 +227,7 @@ SECRET_KEY=<django-secret-key>          # python -c "import secrets; print(secre
 DEBUG=False
 DEV_ENV=False                           # CRITICAL — never True on Contabo
 
-# Day-one (no domain) — use the VPS public IP:
+# Day-one (no domain) — use the Contabo public IP:
 # ALLOWED_HOSTS=91.x.x.x
 # CORS_ALLOWED_ORIGINS=https://your-app.vercel.app
 # CSRF_TRUSTED_ORIGINS=https://your-app.vercel.app,http://91.x.x.x
@@ -228,7 +242,7 @@ REDIS_URL=redis://redis:6379/0
 CELERY_BROKER_URL=redis://redis:6379/0
 CELERY_RESULT_BACKEND=redis://redis:6379/1
 
-# Inference knobs (8 GB)
+# Inference knobs (Contabo 8 GB)
 MAX_LOADED_CROP_MODELS=2
 RERANKER_ENABLED=false
 GUNICORN_WORKERS=2
@@ -269,25 +283,28 @@ docker compose run --rm -v "$(pwd)/../apps/api/main_app/CropModels:/src:ro" work
   sh -c 'cp -n /src/*.h5 /models/ 2>/dev/null || cp -rn /src/* /models/; ls -la /models'
 ```
 
-If models are large and not in git, `scp` them to the VPS then copy into the volume the same way. Without models, scan jobs stay queued/fail.
+If models are large and not in git, `scp` them to Contabo then copy into the volume the same way. Without models, scan jobs stay queued/fail.
 
 ### Step 8 — First deploy
+
+On Contabo, always use the production compose file (do **not** rely on `docker-compose.override.yml`, which is for laptop parity and publishes DB/Redis ports):
 
 ```bash
 cd /opt/agriscan/infra
 chmod +x scripts/*.sh
+docker compose -f docker-compose.yml build
 ./scripts/deploy.sh
 ```
 
 Or manually:
 
 ```bash
-docker compose build
-docker compose run --rm api python manage.py migrate --noinput
-docker compose run --rm api python manage.py collectstatic --noinput
-docker compose up -d
-docker compose ps
-docker compose logs -f api worker_scanner
+docker compose -f docker-compose.yml build
+docker compose -f docker-compose.yml run --rm api python manage.py migrate --noinput
+docker compose -f docker-compose.yml run --rm api python manage.py collectstatic --noinput
+docker compose -f docker-compose.yml up -d
+docker compose -f docker-compose.yml ps
+docker compose -f docker-compose.yml logs -f api worker_scanner
 ```
 
 ### Step 9 — Create Django superuser
@@ -298,10 +315,10 @@ docker compose exec api python manage.py createsuperuser
 
 ### Step 10 — HTTPS (Let’s Encrypt) — requires a domain
 
-Skip until DNS for `api.yourdomain.com` points at the VPS. Until then, verify with:
+Skip until DNS for `api.yourdomain.com` points at Contabo. Until then, verify with:
 
 ```bash
-curl -I http://YOUR_VPS_IP/api/v1/health/
+curl -I http://YOUR_CONTABO_IP/api/v1/health/
 ```
 
 When the domain is ready:
@@ -369,14 +386,14 @@ This is also your **frontend CI/CD**: once the project is linked to GitHub, ever
 
 | Phase | `NEXT_PUBLIC_API_URL` |
 |-------|------------------------|
-| **No domain yet** | `http://YOUR_VPS_IP` |
+| **No domain yet** | `http://YOUR_CONTABO_IP` |
 | **Domain + TLS ready** | `https://api.yourdomain.com` |
 
 6. Deploy. Note the URL (`https://agriscan-xxx.vercel.app`) — no custom domain required on Vercel day one.
 7. Update Contabo `infra/.env`:
    - `CORS_ALLOWED_ORIGINS` must include the Vercel URL (and custom domain if any)
    - `CSRF_TRUSTED_ORIGINS` same
-   - `ALLOWED_HOSTS` must include the VPS IP or `api.yourdomain.com`
+   - `ALLOWED_HOSTS` must include the Contabo IP or `api.yourdomain.com`
 8. Restart API so CORS reloads:
 
 ```bash
@@ -467,17 +484,17 @@ Keep `USSD_PROVIDER=simulate` until Africa’s Talking / Twilio / TextSMS creden
 
 ## 7. Post-deploy verification
 
-Run through this on a real phone/browser after Contabo + Vercel are live. Use `http://YOUR_VPS_IP` until you have TLS.
+Run through this on a real phone/browser after Contabo + Vercel are live. Use `http://YOUR_CONTABO_IP` until you have TLS.
 
 | # | Check | Expected |
 |---|--------|----------|
-| 1 | `GET http://YOUR_VPS_IP/api/v1/health/` (or `https://api.…`) | JSON: postgres + redis OK, `"dev_env": false` |
+| 1 | `GET http://YOUR_CONTABO_IP/api/v1/health/` (or `https://api.…`) | JSON: postgres + redis OK, `"dev_env": false` |
 | 2 | Open Vercel site → Login / Signup | JWT issued; no CORS errors in DevTools |
 | 3 | Farmer profile photo upload | Cloudinary URL stored |
 | 4 | Crop scan | Job leaves `queued` → `completed`; scanner worker logs show inference |
 | 5 | AgriBot chat | Groq response returns |
 | 6 | Market / KAMIS prices | Non-empty prices from SQLite |
-| 7 | `docker stats` on VPS | No service thrashing near 8 GB; scanner &lt; 2.5 GB |
+| 7 | `docker stats` on Contabo | No thrashing near 8 GB; scanner &lt; 2.5 GB |
 | 8 | Backup | `./scripts/backup-volumes.sh` produces SQL dump |
 | 9 | Push a small API change to `main` | GitHub Action **Deploy Contabo** succeeds; health still OK |
 | 10 | Push a web-only change | Vercel redeploys; Contabo workflow does **not** need to run |
@@ -620,26 +637,26 @@ Update Contabo `CORS_ALLOWED_ORIGINS` if the Vercel URL changes.
 
 ### 10.5 First manual deploy still required
 
-CI/CD assumes the VPS already has Docker, `/opt/agriscan` cloned, `infra/.env` filled, and models loaded once (§4). Actions only **update** that install.
+CI/CD assumes Contabo already has Docker, `/opt/agriscan` cloned, `infra/.env` filled, and models loaded once (§4). Actions only **update** that install.
 
 ### 10.6 Safety tips
 
 - Protect `main` with a required PR review if others push.  
-- Never put `infra/.env` secrets in GitHub Actions env for this SSH flow — they stay on the VPS.  
+- Never put `infra/.env` secrets in GitHub Actions — they stay on Contabo.  
 - Watch Actions logs + `docker compose logs` after the first auto-deploy.  
-- Manual fallback: SSH in and run `./scripts/deploy.sh` yourself.
+- Manual fallback: SSH into Contabo and run `./scripts/deploy.sh`.
 
 ---
 
-## 11. Suggested order for tomorrow
+## 11. Suggested Contabo go-live order
 
-1. Buy Contabo Cloud VPS 4 (Ubuntu 24.04, 8 GB). **Domain can wait.**
-2. Create Cloudinary + confirm Groq key.
-3. Deploy on the **VPS IP** first (HTTP). Add domain + certbot when you buy DNS.
-4. Follow §4 (Docker → `.env` → models → `deploy.sh`).
-5. Deploy `apps/web` on Vercel with `NEXT_PUBLIC_API_URL=http://YOUR_IP` (switch to `https://api.…` later).
-6. Wire §10 CI/CD secrets so Contabo updates on push.
-7. Align CORS, run §7 verification checklist.
-8. Schedule backups + KAMIS cron.
+1. Order **Contabo Cloud VPS 4** (Ubuntu 24.04, 8 GB). **Domain can wait.**  
+2. Create Cloudinary + confirm Groq key.  
+3. Follow §4 on Contabo (Docker → `.env` with Contabo IP → models → `deploy.sh`).  
+4. Deploy `apps/web` on Vercel with `NEXT_PUBLIC_API_URL=http://YOUR_CONTABO_IP`.  
+5. Wire §10 CI/CD secrets (`CONTABO_HOST` = Contabo IP) so Contabo updates on push.  
+6. Align CORS, run §7 verification.  
+7. Later: buy domain → DNS A record → certbot (§4 Step 10) → switch Vercel to `https://api.…`.  
+8. Schedule Contabo snapshots + `backup-volumes.sh` + KAMIS cron.
 
-When that passes, the production path is: **Vercel for UI, Contabo Docker for API/AI, Cloudinary for files, Redis+Postgres on-box for speed and cost.**
+**End state:** Vercel (UI) · Contabo Docker (API / Celery / Postgres / Redis) · Cloudinary (images).
