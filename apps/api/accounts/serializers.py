@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from accounts.models import (
     AgencyProfile,
@@ -11,6 +12,18 @@ from accounts.models import (
     LendingPartnerProfile,
 )
 from main_app.models import BuyerProfile, FarmerProfile, Wallet
+
+
+class EmailOrUsernameTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Accept email or username in the `username` field (matches login UI copy)."""
+
+    def validate(self, attrs):
+        login_id = (attrs.get(self.username_field) or "").strip()
+        if login_id and "@" in login_id:
+            user = User.objects.filter(email__iexact=login_id).first()
+            if user:
+                attrs[self.username_field] = user.username
+        return super().validate(attrs)
 
 
 def resolve_user_role(user: User) -> str:
