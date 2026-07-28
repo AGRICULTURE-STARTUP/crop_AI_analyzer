@@ -11,14 +11,14 @@ agriscan/
 ├── docs/
 │   ├── service_separation_plan.md
 │   └── LOCAL_TESTING.md   # ← full local QA checklist
-└── packages/         # shared-types (optional)
+└── packages/         # shared-types 
 ```
 
 ## Local testing (recommended)
 
 Follow **[docs/LOCAL_TESTING.md](docs/LOCAL_TESTING.md)** end-to-end.
 
-Quick path with **`DEV_ENV=True`** (already in root `.env` for laptop work):
+Quick path with `DEV_ENV=True` (already in root `.env` for laptop work):
 
 ```bash
 # API
@@ -30,12 +30,12 @@ python manage.py runserver 0.0.0.0:8000
 cd apps/web && npm install && npm run dev
 ```
 
-- UI: http://localhost:3000  
+- UI: [http://localhost:3000](http://localhost:3000)  
 - Health: `GET /api/v1/health/` (shows `"dev_env": true`)  
 - USSD sim: homepage → **Try USSD demo**  
 - Contract tests: `python manage.py test accounts.tests`
 
-When `DEV_ENV=True`, CORS / SSL / throttles are relaxed so browser, emulator, and LAN clients are not blocked. Set **`DEV_ENV=False`** before Contabo production.
+When `DEV_ENV=True`, CORS / SSL / throttles are relaxed so browser, emulator, and LAN clients are not blocked. Set `DEV_ENV=False` before Contabo production.
 
 ## Docker Compose (Contabo / local parity)
 
@@ -57,6 +57,8 @@ cd apps/web
 npm run cap:sync
 npm run cap:android
 ```
+
+
 
 ## USSD live cutover (later)
 
