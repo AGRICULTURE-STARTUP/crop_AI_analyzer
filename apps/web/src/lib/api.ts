@@ -2,6 +2,8 @@ import type { TokenPair } from "./types";
 
 const ACCESS_KEY = "agriscan_access";
 const REFRESH_KEY = "agriscan_refresh";
+const LAST_ACTIVITY_KEY = "agriscan_last_activity";
+export const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 
 export function getApiBase(): string {
   return (
@@ -21,11 +23,30 @@ export function getStoredTokens(): TokenPair | null {
 export function storeTokens(tokens: TokenPair) {
   localStorage.setItem(ACCESS_KEY, tokens.access);
   localStorage.setItem(REFRESH_KEY, tokens.refresh);
+  recordActivity();
 }
 
 export function clearTokens() {
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);
+  localStorage.removeItem(LAST_ACTIVITY_KEY);
+  window.dispatchEvent(new Event("agriscan:session-cleared"));
+}
+
+export function recordActivity() {
+  if (typeof window === "undefined" || !getStoredTokens()) return;
+  localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+}
+
+export function getLastActivity(): number | null {
+  if (typeof window === "undefined") return null;
+  const value = Number(localStorage.getItem(LAST_ACTIVITY_KEY));
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+export function isSessionIdle(): boolean {
+  const lastActivity = getLastActivity();
+  return lastActivity !== null && Date.now() - lastActivity >= IDLE_TIMEOUT_MS;
 }
 
 export class ApiError extends Error {
@@ -39,24 +60,34 @@ export class ApiError extends Error {
   }
 }
 
+let refreshInFlight: Promise<string | null> | null = null;
+
 async function refreshAccess(): Promise<string | null> {
-  const tokens = getStoredTokens();
-  if (!tokens?.refresh) return null;
-  const res = await fetch(`${getApiBase()}/api/v1/auth/refresh/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh: tokens.refresh }),
+  if (refreshInFlight) return refreshInFlight;
+
+  refreshInFlight = (async () => {
+    const tokens = getStoredTokens();
+    if (!tokens?.refresh) return null;
+    const res = await fetch(`${getApiBase()}/api/v1/auth/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh: tokens.refresh }),
+    });
+    if (!res.ok) {
+      clearTokens();
+      return null;
+    }
+    const data = (await res.json()) as { access: string; refresh?: string };
+    storeTokens({
+      access: data.access,
+      refresh: data.refresh || tokens.refresh,
+    });
+    return data.access;
+  })().finally(() => {
+    refreshInFlight = null;
   });
-  if (!res.ok) {
-    clearTokens();
-    return null;
-  }
-  const data = (await res.json()) as { access: string; refresh?: string };
-  storeTokens({
-    access: data.access,
-    refresh: data.refresh || tokens.refresh,
-  });
-  return data.access;
+
+  return refreshInFlight;
 }
 
 type RequestOptions = {
@@ -79,6 +110,14 @@ export async function apiRequest<T>(
   }
 
   if (auth) {
+    if (isSessionIdle()) {
+      clearTokens();
+      throw new ApiError(
+        401,
+        { detail: "Session expired after 30 minutes of inactivity." },
+        "Session expired after 30 minutes of inactivity."
+      );
+    }
     const tokens = getStoredTokens();
     if (tokens?.access) {
       headers.Authorization = `Bearer ${tokens.access}`;
@@ -137,4 +176,25 @@ export function roleHome(role: string): string {
     default:
       return "/";
   }
+}
+
+const ROLE_PREFIX: Record<string, string> = {
+  farmer: "/farmer",
+  buyer: "/buyer",
+  agency: "/agency",
+  lender: "/lender",
+  admin: "/admin",
+};
+
+export function safeNextPath(next: string | null | undefined, role: string): string {
+  const home = roleHome(role);
+  if (!next) return home;
+  if (!next.startsWith("/") || next.startsWith("//") || next.includes("://")) {
+    return home;
+  }
+  const prefix = ROLE_PREFIX[role];
+  if (!prefix || !(next === prefix || next.startsWith(`${prefix}/`))) {
+    return home;
+  }
+  return next;
 }

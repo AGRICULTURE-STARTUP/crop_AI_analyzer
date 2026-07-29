@@ -4,6 +4,7 @@ from accounts.views import (
     AdminLenderApproveView,
     AdminLenderListView,
     AdminLenderSuspendView,
+    AdminRevenueView,
     AgencyRegisterView,
     BuyerRegisterView,
     FarmerRegisterView,
@@ -85,6 +86,7 @@ urlpatterns = [
         name="farm_health_score_api",
     ),
     # Admin lender moderation
+    path("admin/revenue/", AdminRevenueView.as_view(), name="admin_revenue"),
     path("admin/lenders/", AdminLenderListView.as_view(), name="admin_lenders"),
     path(
         "admin/lenders/<int:partner_id>/approve/",

@@ -5,9 +5,26 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.serializers import resolve_user_role
+from accounts.permissions import IsBuyer, IsFarmer, IsFarmerOrBuyer, IsStaffUser
 from main_app.kamis.query import search_prices
 from main_app.models import BuyerProfile, FarmerProfile
+
+
+def _mask_phone(phone: str | None) -> str:
+    raw = "".join(c for c in (phone or "") if c.isdigit())
+    if len(raw) < 4:
+        return ""
+    return f"{raw[:3]}***{raw[-3:]}"
+
+
+def _mask_email(email: str | None) -> str:
+    value = (email or "").strip()
+    if "@" not in value:
+        return ""
+    local, _, domain = value.partition("@")
+    if not local:
+        return ""
+    return f"{local[0]}***@{domain}"
 
 
 class KamisMarketPricesView(APIView):
@@ -17,7 +34,7 @@ class KamisMarketPricesView(APIView):
       - crop (required): e.g. maize, tomatoes, wheat
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmerOrBuyer | IsStaffUser]
 
     def get(self, request):
         crop = (request.query_params.get("crop") or "").strip()
@@ -43,16 +60,9 @@ class BuyersDirectoryView(APIView):
       - county / location: filter by county
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer | IsStaffUser]
 
     def get(self, request):
-        role = resolve_user_role(request.user)
-        if role not in ("farmer", "buyer", "admin"):
-            return Response(
-                {"detail": "Buyers directory is available to farmers and buyers."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
         qs = BuyerProfile.objects.select_related("user").all()
         location = (
             request.query_params.get("location")
@@ -73,14 +83,16 @@ class BuyersDirectoryView(APIView):
                     photo_url = request.build_absolute_uri(buyer.photo.url)
                 except Exception:
                     photo_url = buyer.photo.url
+            phone = _mask_phone(buyer.phone_number)
+            email = _mask_email(buyer.email)
             buyer_list.append(
                 {
                     "id": buyer.id,
                     "name": buyer.first_name or buyer.user.get_username(),
                     "first_name": buyer.first_name,
-                    "email": buyer.email,
-                    "phone_number": buyer.phone_number or "",
-                    "contact": buyer.phone_number or buyer.email or "",
+                    "email": email,
+                    "phone_number": phone,
+                    "contact": phone or email or "",
                     "county": buyer.county or "",
                     "country": buyer.country or "",
                     "location": location_label,
@@ -100,16 +112,9 @@ class FarmersDirectoryView(APIView):
       - county / location: filter by county
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsBuyer | IsStaffUser]
 
     def get(self, request):
-        role = resolve_user_role(request.user)
-        if role not in ("buyer", "farmer", "admin"):
-            return Response(
-                {"detail": "Farmers directory is available to buyers and farmers."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
         qs = FarmerProfile.objects.select_related("user").all()
         county_q = (
             request.query_params.get("county")
@@ -145,9 +150,8 @@ class FarmersDirectoryView(APIView):
             farmer_list.append(
                 {
                     "id": farmer.id,
-                    "username": farmer.user.username,
                     "name": name,
-                    "phone_number": farmer.phone_number or "",
+                    "phone_number": _mask_phone(farmer.phone_number),
                     "county": farmer.county or "",
                     "country": farmer.country or "",
                     "location": location_label,

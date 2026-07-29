@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { AuthShell } from "@/components/AuthShell";
 import { FormField } from "@/components/FormField";
-import { ApiError } from "@/lib/api";
+import { ApiError, safeNextPath } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 function LoginForm() {
@@ -21,12 +21,11 @@ function LoginForm() {
     setBusy(true);
     const fd = new FormData(e.currentTarget);
     try {
-      const home = await login(
+      const { home, role } = await login(
         String(fd.get("username") || ""),
         String(fd.get("password") || "")
       );
-      const next = params.get("next");
-      router.push(next || home);
+      router.push(safeNextPath(params.get("next"), role) || home);
     } catch (err) {
       setError(
         err instanceof ApiError

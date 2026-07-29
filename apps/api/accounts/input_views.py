@@ -13,13 +13,13 @@ from accounts.input_serializers import (
     AgencyPublicSerializer,
 )
 from accounts.models import AgencyProduct, AgencyProfile
-from accounts.permissions import IsAgency
+from accounts.permissions import IsAgency, IsFarmer
 
 
 class InputAgencyListView(APIView):
     """List registered input agencies (optional county / type / name filter)."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer]
 
     def get(self, request):
         qs = AgencyProfile.objects.annotate(
@@ -50,7 +50,7 @@ class InputAgencyListView(APIView):
 class InputProductListView(APIView):
     """List products uploaded by registered agencies."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer]
 
     def get(self, request):
         qs = (

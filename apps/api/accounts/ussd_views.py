@@ -59,15 +59,12 @@ def _extract_payload(request) -> dict:
 
 
 def _provider_authorized(request) -> bool:
-    """When live secrets are set, require a simple shared-secret header.
+    """Require a shared secret when the live USSD gateway is enabled.
 
     Providers differ; we accept:
       X-AgriScan-USSD-Secret: <AFRICASTALKING_API_KEY|TWILIO_AUTH_TOKEN|TEXTSMS_API_KEY>
-    In DEV_ENV / simulate mode, always allow.
     """
     if getattr(settings, "DEV_ENV", False):
-        return True
-    if getattr(settings, "USSD_PROVIDER", "simulate") == "simulate":
         return True
 
     secret = (
@@ -76,12 +73,17 @@ def _provider_authorized(request) -> bool:
         or getattr(settings, "TEXTSMS_API_KEY", "")
     )
     if not secret:
-        # Credentials not configured yet — keep endpoint open for staging wiring,
-        # but production should set secrets.
-        return True
+        # Fail closed outside DEV_ENV — do not leave the webhook open.
+        return False
 
     provided = request.headers.get("X-AgriScan-USSD-Secret", "")
-    return hmac.compare_digest(provided, secret)
+    return bool(provided) and hmac.compare_digest(provided, secret)
+
+
+def _simulation_allowed() -> bool:
+    return bool(getattr(settings, "DEV_ENV", False)) or getattr(
+        settings, "USSD_PROVIDER", "simulate"
+    ) == "simulate"
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -122,6 +124,11 @@ class UssdSimulateView(APIView):
     authentication_classes = []
 
     def post(self, request):
+        if not _simulation_allowed():
+            return Response(
+                {"detail": "USSD simulator is disabled outside development."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         payload = _extract_payload(request)
         if not payload["session_id"]:
             payload["session_id"] = "homepage-sim"
@@ -145,6 +152,11 @@ class UssdSimulateView(APIView):
 
     def get(self, request):
         """Menu metadata for the homepage simulator chrome."""
+        if not _simulation_allowed():
+            return Response(
+                {"detail": "USSD simulator is disabled outside development."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         return Response(
             {
                 "service_code": getattr(settings, "USSD_SERVICE_CODE", "*384*55#"),

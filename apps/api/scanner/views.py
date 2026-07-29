@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from accounts.permissions import IsFarmer
 from scanner.models import ScanJob
 from scanner.serializers import (
     ScanJobCreateSerializer,
@@ -59,7 +60,7 @@ class HealthView(APIView):
 
 
 class CropListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer]
 
     def get(self, request):
         return Response({"crops": crop_catalog_payload()})
@@ -89,7 +90,7 @@ def _wallet_gate(user):
 
 
 class ScanJobListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "scans"
 
@@ -106,6 +107,23 @@ class ScanJobListCreateView(APIView):
             return Response(
                 {"detail": "Scan queue is full. Retry later."},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                headers={"Retry-After": "30"},
+            )
+
+        per_user_limit = int(os.getenv("MAX_QUEUED_SCANS_PER_USER", "3"))
+        user_queued = ScanJob.objects.filter(
+            user=request.user,
+            status__in=[ScanJob.Status.QUEUED, ScanJob.Status.PROCESSING],
+        ).count()
+        if user_queued >= per_user_limit:
+            return Response(
+                {
+                    "detail": (
+                        f"You already have {user_queued} scans in progress. "
+                        "Wait for them to finish before starting another."
+                    )
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
                 headers={"Retry-After": "30"},
             )
 
@@ -152,7 +170,7 @@ class ScanJobListCreateView(APIView):
 
 
 class ScanJobDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer]
 
     def get(self, request, job_id):
         try:

@@ -362,6 +362,66 @@ export default function FarmerProfilePage() {
               </div>
             </section>
 
+            <section className="panel animate-rise rounded-3xl p-6 [animation-delay:100ms]">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold text-leaf-deep">
+                    Farm Health Score
+                  </h2>
+                  <p className="text-sm text-ink/55">
+                    Used by approved lending partners only when you opt in.
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-leaf/10 px-4 py-3 text-center">
+                  <p className="text-2xl font-semibold text-leaf-deep">
+                    {profile.health_score ?? "—"}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-ink/50">
+                    {profile.risk_tier || "Not scored"}
+                  </p>
+                </div>
+              </div>
+              <label className="mt-4 flex items-start gap-3 text-sm text-ink/75">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={Boolean(profile.opt_in_for_lending)}
+                  onChange={async (e) => {
+                    setSaveError("");
+                    setSaveMsg("");
+                    try {
+                      await apiRequest<MeResponse>("/api/v1/me/", {
+                        method: "PATCH",
+                        body: { opt_in_for_lending: e.target.checked },
+                      });
+                      await refreshMe();
+                      setSaveMsg(
+                        e.target.checked
+                          ? "Lending data sharing enabled."
+                          : "Lending data sharing turned off."
+                      );
+                    } catch (err) {
+                      setSaveError(
+                        err instanceof ApiError
+                          ? err.message
+                          : "Could not update consent"
+                      );
+                    }
+                  }}
+                />
+                <span>
+                  Share my Farm Health Score with approved lending partners when
+                  they look up my registered phone number.
+                </span>
+              </label>
+              {profile.last_calculated ? (
+                <p className="mt-3 text-xs text-ink/45">
+                  Last calculated{" "}
+                  {new Date(profile.last_calculated).toLocaleString()}
+                </p>
+              ) : null}
+            </section>
+
             <section className="panel animate-rise rounded-3xl p-6 [animation-delay:120ms]">
               <div className="flex items-center justify-between gap-3">
                 <div>

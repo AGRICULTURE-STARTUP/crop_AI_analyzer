@@ -6,6 +6,7 @@ import logging
 
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -16,8 +17,16 @@ from rest_framework.views import APIView
 from accounts.keys import generate_raw_api_key, hash_api_key, key_prefix
 from accounts.lending_auth import log_lending_usage, resolve_bearer_key
 from accounts.models import LendingAPIKey, LendingAPIUsageLog, LendingPartnerProfile
-from accounts.permissions import IsApprovedLendingPartner, IsLendingPartner, IsStaffUser
+from accounts.permissions import (
+    IsApprovedLendingPartner,
+    IsFarmer,
+    IsFarmerOrBuyer,
+    IsLendingPartner,
+    IsStaffUser,
+)
+from accounts.session_activity import invalidate_session, session_id_for_token
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from accounts.serializers import (
     AdminLenderSerializer,
@@ -61,9 +70,22 @@ def _registration_response(user: User) -> Response:
 def _get_role_profile(user: User, request=None):
     role = resolve_user_role(user)
     if role == "farmer" and hasattr(user, "farmer_profile"):
-        return FarmerProfileSerializer(
+        data = FarmerProfileSerializer(
             user.farmer_profile, context={"request": request}
         ).data
+        try:
+            health = user.farmer_profile.health_profile
+        except FarmHealthProfile.DoesNotExist:
+            health = calculate_farm_health_score(user.farmer_profile)
+        data.update(
+            {
+                "health_score": health.health_score,
+                "risk_tier": health.risk_tier,
+                "opt_in_for_lending": health.opt_in_for_lending,
+                "last_calculated": health.last_calculated,
+            }
+        )
+        return data
     if role == "buyer" and hasattr(user, "buyer_profile"):
         p = user.buyer_profile
         photo_url = None
@@ -188,6 +210,8 @@ def _farmer_score_payload(phone: str) -> tuple[dict | None, int, str | None]:
 
 class FarmerRegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
     def post(self, request):
         serializer = FarmerRegisterSerializer(data=request.data)
@@ -198,6 +222,8 @@ class FarmerRegisterView(APIView):
 
 class BuyerRegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
@@ -209,6 +235,8 @@ class BuyerRegisterView(APIView):
 
 class AgencyRegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
     def post(self, request):
         serializer = AgencyRegisterSerializer(data=request.data)
@@ -219,6 +247,8 @@ class AgencyRegisterView(APIView):
 
 class LenderRegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
     def post(self, request):
         serializer = LenderRegisterSerializer(data=request.data)
@@ -228,11 +258,19 @@ class LenderRegisterView(APIView):
 
 
 class LogoutView(APIView):
-    """Client discards tokens; endpoint is intentionally a no-op."""
+    """Invalidate the current JWT session and blacklist its refresh token."""
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        if request.auth is not None:
+            invalidate_session(session_id_for_token(request.auth))
+        raw_refresh = request.data.get("refresh")
+        if raw_refresh:
+            try:
+                RefreshToken(raw_refresh).blacklist()
+            except TokenError:
+                pass
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -313,6 +351,14 @@ class MeView(APIView):
                     profile.profile_photo.delete(save=False)
                 profile.profile_photo = None
             profile.save()
+            if "opt_in_for_lending" in data:
+                try:
+                    health = profile.health_profile
+                except FarmHealthProfile.DoesNotExist:
+                    health = calculate_farm_health_score(profile)
+                health.opt_in_for_lending = bool(data["opt_in_for_lending"])
+                health.save(update_fields=["opt_in_for_lending"])
+                calculate_farm_health_score(profile)
         elif role == "buyer" and hasattr(user, "buyer_profile"):
             profile = user.buyer_profile
             for field in ("phone_number", "county", "country"):
@@ -358,17 +404,19 @@ class MeView(APIView):
 class WeatherView(APIView):
     """Current weather for the authenticated farmer's county (OpenWeather)."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmerOrBuyer]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "weather"
 
     def get(self, request):
         role = resolve_user_role(request.user)
         if role == "farmer" and hasattr(request.user, "farmer_profile"):
             profile = request.user.farmer_profile
-            county = (request.query_params.get("location") or profile.county or "").strip()
+            county = (profile.county or "").strip()
             country = (profile.country or "Kenya").strip() or "Kenya"
         elif role == "buyer" and hasattr(request.user, "buyer_profile"):
             profile = request.user.buyer_profile
-            county = (request.query_params.get("location") or profile.county or "").strip()
+            county = (profile.county or "").strip()
             country = (profile.country or "Kenya").strip() or "Kenya"
         else:
             return Response(
@@ -507,6 +555,8 @@ class LenderScoreView(APIView):
     """JWT dashboard tool — same payload as public partner score API."""
 
     permission_classes = [IsAuthenticated, IsApprovedLendingPartner]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "lending_score"
 
     def get(self, request):
         partner = request.user.lending_partner_profile
@@ -578,6 +628,42 @@ class AdminLenderSuspendView(APIView):
         return Response(AdminLenderSerializer(partner).data)
 
 
+class AdminRevenueView(APIView):
+    permission_classes = [IsAuthenticated, IsStaffUser]
+
+    def get(self, request):
+        successful = MpesaTransaction.objects.filter(status="Success")
+        total_revenue = successful.aggregate(total=Sum("amount"))["total"] or 0
+        recent = MpesaTransaction.objects.select_related("user").order_by(
+            "-created_at"
+        )[:20]
+        return Response(
+            {
+                "total_revenue": str(total_revenue),
+                "successful_transactions": successful.count(),
+                "pending_transactions": MpesaTransaction.objects.filter(
+                    status="Pending"
+                ).count(),
+                "users": {
+                    "total": User.objects.count(),
+                    "farmers": FarmerProfile.objects.count(),
+                    "lenders": LendingPartnerProfile.objects.count(),
+                },
+                "recent_transactions": [
+                    {
+                        "id": txn.id,
+                        "username": txn.user.get_username(),
+                        "amount": str(txn.amount),
+                        "status": txn.status,
+                        "receipt_number": txn.receipt_number,
+                        "created_at": txn.created_at,
+                    }
+                    for txn in recent
+                ],
+            }
+        )
+
+
 class PartnerFarmHealthScoreView(APIView):
     """
     Machine-to-machine Farm Health Score.
@@ -615,7 +701,7 @@ class PartnerFarmHealthScoreView(APIView):
 
 
 class WalletView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer]
 
     def get(self, request):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
@@ -623,7 +709,9 @@ class WalletView(APIView):
 
 
 class MpesaTopupView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "payments"
 
     def post(self, request):
         serializer = MpesaTopupSerializer(data=request.data)

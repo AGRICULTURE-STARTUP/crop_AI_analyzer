@@ -39,6 +39,13 @@ def resolve_bearer_key(raw_token: str) -> tuple[LendingAPIKey | None, PartnerAPI
 
     legacy = PartnerAPIKey.objects.filter(api_key=raw_token, is_active=True).first()
     if legacy is not None:
+        from django.conf import settings
+
+        allow_legacy = getattr(settings, "ALLOW_LEGACY_PARTNER_KEYS", False) or getattr(
+            settings, "DEV_ENV", False
+        )
+        if not allow_legacy:
+            return None, None, "Legacy partner API keys are disabled"
         return None, legacy, None
 
     return None, None, "Invalid or inactive API key"

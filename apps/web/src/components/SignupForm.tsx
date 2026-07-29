@@ -116,11 +116,11 @@ export function SignupForm({
         });
       }
 
-      const home = await acceptTokens({
+      const session = await acceptTokens({
         access: res.access,
         refresh: res.refresh,
       });
-      router.push(home || roleHome(role));
+      router.push(session.home || roleHome(role));
     } catch (err) {
       if (err instanceof ApiError) {
         const b = err.body as Record<string, unknown> | string;

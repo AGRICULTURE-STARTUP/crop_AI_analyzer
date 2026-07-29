@@ -13,6 +13,8 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from accounts.permissions import IsFarmer
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,7 +52,7 @@ def _farmer_context(user) -> tuple[str, str, str, dict | None]:
 
 
 class ChatMessageView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsFarmer]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "chat"
 

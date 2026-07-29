@@ -25,6 +25,7 @@ from .models import (
     MpesaTransaction
 )
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import timedelta
 from django.db import transaction
 
@@ -36,6 +37,24 @@ mpesa_client = MpesaGateway()
 # Legacy in-process cache (template /process path). Prefer inference.model_lru in workers.
 loaded_models = {}
 _gatekeeper_model = None
+
+
+farmer_required = user_passes_test(
+    lambda user: user.is_authenticated
+    and not user.is_staff
+    and hasattr(user, "farmer_profile"),
+    login_url="login",
+)
+buyer_required = user_passes_test(
+    lambda user: user.is_authenticated
+    and not user.is_staff
+    and hasattr(user, "buyer_profile"),
+    login_url="login",
+)
+staff_required = user_passes_test(
+    lambda user: user.is_authenticated and user.is_staff,
+    login_url="login",
+)
 
 
 def get_gatekeeper():
@@ -201,12 +220,14 @@ def get_crop_model(crop_selection):
 
 
 @login_required(login_url='login')
+@farmer_required
 def page(request):
     if hasattr(request.user, 'buyer_profile'):
         return redirect('buyer_dashboard_view')
     return render(request,"index.html")
 
 @login_required(login_url='login')
+@farmer_required
 @ratelimit(key='user_or_ip', rate='5/m', block=False)
 def process(request):
     was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
@@ -316,9 +337,9 @@ def process(request):
     })
 
 
-@csrf_exempt
 @login_required(login_url='login')
-@ratelimit(key='user_or_ip', rate='10/m', block=False)
+@farmer_required
+@ratelimit(key='user_or_ip', rate='5/m', block=False)
 def chat(request):
     was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
     if was_limited:
@@ -577,7 +598,11 @@ def signin_view(request):
             
             # Respect the 'next' parameter if it exists
             next_url = request.GET.get('next')
-            if next_url:
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
                 return redirect(next_url)
             
             if user.is_superuser:
@@ -599,6 +624,7 @@ def signout_view(request):
     logout(request)
     return redirect('login')
 @login_required(login_url='login')
+@farmer_required
 def fertiliser_view(request):
     return render(request,"fertiliser_page.html")
 
@@ -608,6 +634,8 @@ def homepage_view(request):
 def privacy_policy_view(request):
     return render(request,"privacy_policy.html")
 @login_required(login_url='login')
+@farmer_required
+@ratelimit(key='user_or_ip', rate='10/m', block=False)
 def fertiliser_display(request):
     if request.method == 'GET':
         query = request.GET.get('query', '').strip()
@@ -627,10 +655,12 @@ def fertiliser_display(request):
 
         return JsonResponse({'products': data})
 @login_required(login_url='login')
+@farmer_required
 def market_view(request):
     return render(request,"market_buyers.html")
 
 @login_required(login_url='login')
+@farmer_required
 def market_display(request):
     if request.method == "GET":
         qs = BuyerProfile.objects.all().order_by("first_name", "id")
@@ -669,10 +699,12 @@ def market_display(request):
         return JsonResponse({"buyer_list": buyer_list, "count": len(buyer_list)})
 
 @login_required(login_url='login')
+@buyer_required
 def farmer_view(request):
     return render(request, "farmers.html")
 
 @login_required(login_url='login')
+@buyer_required
 def farmer_display(request):
     if request.method == "GET":
         farmers = FarmerProfile.objects.select_related("user").all()
@@ -723,6 +755,7 @@ def farmer_display(request):
 
 
 @login_required(login_url='login')
+@farmer_required
 def farmer_profile_view(request):
     """Dedicated profile page for authenticated farmers only."""
     # Guard: only farmers may access this page
@@ -810,6 +843,7 @@ def farmer_profile_view(request):
     return render(request, 'farmer_profile.html', context)
 
 @method_decorator(ratelimit(key='ip', rate='3/m', block=False), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='3/h', block=True), name='dispatch')
 class CustomPasswordResetView(PasswordResetView):
     def dispatch(self, request, *args, **kwargs):
         was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
@@ -839,6 +873,7 @@ class CustomPasswordResetView(PasswordResetView):
         return super(PasswordResetView, self).form_valid(form)
 
 @csrf_exempt
+@ratelimit(key='ip', rate='30/m', block=True)
 def farm_health_score_api(request):
     """Legacy function view — prefer accounts.PartnerFarmHealthScoreView."""
     from accounts.lending_auth import log_lending_usage, resolve_bearer_key
@@ -868,6 +903,7 @@ def farm_health_score_api(request):
 
 
 @login_required(login_url='login')
+@buyer_required
 def buyer_dashboard_view(request):
     try:
         buyer_profile = request.user.buyer_profile
@@ -906,6 +942,7 @@ def buyer_dashboard_view(request):
     return redirect('buyer_dashboard_view')
 
 @csrf_exempt
+@ratelimit(key='ip', rate='60/m', block=True)
 def mpesa_callback(request):
     """Handles Safaricom's M-Pesa STK Push results."""
     from django.conf import settings as dj_settings
@@ -978,6 +1015,8 @@ def mpesa_callback(request):
     return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
 
 @login_required(login_url='login')
+@farmer_required
+@ratelimit(key='user_or_ip', rate='3/m', block=True)
 def initiate_topup(request):
     """Initiates an M-Pesa STK Push for wallet top-up."""
     if request.method == 'POST':
@@ -1009,27 +1048,13 @@ def initiate_topup(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 def admin_login(request):
-    """Separate login for the admin using a master password."""
-    error = None
-    if request.method == 'POST':
-        password = request.POST.get('admin_password')
-        # Use ADMIN_PASSWORD from .env or a default if not set
-        master_password = os.getenv('ADMIN_PASSWORD', 'AgriScanAdmin2026')
-        
-        if password == master_password:
-            request.session['is_site_admin'] = True
-            return redirect('revenue_dashboard')
-        else:
-            error = "Invalid master password."
-            
-    return render(request, 'admin_login.html', {'error': error})
+    """Retired master-password entry point; use a staff account."""
+    return redirect(f"/login?next=/admin/revenue/")
 
+@login_required(login_url='login')
+@staff_required
 def revenue_dashboard(request):
     """Admin dashboard to track MRR, total revenue, and user metrics."""
-    # Check for the custom admin session flag
-    if not request.session.get('is_site_admin'):
-        return redirect('admin_login')
-    
     total_revenue = MpesaTransaction.objects.filter(status='Success').aggregate(Sum('amount'))['amount__sum'] or 0
     mrr = 0 # Agrovets removed
           

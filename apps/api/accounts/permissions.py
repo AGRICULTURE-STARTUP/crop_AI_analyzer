@@ -1,9 +1,46 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
+def _role_for_user(user) -> str | None:
+    if not (user and user.is_authenticated):
+        return None
+    if user.is_staff:
+        return "admin"
+    if hasattr(user, "lending_partner_profile"):
+        return "lender"
+    if hasattr(user, "agency_profile"):
+        return "agency"
+    if hasattr(user, "buyer_profile"):
+        return "buyer"
+    if hasattr(user, "farmer_profile"):
+        return "farmer"
+    return "user"
+
+
 class IsStaffUser(BasePermission):
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated and request.user.is_staff)
+
+
+class IsFarmer(BasePermission):
+    message = "Only farmer accounts can perform this action."
+
+    def has_permission(self, request, view):
+        return _role_for_user(request.user) == "farmer"
+
+
+class IsBuyer(BasePermission):
+    message = "Only buyer accounts can perform this action."
+
+    def has_permission(self, request, view):
+        return _role_for_user(request.user) == "buyer"
+
+
+class IsFarmerOrBuyer(BasePermission):
+    message = "Only farmer and buyer accounts can perform this action."
+
+    def has_permission(self, request, view):
+        return _role_for_user(request.user) in ("farmer", "buyer")
 
 
 class IsAgency(BasePermission):
@@ -12,16 +49,12 @@ class IsAgency(BasePermission):
     message = "Only registered input agencies can manage products."
 
     def has_permission(self, request, view):
-        if not (request.user and request.user.is_authenticated):
-            return False
-        return hasattr(request.user, "agency_profile")
+        return _role_for_user(request.user) == "agency"
 
 
 class IsLendingPartner(BasePermission):
     def has_permission(self, request, view):
-        if not (request.user and request.user.is_authenticated):
-            return False
-        return hasattr(request.user, "lending_partner_profile")
+        return _role_for_user(request.user) == "lender"
 
 
 class IsApprovedLendingPartner(BasePermission):
@@ -30,7 +63,7 @@ class IsApprovedLendingPartner(BasePermission):
     message = "Lending partner must be approved to perform this action."
 
     def has_permission(self, request, view):
-        if not (request.user and request.user.is_authenticated):
+        if _role_for_user(request.user) != "lender":
             return False
         profile = getattr(request.user, "lending_partner_profile", None)
         if profile is None:

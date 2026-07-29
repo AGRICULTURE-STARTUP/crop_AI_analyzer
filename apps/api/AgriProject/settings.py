@@ -106,6 +106,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -290,15 +291,17 @@ _THROTTLE_RATES = {
     "anon": "1000/min" if DEV_ENV else "60/min",
     "user": "2000/min" if DEV_ENV else "120/min",
     "scans": "100/min" if DEV_ENV else "5/min",
-    "chat": "100/min" if DEV_ENV else "10/min",
-    "auth": "200/min" if DEV_ENV else "20/min",
+    "chat": "100/min" if DEV_ENV else "5/min",
+    "auth": "200/min" if DEV_ENV else "10/min",
     "ussd": "200/min" if DEV_ENV else "30/min",
-    "lending_score": "200/min" if DEV_ENV else "60/min",
+    "lending_score": "200/min" if DEV_ENV else "30/min",
+    "weather": "200/min" if DEV_ENV else "10/min",
+    "payments": "100/min" if DEV_ENV else "3/min",
 }
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "accounts.authentication.IdleTimeoutJWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
@@ -341,7 +344,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": False,
+    "BLACKLIST_AFTER_ROTATION": True,
 }
 
 # --- Celery / Redis ---
@@ -366,6 +369,9 @@ RERANKER_ENABLED = os.getenv("RERANKER_ENABLED", "false").lower() in (
 )
 MODELS_DIR = os.getenv("MODELS_DIR", str(BASE_DIR / "main_app" / "CropModels"))
 MAX_QUEUED_SCAN_JOBS = int(os.getenv("MAX_QUEUED_SCAN_JOBS", "20"))
+ALLOW_LEGACY_PARTNER_KEYS = os.getenv(
+    "ALLOW_LEGACY_PARTNER_KEYS", "false"
+).lower() in ("1", "true", "yes")
 
 # Email settings for development
 
@@ -391,7 +397,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Session Management
-SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
+SESSION_COOKIE_AGE = int(os.getenv("SESSION_IDLE_TIMEOUT_SECONDS", "1800"))
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
 

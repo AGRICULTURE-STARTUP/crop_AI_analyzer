@@ -1,9 +1,21 @@
 from decimal import Decimal
+import uuid
 
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.serializers import (
+    TokenObtainPairSerializer,
+    TokenRefreshSerializer,
+)
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from accounts.session_activity import (
+    is_session_active,
+    mark_session_active,
+    session_id_for_token,
+)
 
 from accounts.models import (
     AgencyProfile,
@@ -17,13 +29,38 @@ from main_app.models import BuyerProfile, FarmerProfile, Wallet
 class EmailOrUsernameTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Accept email or username in the `username` field (matches login UI copy)."""
 
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token["sid"] = uuid.uuid4().hex
+        return token
+
     def validate(self, attrs):
         login_id = (attrs.get(self.username_field) or "").strip()
         if login_id and "@" in login_id:
             user = User.objects.filter(email__iexact=login_id).first()
             if user:
                 attrs[self.username_field] = user.username
-        return super().validate(attrs)
+        data = super().validate(attrs)
+        refresh = RefreshToken(data["refresh"])
+        mark_session_active(session_id_for_token(refresh))
+        return data
+
+
+class IdleTimeoutTokenRefreshSerializer(TokenRefreshSerializer):
+    """Reject refresh tokens whose browser/API session has gone idle."""
+
+    def validate(self, attrs):
+        refresh = RefreshToken(attrs["refresh"])
+        session_id = session_id_for_token(refresh)
+        if not is_session_active(session_id, refresh.get("iat")):
+            raise AuthenticationFailed(
+                "Session expired after 30 minutes of inactivity.",
+                code="session_expired",
+            )
+        data = super().validate(attrs)
+        mark_session_active(session_id)
+        return data
 
 
 def resolve_user_role(user: User) -> str:
@@ -41,9 +78,9 @@ def resolve_user_role(user: User) -> str:
 
 
 def issue_tokens(user: User) -> dict:
-    from rest_framework_simplejwt.tokens import RefreshToken
-
     refresh = RefreshToken.for_user(user)
+    refresh["sid"] = uuid.uuid4().hex
+    mark_session_active(session_id_for_token(refresh))
     return {
         "refresh": str(refresh),
         "access": str(refresh.access_token),
@@ -301,6 +338,7 @@ class MeUpdateSerializer(serializers.Serializer):
         required=False, allow_blank=True, max_length=20
     )
     website = serializers.URLField(required=False, allow_blank=True)
+    opt_in_for_lending = serializers.BooleanField(required=False)
 
 
 class LendingAPIKeySerializer(serializers.ModelSerializer):

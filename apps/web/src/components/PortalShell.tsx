@@ -26,6 +26,7 @@ const NAV: Record<string, NavItem[]> = {
     { href: "/lender/dashboard", label: "Overview" },
     { href: "/lender/api-keys", label: "API keys" },
     { href: "/lender/score-lookup", label: "Score lookup" },
+    { href: "/lender/usage", label: "Usage" },
     { href: "/lender/docs", label: "Docs" },
   ],
   admin: [
@@ -59,7 +60,7 @@ export function PortalShell({
     }
   }, [loading, user, role, router, pathname]);
 
-  if (loading || !user) {
+  if (loading || !user || user.role !== role) {
     return (
       <div className="min-h-screen grid place-items-center text-leaf">
         Loading…

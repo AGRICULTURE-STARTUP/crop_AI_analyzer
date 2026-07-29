@@ -24,6 +24,10 @@ export type FarmerProfile = {
   farm_name?: string | null;
   farm_size_acres?: string | number | null;
   profile_photo?: string | null;
+  health_score?: number | null;
+  risk_tier?: string | null;
+  opt_in_for_lending?: boolean;
+  last_calculated?: string | null;
 };
 
 export type BuyerProfile = {

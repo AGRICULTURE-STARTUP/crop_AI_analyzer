@@ -3,13 +3,25 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.views.static import serve
 from django.views.generic.base import RedirectView
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from accounts.serializers import EmailOrUsernameTokenObtainPairSerializer
+from accounts.serializers import (
+    EmailOrUsernameTokenObtainPairSerializer,
+    IdleTimeoutTokenRefreshSerializer,
+)
 
 
 class EmailOrUsernameTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailOrUsernameTokenObtainPairSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+
+class IdleTimeoutTokenRefreshView(TokenRefreshView):
+    serializer_class = IdleTimeoutTokenRefreshSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
 
 urlpatterns = [
@@ -21,7 +33,11 @@ urlpatterns = [
         EmailOrUsernameTokenObtainPairView.as_view(),
         name="token_obtain_pair",
     ),
-    path("api/v1/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path(
+        "api/v1/auth/refresh/",
+        IdleTimeoutTokenRefreshView.as_view(),
+        name="token_refresh",
+    ),
     path("", include("main_app.urls")),
     path("accounts/", include("allauth.urls")),
     path(
