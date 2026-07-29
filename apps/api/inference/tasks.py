@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import logging
+import shutil
+import tempfile
+from contextlib import contextmanager
 from decimal import Decimal
+from pathlib import Path
 
 from celery import shared_task
 from django.db import transaction
@@ -13,6 +17,25 @@ logger = logging.getLogger(__name__)
 
 SCAN_FEE = Decimal("20.00")
 FREE_SCANS = 2
+
+
+@contextmanager
+def _local_image_path(field_file):
+    """Yield a filesystem path for local or remote Django storage files."""
+    try:
+        image_path = field_file.path
+    except NotImplementedError:
+        suffix = Path(field_file.name).suffix
+        temporary_file = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+        temporary_path = Path(temporary_file.name)
+        try:
+            with temporary_file, field_file.open("rb") as source:
+                shutil.copyfileobj(source, temporary_file)
+            yield str(temporary_path)
+        finally:
+            temporary_path.unlink(missing_ok=True)
+    else:
+        yield image_path
 
 
 @shared_task(bind=True, name="inference.run_scan_job", max_retries=0, soft_time_limit=180)
@@ -36,39 +59,39 @@ def run_scan_job(self, job_id: str):
     job.report = None
     job.save(update_fields=["status", "report", "updated_at"])
 
-    image_path = job.image.path
     try:
-        if not is_plant_image(image_path):
-            job.status = ScanJob.Status.REJECTED
-            job.gatekeeper_passed = False
-            job.error_message = "Image does not appear to be a plant/crop leaf."
-            job.completed_at = timezone.now()
-            job.save(
-                update_fields=[
-                    "status",
-                    "gatekeeper_passed",
-                    "error_message",
-                    "completed_at",
-                    "updated_at",
-                ]
-            )
-            return {"ok": False, "status": "rejected"}
+        with _local_image_path(job.image) as image_path:
+            if not is_plant_image(image_path):
+                job.status = ScanJob.Status.REJECTED
+                job.gatekeeper_passed = False
+                job.error_message = "Image does not appear to be a plant/crop leaf."
+                job.completed_at = timezone.now()
+                job.save(
+                    update_fields=[
+                        "status",
+                        "gatekeeper_passed",
+                        "error_message",
+                        "completed_at",
+                        "updated_at",
+                    ]
+                )
+                return {"ok": False, "status": "rejected"}
 
-        job.gatekeeper_passed = True
-        job.save(update_fields=["gatekeeper_passed", "updated_at"])
+            job.gatekeeper_passed = True
+            job.save(update_fields=["gatekeeper_passed", "updated_at"])
 
-        import numpy as np
-        from keras.applications.efficientnet import preprocess_input
-        from keras.preprocessing import image
+            import numpy as np
+            from keras.applications.efficientnet import preprocess_input
+            from keras.preprocessing import image
 
-        model = get_crop_model(job.crop)
-        img = image.load_img(image_path, target_size=(224, 224))
-        batch = preprocess_input(np.expand_dims(image.img_to_array(img), axis=0))
-        preds = predict_locked(model, batch)
-        idx = int(np.argmax(preds[0]))
-        confidence = float(preds[0][idx])
-        labels = KNOWN_CROP_CLASSES.get(job.crop, [])
-        label = labels[idx] if idx < len(labels) else str(idx)
+            model = get_crop_model(job.crop)
+            img = image.load_img(image_path, target_size=(224, 224))
+            batch = preprocess_input(np.expand_dims(image.img_to_array(img), axis=0))
+            preds = predict_locked(model, batch)
+            idx = int(np.argmax(preds[0]))
+            confidence = float(preds[0][idx])
+            labels = KNOWN_CROP_CLASSES.get(job.crop, [])
+            label = labels[idx] if idx < len(labels) else str(idx)
 
         # Persist diagnosis early so the UI can show model progress while Groq runs.
         job.result_label = label
