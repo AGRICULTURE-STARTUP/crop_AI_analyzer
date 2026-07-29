@@ -99,6 +99,18 @@ def get_gatekeeper():
     return _gatekeeper_model
 
 
+def warmup_gatekeeper():
+    """Run a full dummy prediction + decode to pre-cache weights and metadata."""
+    from keras.applications.efficientnet import decode_predictions, preprocess_input
+
+    model = get_gatekeeper()
+    dummy = np.zeros((1, 224, 224, 3), dtype=np.float32)
+    dummy = preprocess_input(dummy)
+    preds = model.predict(dummy)
+    decode_predictions(preds, top=1)
+    logger.info("Gatekeeper warmup complete (predict + decode cached)")
+
+
 def is_plant_image(img_path: str) -> bool:
     from keras.applications.efficientnet import decode_predictions, preprocess_input
     from keras.preprocessing import image

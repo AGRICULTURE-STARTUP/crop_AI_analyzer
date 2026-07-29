@@ -25,7 +25,11 @@ def _is_scan_worker() -> bool:
 
 @worker_ready.connect
 def _warmup_scanner_models(sender, **kwargs):
-    """Load TF gatekeeper + default crop model once so the first scan is not cold."""
+    """Full warmup: gatekeeper predict+decode + default crop model.
+
+    With --pool=solo the warmed process IS the task process.
+    Raises on failure so the worker exits instead of silently serving cold/broken scans.
+    """
     if not _is_scan_worker():
         return
 
@@ -33,13 +37,11 @@ def _warmup_scanner_models(sender, **kwargs):
 
     log = logging.getLogger(__name__)
     crop = os.getenv("SCAN_WARMUP_CROP", "maize").strip() or "maize"
-    try:
-        from inference.gatekeeper import get_gatekeeper
-        from inference.model_lru import get_crop_model
 
-        log.info("Warming gatekeeper + %s model…", crop)
-        get_gatekeeper()
-        get_crop_model(crop)
-        log.info("Scanner warmup complete")
-    except Exception as exc:  # noqa: BLE001
-        log.warning("Scanner warmup skipped: %s", exc)
+    log.info("Warming gatekeeper (full predict+decode) + %s model…", crop)
+    from inference.gatekeeper import warmup_gatekeeper
+    from inference.model_lru import get_crop_model
+
+    warmup_gatekeeper()
+    get_crop_model(crop)
+    log.info("Scanner warmup complete — ready for scans")

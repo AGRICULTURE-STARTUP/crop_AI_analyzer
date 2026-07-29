@@ -3,6 +3,7 @@ import os
 from decimal import Decimal
 
 from django.conf import settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -124,13 +125,25 @@ class ScanJobListCreateView(APIView):
 
         from inference.tasks import run_scan_job
 
-        async_result = run_scan_job.apply_async(args=[str(job.id)], queue="scan")
+        try:
+            async_result = run_scan_job.apply_async(args=[str(job.id)], queue="scan")
+        except Exception:
+            logger.exception("Failed to enqueue scan job %s", job.id)
+            job.status = ScanJob.Status.FAILED
+            job.error_message = "Could not enqueue scan. Please try again."
+            job.completed_at = timezone.now()
+            job.save(update_fields=["status", "error_message", "completed_at", "updated_at"])
+            try:
+                job.image.delete(save=False)
+            except Exception:  # noqa: BLE001
+                pass
+            return Response(
+                {"detail": "Scan service temporarily unavailable."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
         job.celery_task_id = async_result.id
         job.save(update_fields=["celery_task_id", "updated_at"])
-
-        # Debit is applied in the worker on successful completion; reserve free/count bookkeeping there.
-        # Stash intent on job via wallet_debited=False until worker decides.
-        _ = will_debit
 
         return Response(
             {"job_id": str(job.id), "status": job.status},

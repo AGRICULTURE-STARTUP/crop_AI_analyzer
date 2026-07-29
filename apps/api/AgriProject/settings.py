@@ -237,11 +237,20 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = '/media/'
 
+# Scan images always go to local filesystem (deleted after processing).
+SCAN_IMAGES_ROOT = os.getenv("SCAN_IMAGES_ROOT", os.path.join(BASE_DIR, "scan_images"))
+
 # Modern Django 5.x Storage Configuration
 if os.getenv('CLOUDINARY_URL'):
     STORAGES = {
         "default": {
             "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "scan_images": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {
+                "location": SCAN_IMAGES_ROOT,
+            },
         },
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -252,6 +261,12 @@ else:
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "scan_images": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {
+                "location": SCAN_IMAGES_ROOT,
+            },
         },
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

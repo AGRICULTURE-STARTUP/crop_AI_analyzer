@@ -240,6 +240,8 @@ If health_status is healthy, medicine may be an empty array.
             model=os.getenv("GROQ_SCAN_MODEL", "openai/gpt-oss-120b"),
             groq_api_key=api_key,
             temperature=0.2,
+            timeout=30,
+            max_retries=1,
         )
         result = llm.invoke(
             [SystemMessage(content=system_prompt), HumanMessage(content=human)]

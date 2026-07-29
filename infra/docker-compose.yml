@@ -50,6 +50,7 @@ services:
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       GUNICORN_WORKERS: "2"
       DEBUG: ${DEBUG:-False}
+      SCAN_IMAGES_ROOT: /app/scan_images
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,6 +64,7 @@ services:
     mem_limit: 1g
     volumes:
       - media_tmp:/app/media
+      - scan_images:/app/scan_images
 
   worker_scanner:
     build:
@@ -80,12 +82,14 @@ services:
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       MAX_LOADED_CROP_MODELS: "2"
       MODELS_DIR: /models
+      SCAN_IMAGES_ROOT: /app/scan_images
+      HF_HUB_OFFLINE: "1"
       OMP_NUM_THREADS: "1"
       TF_NUM_INTRAOP_THREADS: "1"
       TF_NUM_INTEROP_THREADS: "1"
     volumes:
       - models_data:/models
-      - media_tmp:/app/media
+      - scan_images:/app/scan_images
     mem_limit: 2.5g
     cpus: "1.5"
     depends_on:
@@ -96,7 +100,7 @@ services:
       api:
         condition: service_started
     networks: [agriscan_net]
-    command: celery -A AgriProject worker -Q scan -c 1 -l INFO
+    command: celery -A AgriProject worker -Q scan --pool=solo -c 1 -l INFO
 
   worker_rag:
     build:
@@ -159,6 +163,7 @@ volumes:
   chroma_data:
   kb_data:
   media_tmp:
+  scan_images:
   certbot_www:
   certbot_certs:
 

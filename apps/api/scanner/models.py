@@ -1,7 +1,12 @@
 import uuid
 
 from django.conf import settings
+from django.core.files.storage import storages
 from django.db import models
+
+
+def _scan_storage():
+    return storages["scan_images"]
 
 
 class ScanJob(models.Model):
@@ -21,7 +26,7 @@ class ScanJob(models.Model):
         related_name="scan_jobs",
     )
     crop = models.CharField(max_length=64)
-    image = models.ImageField(upload_to="scan_jobs/%Y/%m/%d/")
+    image = models.ImageField(upload_to="scan_jobs/%Y/%m/%d/", storage=_scan_storage)
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.QUEUED, db_index=True
     )
