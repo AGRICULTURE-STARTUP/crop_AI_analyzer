@@ -39,3 +39,8 @@ apps/web/android/build/
 apps/web/android/local.properties
 apps/web/ios/App/Pods/
 apps/web/ios/DerivedData/
+
+
+.github
+*.github
+
