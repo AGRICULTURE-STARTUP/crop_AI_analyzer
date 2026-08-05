@@ -189,6 +189,13 @@ def _farmer_score_payload(phone: str) -> tuple[dict | None, int, str | None]:
     # Refresh score on lookup
     health_profile = calculate_farm_health_score(farmer)
 
+    crops = (farmer.products or "").strip() or None
+    farm_size = (
+        float(farmer.farm_size_acres)
+        if farmer.farm_size_acres is not None
+        else None
+    )
+
     return (
         {
             "farmer_name": (
@@ -196,6 +203,8 @@ def _farmer_score_payload(phone: str) -> tuple[dict | None, int, str | None]:
                 or farmer.user.username
             ),
             "county": farmer.county,
+            "farm_size_acres": farm_size,
+            "crops": crops,
             "health_score": health_profile.health_score,
             "risk_tier": health_profile.risk_tier,
             "active_connections": farmer.market_connections.filter(

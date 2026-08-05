@@ -1,67 +1,120 @@
-# Grant Proposal: AgriScan – AI-Powered Agricultural Diagnostic & Advisory Platform
+# Grant Proposal: AgriScan — Universal Digital Agricultural Intelligence Platform
 
-## **Executive Summary**
-The agricultural sector in East Africa is plagued by significant crop losses due to delayed disease identification, a lack of access to expert agronomic advice, and fragmented supply chains that disconnect farmers from buyers and critical supplies. AgriScan addresses these gaps by providing an accessible, mobile-first AI diagnostic tool, an intelligent advisory chatbot, and an integrated agricultural marketplace. This project aims to empower 10,000 smallholder and semi-commercial farmers over the next 18 months. With the requested funding of $75,000, we will finalize our platform’s beta deployment, strengthen our mobile money (M-Pesa) micro-transaction framework, and initiate Phase 2: scaling our diagnostic capabilities to include drone-based multispectral scanning for large-scale cooperative farms. 
+**Version:** 2.0
+**Updated:** 30 July 2026
 
-## **Introduction to Organization**
-AgriScan Technologies is an AgTech innovator dedicated to democratizing access to expert-level agricultural insights and optimizing agricultural supply chains. Over the past two years, our development team has built a robust minimum viable product (MVP) that utilizes state-of-the-art computer vision (EfficientNet) and Large Language Models (LLaMA-3) to provide accurate crop disease identification and actionable advice. Furthermore, our platform includes dedicated profiles for Farmers, Buyers, and Agencies (Agrovets), ensuring that diagnosis seamlessly translates into treatment and commerce. We have successfully partnered with local agricultural extension workers to validate our dataset across 15+ local crops, making us uniquely positioned to deliver sustainable, scalable solutions to rural farming communities.
+## Executive Summary
 
-## **Problem or Need**
-Despite agriculture employing the majority of the rural workforce in East Africa, yields remain disproportionately low and supply chains are highly inefficient. 
-*   **The Accessibility Gap:** Smallholder farmers lack immediate access to trained agronomists. Relying on sporadic extension worker visits often means diseases spread beyond control before treatment is advised.
-*   **The Market Disconnect:** Even when farmers diagnose a problem or have a successful harvest, they lack a direct, transparent way to connect with buyers to sell their produce, or with verified agrovets to purchase the correct fertilizers and organic treatments.
-*   **The Technology Gap:** While precision agriculture exists, it is typically priced out of reach for small-scale operations. Existing AI tools often fail to provide localized treatment recommendations or integrate with local supply chains.
+Smallholder farmers frequently choose crops, apply inputs, irrigate, and respond to crop stress without timely soil data or agronomic support. AgriScan addresses this problem through one connected platform for crop recommendation, IoT field monitoring, AI crop diagnosis, multilingual advice, market access, mobile money, and consent-based farm records.
 
-Without an accessible, low-cost diagnostic and marketplace tool, farmers face reduced yields, compromised food security, and persistent poverty. AgriScan provides an immediate, scalable intervention that acts as both an expert agronomist and a central market hub in every farmer's pocket.
+The core Django application is deployed on a Contabo VPS at **[agriscan.co.ke](https://agriscan.co.ke)**. The next stage will integrate Stephen Kingori’s 22-crop recommendation system, complete M-Pesa and SMS/USSD access, implement SEO, and prototype an affordable IoT layer for NPK and soil-moisture data. These capabilities will allow AgriBot to give advice based not only on a photograph or question, but also on measured field conditions and farm history.
 
-## **Goals and Objectives**
-**Goal:** To increase crop yields and financial resilience for East African farmers by providing accessible AI-driven crop diagnostics, expert advisory, and direct marketplace access.
+AgriScan seeks **USD 75,000** to complete integration, procure and validate IoT hardware, conduct agronomist-supervised field pilots, improve accessibility, and prepare the platform for responsible scale over 18 months.
 
-**Objectives (SMART):**
-1.  **Deployment:** Launch the AgriScan mobile platform across 5 key agricultural counties in Kenya within the next 6 months.
-2.  **Adoption:** Onboard 10,000 active farmers and facilitate 50,000 AI-assisted crop scans within 12 months.
-3.  **Marketplace Integration:** Register 500 local agrovets and 1,000 verified buyers to the platform within 9 months to bridge the gap between diagnosis, treatment, and crop sales.
-4.  **Advanced Scaling (Drone Integration):** Procure and deploy two multispectral imaging drones within 18 months to pilot large-field scanning for 10 farming cooperatives.
+## Organization and Team
 
-## **Project Plan and Implementation Strategy**
-Our rollout strategy is phased to ensure stability, user adoption, and scalable expansion. 
+AgriScan is being developed by a four-person multidisciplinary team:
 
-| Phase | Timeline | Key Activities | Responsibilities |
-| :--- | :--- | :--- | :--- |
-| **Phase 1: Polish & Pilot** | Months 1 - 3 | - Finalize M-Pesa API integration and frontend responsiveness.<br>- Deploy beta application to 500 select farmers.<br>- Finalize Farmer, Buyer, and Agency portal UI. | Core Engineering Team |
-| **Phase 2: Growth & Marketplace** | Months 4 - 9 | - Launch local radio and cooperative marketing campaigns.<br>- Onboard agrovets to list products and buyers to source crops.<br>- Begin generating revenue via micro-transactions. | Marketing & Partnerships Lead |
-| **Phase 3: Drone Scaling** | Months 10 - 18 | - Procure DJI Mavic 3M drones for multispectral field scanning.<br>- Train and license local operators.<br>- Integrate drone imagery into the AgriScan AI backend. | Operations Manager & Data Science Team |
+- **Job Nyaribari — Founder, Product and AI/Technical Lead:** product direction, architecture, AI diagnosis, security, and partnerships.
+- **Ziro — Platform and Integrations Lead:** backend integrations, USSD/SMS, DevOps, observability, and data services.
+- **Lynn — Agricultural Operations and Farmer Success Lead:** agronomic content, field protocols, farmer training, and validation.
+- **Stephen Kingori — Crop Recommendation and Project Management Lead:** crop-recommendation product ownership, model integration, delivery tracking, technical documentation, and cross-team coordination.
 
-## **Budget and Justification**
-We request a total funding of **$75,000** to support software scaling, field operations, and the Phase 2 drone expansion. Without these funds, scaling to large cooperative farms via drone technology would be impossible, and hosting costs would inhibit our ability to offer free trial scans to low-income farmers.
+Stephen joins AgriScan with an existing Flask and Gaussian Naive Bayes crop recommendation system. Its integration provides a tested starting point while the team validates assumptions and adapts the model to local field conditions.
 
-| Expense Category | Estimated Cost | Justification |
-| :--- | :--- | :--- |
-| **Software Dev. & Cloud Infrastructure** | $25,000 | GPU hosting for EfficientNet models, Groq API costs for the AgriBot LLM, and developer stipends to maintain the M-Pesa and Marketplace backend. |
-| **Marketing & Farmer Outreach** | $20,000 | Facilitates local training workshops, radio advertising, and onboarding campaigns to reach our target of 10,000 farmers and 1,500 marketplace users. |
-| **Drone Equipment (Hardware)** | $11,500 | Procurement of two (2) DJI Mavic 3 Multispectral (Mavic 3M) enterprise bundles ($5,500 each + accessories). Essential for large-scale NDVI mapping and precision agriculture for farming cooperatives. |
-| **Drone Licensing & Training** | $3,500 | Certification, training, and commercial licensing for two local drone operators to ensure safe and legal flights. |
-| **Operational & Admin Expenses** | $15,000 | Project management, legal compliance, field travel, and general office operations. |
-| **Total Funding Requested** | **$75,000** | |
+## Problem or Need
 
-## **Evaluation and Impact Measurement Plan**
-We are committed to data-driven impact assessment. Success will be measured using the following Key Performance Indicators (KPIs):
+Farmers face six connected gaps:
 
-1.  **Usage Metrics:** Number of active user accounts across all tiers (Farmers, Buyers, Agencies) and the frequency of crop scans and AgriBot interactions.
-2.  **Diagnostic Accuracy:** Continuous evaluation of the EfficientNet model's confidence scores against ground-truth validation from partnered agronomists.
-3.  **Marketplace Efficacy:** Volume of successful transactions and connections made between farmers, buyers, and agro-dealers following a disease diagnosis or harvest.
-4.  **Economic Impact (Surveys):** Bi-annual SMS surveys to measure reported increases in crop yield and reductions in pesticide misuse among our active users.
+1. **Pre-planting uncertainty:** Soil and climate information is rarely converted into an understandable crop choice.
+2. **Limited field visibility:** NPK, moisture, and other soil conditions are not measured continuously on most small farms.
+3. **Delayed diagnosis:** Extension officers cannot reach every farmer when symptoms first appear.
+4. **Fragmented advice:** Image diagnosis, weather, soil readings, and treatment guidance are often disconnected.
+5. **Digital exclusion:** Smartphone-only products exclude feature-phone and low-connectivity users.
+6. **Market and finance barriers:** Farmers lack transparent market links and verifiable, consent-based production records.
 
-## **Supporting Documents**
-*(The following documents are available upon request and will be attached to the formal submission:)*
-*   Letters of Support from the Kenya Agricultural and Livestock Research Organization (KALRO) partners.
-*   Resumes of Core Engineering and Agronomy Advisory Team.
-*   Detailed technical architecture schematics for the AgriScan platform.
+The result is unsuitable crop selection, delayed intervention, avoidable input use, low productivity, and weak financial resilience.
 
----
+## Proposed Solution
+
+AgriScan supports the farming lifecycle through:
+
+- **Crop recommendation:** Uses N, P, K, pH, temperature, humidity, and rainfall to suggest suitable crops.
+- **IoT monitoring:** Collects NPK and soil-moisture readings from field sensors, with room for temperature, humidity, pH, and other devices.
+- **AI crop diagnosis:** Analyses leaf photographs and combines results with field context.
+- **AgriBot advice:** Delivers practical English/Kiswahili guidance grounded in trusted agricultural content, weather, sensor readings, and farm history.
+- **Marketplace:** Connects farmers, produce buyers, and agricultural input suppliers.
+- **Payments and inclusion:** Uses M-Pesa and planned SMS/USSD channels.
+- **Farm intelligence:** Builds a farmer-controlled history and Farm Health Score for support and responsible partner services.
+
+The platform supports, but does not replace, qualified agronomists or extension officers. Low-confidence and high-risk cases will be escalated.
+
+## Goals and Objectives
+
+**Goal:** Improve productivity and financial resilience by making field intelligence and agronomic decision support affordable and accessible.
+
+### 18-month objectives
+
+1. Integrate crop recommendation into AgriScan and validate it against agronomist-reviewed Kenyan cases within four months.
+2. Complete production M-Pesa, SMS, and USSD flows and test them with representative users within six months.
+3. Prototype, calibrate, and field-test NPK and soil-moisture telemetry on at least 20 plots within nine months.
+4. Onboard up to 10,000 farmers and facilitate 50,000 crop scans or recommendations within 18 months, subject to pilot evidence and partner capacity.
+5. Establish measurable baselines for recommendation usefulness, diagnostic agreement, response time, input use, and farmer outcomes.
+
+## Implementation Strategy
+
+| Phase | Timeline | Key activities | Lead roles |
+|---|---|---|---|
+| **1. Integration and stabilisation** | Months 1–3 | Merge crop recommendation into Django; finish production payments; implement SEO; improve tests, monitoring, and security | Job, Stephen, Ziro |
+| **2. Inclusive access and IoT prototype** | Months 3–6 | Deliver SMS/USSD; procure sensors; define device identity and telemetry API; calibrate NPK/moisture devices | Ziro, Stephen, Lynn |
+| **3. Field validation** | Months 6–12 | Deploy monitored plots; compare AI advice with agronomist assessments; improve models and Kiswahili content | Lynn, Job, Stephen |
+| **4. Scale and partnerships** | Months 12–18 | Expand farmer, buyer, agency, cooperative, and finance partnerships based on validated evidence | All |
+
+## Budget and Justification
+
+| Expense category | Estimated cost | Justification |
+|---|---:|---|
+| Software development and infrastructure | $22,000 | Integration work, AI/LLM services, VPS scaling, backups, observability, security, and developer support |
+| IoT hardware and connectivity | $16,000 | NPK and moisture sensors, controllers/gateways, enclosures, solar/power components, SIM/data, spares, and installation |
+| Field validation and agronomy | $14,000 | Agronomist review, calibration, plot visits, farmer training, transport, and data collection |
+| Farmer access and communications | $8,000 | SMS/USSD setup and usage, Kiswahili content, support materials, and low-bandwidth testing |
+| Outreach and partnerships | $8,000 | Cooperative engagement, demonstrations, onboarding, and stakeholder workshops |
+| Project management, legal, and contingency | $7,000 | Coordination, data-protection work, contracts, reporting, and risk reserve |
+| **Total requested** | **$75,000** | |
+
+Final expenditure will follow supplier quotations, pilot design, and funder requirements.
+
+## Monitoring, Evaluation, and Learning
+
+The project will track:
+
+- Crop-recommendation agreement with agronomists and farmer-observed outcomes.
+- Sensor completeness, calibration error, uptime, and failed-reading rates.
+- Crop diagnosis confidence and agreement with validated labels.
+- Time from farmer request to actionable advice.
+- Active farmers, scans, recommendations, AgriBot sessions, SMS/USSD sessions, and retention.
+- Marketplace connections and completed transactions.
+- Reported changes in input use, crop loss, yield, and farmer confidence.
+- Consent rates, data-access events, incidents, and escalations.
+
+Targets will be revised after baseline data is collected; model accuracy claims will not substitute for field validation.
+
+## Sustainability
+
+Potential revenue includes affordable scan and advisory microtransactions, agency subscriptions, marketplace fees, cooperative monitoring packages, IoT service plans, and consent-based B2B APIs. Free trials and sponsored access can protect inclusion while recurring institutional services support long-term operations.
+
+## Key Risks and Mitigation
+
+- **Sensor inaccuracy:** Calibrate against reference tests and flag implausible readings.
+- **AI misdiagnosis:** Show confidence, retain audit trails, and escalate uncertain cases.
+- **Connectivity gaps:** Provide SMS/USSD and store-and-forward IoT designs.
+- **Farmer-data misuse:** Apply explicit consent, role-based access, encryption, and audit logging.
+- **Integration complexity:** Use documented APIs, staged rollouts, automated tests, and clear ownership.
+- **Overambitious adoption targets:** Gate expansion on pilot evidence and operational capacity.
 
 ## Contact
 
-**Job Nyaribari**  
-**Phone:** +254 758 503819 (0758503819)  
+**Job Nyaribari**
+**Phone:** +254 758 503819
 **Email:** [jobnyaribari808@gmail.com](mailto:jobnyaribari808@gmail.com)
+**Website:** [agriscan.co.ke](https://agriscan.co.ke)

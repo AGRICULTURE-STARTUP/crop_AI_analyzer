@@ -13,11 +13,13 @@ function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setBusy(true);
     const fd = new FormData(e.currentTarget);
     try {
@@ -25,6 +27,8 @@ function LoginForm() {
         String(fd.get("username") || ""),
         String(fd.get("password") || "")
       );
+      setSuccess("Sign in successful, logging you in…");
+      await new Promise((r) => setTimeout(r, 1200));
       router.push(safeNextPath(params.get("next"), role) || home);
     } catch (err) {
       setError(
@@ -32,7 +36,6 @@ function LoginForm() {
           ? err.message || "Login failed"
           : "Unable to log in"
       );
-    } finally {
       setBusy(false);
     }
   }
@@ -60,8 +63,9 @@ function LoginForm() {
         autoComplete="current-password"
       />
       {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
+      {success ? <p className="text-sm text-[var(--ok)]">{success}</p> : null}
       <button className="btn btn-primary w-full" disabled={busy} type="submit">
-        {busy ? "Signing in…" : "Log in"}
+        {busy ? (success ? "Logging you in…" : "Signing in…") : "Log in"}
       </button>
       <p className="text-center text-sm text-ink/60">
         New here?{" "}

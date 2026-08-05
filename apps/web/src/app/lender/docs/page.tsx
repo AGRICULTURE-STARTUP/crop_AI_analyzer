@@ -18,6 +18,12 @@ export default function LenderDocsPage() {
         </pre>
         <ul className="list-disc space-y-2 pl-5 text-sm text-ink/70">
           <li>Only farmers with lending opt-in return score data.</li>
+          <li>
+            Response includes name, county, health score, risk tier, completed
+            market connections, total scans, plus <code>farm_size_acres</code>{" "}
+            and <code>crops</code> when the farmer has set them (otherwise{" "}
+            <code>null</code>).
+          </li>
           <li>Unapproved or suspended partners receive HTTP 403.</li>
           <li>Rotate keys from the API keys page; old secrets stop working.</li>
         </ul>

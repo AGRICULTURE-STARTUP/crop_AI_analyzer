@@ -53,6 +53,8 @@ class LendingScoreContractTests(TestCase):
             user=self.farmer_user,
             phone_number="254712345678",
             county="Nakuru",
+            products="Maize, tomato",
+            farm_size_acres="2.50",
         )
         hp, _ = FarmHealthProfile.objects.get_or_create(farmer=self.farmer)
         hp.opt_in_for_lending = True
@@ -71,8 +73,27 @@ class LendingScoreContractTests(TestCase):
             HTTP_AUTHORIZATION=f"Bearer {self.raw_key}",
         )
         self.assertEqual(res.status_code, 200)
-        self.assertIn("health_score", res.json())
-        self.assertEqual(res.json()["county"], "Nakuru")
+        body = res.json()
+        self.assertIn("health_score", body)
+        self.assertEqual(body["county"], "Nakuru")
+        self.assertEqual(body["farm_size_acres"], 2.5)
+        self.assertEqual(body["crops"], "Maize, tomato")
+
+    def test_score_omits_empty_farm_fields(self):
+        # Use queryset.update to avoid FarmerProfile post_save re-saving a
+        # stale cached health_profile and wiping opt_in_for_lending.
+        FarmerProfile.objects.filter(pk=self.farmer.pk).update(
+            products="", farm_size_acres=None
+        )
+        res = self.client.get(
+            "/api/v1/lending/score/",
+            {"phone": "254712345678"},
+            HTTP_AUTHORIZATION=f"Bearer {self.raw_key}",
+        )
+        self.assertEqual(res.status_code, 200)
+        body = res.json()
+        self.assertIsNone(body["farm_size_acres"])
+        self.assertIsNone(body["crops"])
 
     def test_score_rejects_without_consent(self):
         hp = self.farmer.health_profile

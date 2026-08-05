@@ -1,6 +1,9 @@
 # AgriScan (crop_AI_analyzer) — System Documentation
 
-This document describes the **AgriScan** platform in the repository `crop_AI_analyzer` using the standard documentation areas: requirements, architecture, technical specifications, operations, maintenance, and quality assurance. It is the canonical system-level view; feature-level detail also appears in [README.md](../README.md), [proposal.md](./proposal.md), and [AgriScan_Stakeholder_Overview.md](./AgriScan_Stakeholder_Overview.md).
+This document describes the **AgriScan** platform in `crop_AI_analyzer`, including its deployed core and the approved integration design for crop recommendation and IoT field monitoring. It is the canonical system-level view. Current production functionality is distinguished from planned functionality so that roadmap items are not mistaken for implemented features.
+
+**Production:** Contabo VPS at [agriscan.co.ke](https://agriscan.co.ke)
+**Document version:** 2.0 — 30 July 2026
 
 ---
 
@@ -17,12 +20,18 @@ This document describes the **AgriScan** platform in the repository `crop_AI_ana
 - **Farm Health Score** (300–850) and **partner REST API** for consenting farmers, keyed by phone number.
 - **Monetisation**: wallet balances, per-scan and per-chat charges, M-Pesa STK callbacks, optional agency subscriptions for product listings.
 - **Authentication**: Django auth, django-allauth (including Google OAuth), password reset via email (SendGrid).
+- **Crop recommendation (integration in progress)**: recommend among 22 crops from N, P, K, temperature, humidity, pH, and rainfall using a versioned GaussianNB model and scaler.
+- **IoT field monitoring (planned prototype)**: ingest authenticated NPK and soil-moisture readings and expose quality-checked field context to recommendations and advice.
+- **Inclusive access (planned)**: SMS and USSD for selected farmer journeys.
+- **Discoverability (in progress)**: technical and content SEO for `agriscan.co.ke`.
 
 **Out of scope (unless added explicitly)**
 
 - Guarantees of medical/veterinary or regulatory compliance; outputs are advisory.
 - Offline-first mobile inference (described as future in README; not guaranteed in this repo).
 - Full OpenAPI/Swagger coverage for all HTML routes (most interfaces are server-rendered forms and JSON chat).
+- Automatic agronomic decisions without farmer confirmation or escalation.
+- Treating low-cost sensor data as laboratory-equivalent without calibration.
 
 ### 1.2 Functional requirements (summary)
 
@@ -36,6 +45,11 @@ This document describes the **AgriScan** platform in the repository `crop_AI_ana
 | FR-06 | Farm Health Score is derived from scans, health ratio, and completed market connections; profile view triggers recalculation. |
 | FR-07 | Partners with a valid `PartnerAPIKey` can `GET` score data for farmers who opted in, by phone query parameter. |
 | FR-08 | M-Pesa callbacks update transaction records and either wallet balance or agency subscription. |
+| FR-09 | Farmers can request a crop recommendation from validated seven-feature input; each result records input source and model version. *(Planned integration)* |
+| FR-10 | Registered devices can submit attributable, timestamped telemetry; invalid readings are rejected or quarantined. *(Planned)* |
+| FR-11 | Authorised users can view recent plot readings and their quality state. *(Planned)* |
+| FR-12 | AgriBot can use authorised crop, weather, sensor, and diagnosis context while identifying data provenance. *(Planned)* |
+| FR-13 | Priority advice and account flows are accessible through SMS/USSD. *(Planned)* |
 
 ### 1.3 Non-functional requirements
 
@@ -46,6 +60,9 @@ This document describes the **AgriScan** platform in the repository `crop_AI_ana
 | **Availability** | Designed for container deployment (Gunicorn); database via PostgreSQL in production (`DATABASE_URL`). |
 | **Rate limiting** | `django-ratelimit` on scan, chat, password reset (see §4). |
 | **Privacy** | Lending API returns data only if `FarmHealthProfile.opt_in_for_lending` is true. |
+| **Traceability** | Recommendations and sensor readings retain source, timestamps, quality state, and model/device identity. |
+| **Safety** | Low-confidence, high-risk, and implausible-data cases must be escalated rather than presented as definitive advice. |
+| **IoT security** | Each device uses revocable credentials; requests are authenticated, rate-limited, and replay-resistant. *(Target)* |
 
 ---
 
@@ -62,6 +79,7 @@ flowchart LR
         B[Buyers]
         A[Agencies]
         AD[Site admin]
+        D[IoT devices and gateways]
     end
     subgraph agri [AgriScan Django App]
         WEB[Web UI and JSON endpoints]
@@ -74,11 +92,13 @@ flowchart LR
         GOOG[Google OAuth]
         CL[Cloudinary storage]
         PG[(PostgreSQL)]
+        AT[Africas Talking SMS and USSD]
     end
     F --> WEB
     B --> WEB
     A --> WEB
     AD --> WEB
+    D --> WEB
     WEB --> GROQ
     WEB --> HF
     WEB --> MPESA
@@ -86,6 +106,7 @@ flowchart LR
     WEB --> GOOG
     WEB --> CL
     WEB --> PG
+    WEB --> AT
 ```
 
 ### 2.2 Container diagram
@@ -97,11 +118,15 @@ flowchart TB
         DJ[Django main_app]
         TF[TensorFlow inference]
         LC[LangChain RAG Chroma optional]
+        REC[Crop recommendation planned]
+        IOT[Telemetry service planned]
     end
     U[Browser or mobile webview] --> GW
     GW --> DJ
     DJ --> TF
     DJ --> LC
+    DJ --> REC
+    DJ --> IOT
     DJ --> DB[(PostgreSQL / SQLite dev)]
     DJ --> MEDIA[Cloudinary or local media]
 ```
@@ -117,6 +142,29 @@ flowchart TB
 | **`utils_weather.py`** | Weather helpers for farmer profile context (when configured). |
 | **`mpesa_utils.py`** | STK push initiation and related configuration. |
 | **django-allauth** | Social login under `/accounts/`. |
+| **Crop recommendation service** *(planned)* | Django service/API loading a trusted GaussianNB model and MinMaxScaler; validates seven ordered features and logs model version. |
+| **IoT device registry and telemetry** *(planned)* | Maps devices to plots, authenticates uploads, validates readings, and stores raw plus quality metadata. |
+| **Context builder** *(planned)* | Selects authorised, recent, quality-approved sensor/weather/recommendation context for AgriBot and diagnosis advice. |
+
+### 2.4 Target integrated decision flow
+
+```mermaid
+flowchart LR
+    S[Soil sensors] --> V[Telemetry validation]
+    U[Farmer input] --> R[Crop recommendation]
+    W[Weather data] --> R
+    V --> R
+    P[Crop image] --> D[Image diagnosis]
+    R --> C[Context builder]
+    V --> C
+    D --> C
+    W --> C
+    C --> B[AgriBot advice]
+    B --> F[Farmer web SMS or USSD]
+    B --> E[Agronomist escalation]
+```
+
+Measured, farmer-entered, weather-derived, and estimated values must remain distinguishable throughout this flow.
 
 Supplementary diagram assets (if maintained separately) are referenced in [AgriScan Technical Architecture Schematics.md](./AgriScan%20Technical%20Architecture%20Schematics.md); prefer **Mermaid** in version control for diagrams that must remain portable.
 
@@ -144,7 +192,19 @@ Core entities (see `main_app/models.py`):
 
 **Signals**: Creating `FarmerProfile` creates `FarmHealthProfile`; creating `User` creates `Wallet`.
 
-### 3.2 Data flow — crop scan (high level)
+### 3.2 Planned data entities
+
+Names may change during implementation; migrations are not yet present.
+
+| Entity | Purpose |
+|---|---|
+| `FarmPlot` | Identifies a farmer-managed field/plot and basic crop/location metadata. |
+| `IoTDevice` | Device identity, plot assignment, credential status, firmware, and last contact. |
+| `SensorReading` | Metric, value, unit, timestamp, raw payload reference, and quality status. |
+| `CropRecommendation` | Seven inputs, source per input, model/scaler version, output, and timestamp. |
+| `AgronomyEscalation` | Records cases requiring human review and their resolution. |
+
+### 3.3 Data flow — crop scan (high level)
 
 1. POST to `process` with multipart image + crop selection.
 2. Validate size (≤ 5 MB), MIME (`jpeg`/`png`/`webp`), extension.
@@ -153,7 +213,37 @@ Core entities (see `main_app/models.py`):
 5. Model predicts class; result and confidence logged for farmers.
 6. Temporary file removed after inference.
 
-### 3.3 Farm Health Score algorithm
+### 3.4 Crop recommendation integration
+
+The source recommender is a standalone Flask application owned by Stephen Kingori. It loads `gaussian_nb_model.pkl` and `minmax_scaler.pkl` and predicts one of 22 crop labels.
+
+The production Django integration must:
+
+1. Accept N, P, K, temperature, humidity, pH, and rainfall in a fixed documented order and unit.
+2. Validate types, plausible ranges, missing values, and freshness.
+3. Track whether each value is measured, farmer-entered, weather-derived, or estimated.
+4. Load only repository-controlled, checksummed model artefacts.
+5. Return a recommendation with model version and limitations.
+6. Persist inputs and outcome for regression testing and agronomic evaluation.
+7. Avoid random rainfall estimation and avoid inventing missing sensor values.
+
+The existing model's reported notebook accuracy is not evidence of Kenyan field performance. Local agronomist and outcome validation is required.
+
+### 3.5 IoT telemetry design
+
+Initial metrics are N, P, K, and soil moisture. pH, soil temperature, ambient temperature/humidity, and other sensors can be added after prototype validation.
+
+**Target ingestion sequence**
+
+1. Device or gateway authenticates with a unique revocable credential.
+2. Payload includes device ID, plot ID, observed timestamp, metric, value, unit, and sequence/message ID.
+3. API validates identity, assignment, schema, timestamp drift, duplicate message, unit, and plausible range.
+4. Accepted readings and quality flags are stored; suspicious readings are quarantined and never silently fed to AI.
+5. Dashboards expose freshness, trends, battery/connectivity status, and calibration state.
+
+Bulk sensor procurement must wait until representative devices are compared with reference measurements.
+
+### 3.6 Farm Health Score algorithm
 
 Implemented in `calculate_farm_health_score()` (`utils_scoring.py`):
 
@@ -166,7 +256,7 @@ Implemented in `calculate_farm_health_score()` (`utils_scoring.py`):
 
 Recalculation is invoked from the farmer profile view (`views.py`), so scores refresh when the farmer visits that page after activity.
 
-### 3.4 API documentation
+### 3.7 API documentation
 
 #### Partner lending API
 
@@ -194,7 +284,25 @@ Recalculation is invoked from the farmer profile view (`views.py`), so scores re
 
 Scan endpoint is **not** a REST JSON API: it is form POST to `process` returning rendered HTML.
 
-### 3.5 Primary URL map (application routes)
+#### Planned crop recommendation API
+
+Provisional contract; the route is not implemented until merged.
+
+- `POST /api/v1/crop-recommendations/`
+- Auth: farmer session or approved service credential.
+- Body: seven named numeric features plus optional source/plot metadata.
+- Response: recommendation, model version, input provenance, warnings, and record ID.
+- Errors: `400` invalid/missing input, `422` implausible or unusable data, `503` model unavailable.
+
+#### Planned IoT telemetry API
+
+- `POST /api/v1/iot/readings/`
+- Auth: device credential, not a farmer browser session.
+- Supports idempotency through a unique device/message identifier.
+- Returns accepted/quarantined status and validation errors.
+- Device provisioning, credential rotation, and revocation remain admin-only operations.
+
+### 3.8 Primary URL map (application routes)
 
 | Path | Purpose |
 |------|---------|
@@ -208,7 +316,7 @@ Scan endpoint is **not** a REST JSON API: it is form POST to `process` returning
 | `/mpesa/topup/`, `/mpesa/callback/` | Payments |
 | `/accounts/` | allauth (social login) |
 
-### 3.6 Source code documentation
+### 3.9 Source code documentation
 
 Complex logic (scoring, gatekeeper, wallet gating, M-Pesa parsing) lives in Python modules with selective docstrings and inline comments. Contributors should document non-obvious financial or ML assumptions next to the code they change.
 
@@ -225,6 +333,9 @@ Complex logic (scoring, gatekeeper, wallet gating, M-Pesa parsing) lives in Pyth
 | **Database** | PostgreSQL via env or `DATABASE_URL`; local defaults in `settings.py` |
 | **Static files** | WhiteNoise; `collectstatic` in container CMD |
 | **Media** | Cloudinary when `CLOUDINARY_URL` set; else local `media/` |
+| **Production host** | Contabo VPS |
+| **Public domain** | `https://agriscan.co.ke` |
+| **Reverse proxy/TLS** | Nginx with HTTPS on the VPS; configuration must be maintained in the deployment runbook |
 
 ### 4.2 Configuration (environment variables)
 
@@ -240,20 +351,30 @@ Complex logic (scoring, gatekeeper, wallet gating, M-Pesa parsing) lives in Pyth
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | OAuth |
 | `EMAIL_HOST_USER`, `SENDGRID_API_KEY`, `DEFAULT_FROM_EMAIL` | Email |
 | `DJANGO_LOG_LEVEL` | Optional logging override |
+| `OPENWEATHER_API_KEY` | Weather context where enabled |
+| `MPESA_*` | Daraja credentials, shortcode/passkey, callback configuration |
+| `SMS_USSD_*` | Selected provider credentials and channel identifiers *(planned)* |
+| `IOT_DEVICE_SIGNING_SECRET` or per-device credential store | IoT request authentication *(planned; prefer per-device credentials)* |
+| `CROP_RECOMMENDER_MODEL_PATH`, `CROP_RECOMMENDER_SCALER_PATH` | Trusted recommender artefacts *(planned)* |
 
-### 4.3 Deployment procedure (Docker / Railway pattern)
+### 4.3 Deployment procedure (Contabo)
 
-1. Build image from `Dockerfile` (installs `requirements.txt`, copies project).
-2. Set environment variables on the host (especially `SECRET_KEY`, `DATABASE_URL`, `CLOUDINARY_URL`).
-3. Container runs: `migrate` → `collectstatic` → `gunicorn AgriProject.wsgi:application --bind 0.0.0.0:$PORT`.
+1. Build and test the Docker image from the reviewed release revision.
+2. Back up PostgreSQL and record the rollback image/revision.
+3. Configure secrets on the host; do not store production values in Git.
+4. Run migrations and `collectstatic`.
+5. Start Gunicorn behind Nginx and verify HTTPS for `agriscan.co.ke`.
+6. Run smoke tests for authentication, scan, chat, marketplace, and any changed integration.
+7. Verify logs, health checks, M-Pesa callback reachability, and backup status.
+8. Roll back application and migration according to the deployment runbook if acceptance checks fail.
 
-See [README.md](../README.md) for clone-and-run developer setup.
+The previous Railway configuration may remain useful as a reference, but Contabo is the current production environment.
 
 ### 4.4 Session and security toggles
 
 - Session lifetime: **1800** seconds (30 minutes); `SESSION_EXPIRE_AT_BROWSER_CLOSE = True`.
 - When `DEBUG=False`: `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_SSL_REDIRECT` enabled.
-- `CSRF_TRUSTED_ORIGINS` includes Railway hosts.
+- `CSRF_TRUSTED_ORIGINS` and `ALLOWED_HOSTS` must include `agriscan.co.ke` and only approved hosts.
 
 ---
 
@@ -278,6 +399,9 @@ See [README.md](../README.md) for clone-and-run developer setup.
 | “Insufficient balance” | Wallet below thresholds | Top-up flow; check free-trial rules for farmers |
 | Chat 429 | Rate limit | `django-ratelimit` — wait and retry |
 | M-Pesa success but no wallet change | Callback payload or transaction lookup | Inspect `MpesaTransaction` by `checkout_request_id`; check logs |
+| Recommendation differs after deploy | Model/scaler mismatch or feature-order change | Verify checksums, versions, and seven-feature regression fixtures |
+| Sensor values jump or remain constant | Faulty calibration, placement, power, or device | Quarantine readings; inspect device; compare with reference measurement |
+| Device receives 401/403 | Missing, revoked, or mismatched device credential | Verify registry assignment and rotate credential if required |
 
 ### 5.3 Backups and recovery
 
@@ -296,10 +420,14 @@ See [README.md](../README.md) for clone-and-run developer setup.
 | **Lending API** | Valid key + opted-in farmer returns 200; wrong phone 404; no consent 403. |
 | **Process** | File size/type rejection; rate limit returns user-visible error. |
 | **M-Pesa callback** | Atomic update of transaction and wallet/subscription. |
+| **Crop recommendation** | Known fixtures produce stable predictions; validation rejects bad ranges/units; model/scaler mismatch fails safely. |
+| **IoT telemetry** | Auth, replay/idempotency, schema, ranges, stale timestamps, quarantine, and plot permissions. |
+| **Contextual advice** | Only authorised and quality-approved readings are used; provenance and escalation appear in output. |
+| **USSD/SMS** | Session state, malformed callbacks, retries, concise copy, opt-out, and low-balance behavior. |
 
 ### 6.2 Current state of automated tests
 
-The Django app’s `main_app/tests.py` is a placeholder with no test cases. **Formal test results are not yet recorded in CI.** Adding `pytest`/`django.test` cases for `utils_scoring` and `farm_health_score_api` is the highest-value next step.
+The Django app’s `main_app/tests.py` is a placeholder with no test cases. **Formal test results are not yet recorded in CI.** Before crop recommendation or IoT reaches production, add automated coverage for scoring, lending consent, payment idempotency, recommendation regression fixtures, telemetry authentication/validation, and advice-context permissions.
 
 ---
 
@@ -320,8 +448,9 @@ The Django app’s `main_app/tests.py` is a placeholder with no test cases. **Fo
 | Version | Date | Notes |
 |---------|------|-------|
 | 1.0 | 2026-05-03 | Initial system document aligned to repository `crop_AI_analyzer`. |
+| 2.0 | 2026-07-30 | Recorded Contabo/domain deployment; added crop recommendation, IoT, SMS/USSD, four-person ownership, and integration safeguards. |
 
-*Maintainers: update §6 when automated tests land; update §3.4 if partner API contract changes.*
+*Maintainers: update §6 when automated tests land; mark planned routes as implemented only after their code, migrations, tests, and deployment are complete.*
 
 ### Primary contact
 

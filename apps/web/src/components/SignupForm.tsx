@@ -59,12 +59,14 @@ export function SignupForm({
   const { acceptTokens } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError("");
+    setSuccess("");
     const form = e.currentTarget;
     const fd = new FormData(form);
     const password = String(fd.get("password") || "");
@@ -120,6 +122,8 @@ export function SignupForm({
         access: res.access,
         refresh: res.refresh,
       });
+      setSuccess("Signup successful, redirecting you…");
+      await new Promise((r) => setTimeout(r, 1200));
       router.push(session.home || roleHome(role));
     } catch (err) {
       if (err instanceof ApiError) {
@@ -139,7 +143,6 @@ export function SignupForm({
       } else {
         setError("Registration failed");
       }
-    } finally {
       setBusy(false);
     }
   }
@@ -327,9 +330,12 @@ export function SignupForm({
         </label>
 
         {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
+        {success ? <p className="text-sm text-[var(--ok)]">{success}</p> : null}
         <button className="btn btn-primary w-full" disabled={busy} type="submit">
           {busy
-            ? "Creating account…"
+            ? success
+              ? "Redirecting…"
+              : "Creating account…"
             : `Create ${meta.label.toLowerCase()} account`}
         </button>
         <p className="text-center text-sm text-ink/60">

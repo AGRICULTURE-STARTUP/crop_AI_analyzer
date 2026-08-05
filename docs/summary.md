@@ -1,6 +1,8 @@
 # AgriScan — Executive Summary
 
-**AgriScan** is an AI-powered agricultural platform built for East Africa—especially Kenya—that helps smallholder and semi-commercial farmers diagnose crop diseases from a phone photo, get practical advice in English or Kiswahili, connect with buyers and input suppliers, and build a verifiable digital farm profile that can unlock financial services.
+**AgriScan** is a universal digital agricultural platform built for East Africa, beginning in Kenya. It helps farmers select suitable crops, monitor soil conditions through IoT sensors, diagnose crop problems from phone photographs, receive contextual English/Kiswahili advice, connect with buyers and suppliers, and build a consent-based digital farm record.
+
+The core platform is deployed on a Contabo VPS at **[agriscan.co.ke](https://agriscan.co.ke)**. Crop-recommendation integration, production M-Pesa, SMS/USSD, SEO, and the IoT field layer are the current priorities.
 
 **Primary contact:** Job Nyaribari — +254 758 503819 — [jobnyaribari808@gmail.com](mailto:jobnyaribari808@gmail.com)
 
@@ -8,11 +10,13 @@
 
 ## 1. Problem Statement
 
-Agriculture employs most of the rural workforce in East Africa, yet yields stay low and supply chains remain fragmented. Three structural gaps drive crop loss, poverty, and food insecurity:
+Agriculture employs much of East Africa's rural workforce, yet many farmers make critical decisions without timely soil measurements, crop-health information, or expert support. Five structural gaps drive avoidable crop loss and weak financial resilience:
 
 | Gap | What farmers face today |
 |-----|-------------------------|
 | **Accessibility** | Expert agronomists and extension officers cannot be everywhere. Diseases often spread beyond control before anyone diagnoses them. |
+| **Crop-selection gap** | Farmers may choose crops without converting NPK, pH, rainfall, temperature, and humidity data into a practical recommendation. |
+| **Field-data gap** | Most small farms lack affordable, continuous measurements of soil nutrients and moisture. |
 | **Market disconnect** | Even when farmers know what their crop needs—or have a good harvest—they lack a direct, transparent way to find buyers or trusted agrovets for the right inputs. |
 | **Technology** | Precision agriculture tools exist but are priced for large commercial farms. Generic AI tools rarely offer localized treatment advice or tie into local supply chains and mobile money. |
 
@@ -22,14 +26,16 @@ Agriculture employs most of the rural workforce in East Africa, yet yields stay 
 
 ## 2. Solution
 
-AgriScan puts an **AI agronomist, advisor, and market connector** in every farmer's pocket through a mobile-first web platform (with native mobile packaging via CapacitorJS).
+AgriScan provides an **AI-assisted agronomist, field monitor, and market connector** through a mobile-first web platform. It supports farmer decisions but does not replace qualified agronomists or extension officers.
 
-The platform delivers four integrated capabilities:
+The platform combines six capabilities:
 
-1. **AI crop diagnosis** — Farmers photograph affected leaves; computer vision models classify health and disease for 11+ crops with a gatekeeper filter that rejects non-plant images.
-2. **AgriBot assistant** — A multilingual (English/Kiswahili) LLM chatbot with RAG over agricultural knowledge and optional real-time weather context.
-3. **Role-based marketplace** — Separate portals for **farmers**, **buyers**, and **agencies** (fertiliser, seed, pesticide suppliers) to list produce and products.
-4. **Farm Health Score & lending API** — A dynamic creditworthiness score (300–850) derived from scan activity, crop health ratios, and completed market connections, exposed to partner banks via a consent-based REST API.
+1. **Crop recommendation (integration in progress)** — Stephen Kingori's Gaussian Naive Bayes system recommends among 22 crops from N, P, K, pH, temperature, humidity, and rainfall.
+2. **IoT field monitoring (planned prototype)** — NPK and soil-moisture sensors will provide measured field context, with additional pH and environmental sensors added after validation.
+3. **AI crop diagnosis** — Farmers photograph affected leaves; crop-specific computer-vision models classify health and disease, with a gatekeeper that rejects obvious non-plant images.
+4. **AgriBot assistant** — A multilingual LLM and RAG assistant combines trusted content with crop, scan, weather, sensor, and farm-history context.
+5. **Role-based marketplace and payments** — Farmer, buyer, and agency portals link diagnosis and production to products, markets, and M-Pesa.
+6. **Farm Health Score and lending API** — A consent-based score derived from platform activity provides a potential signal for approved financial partners.
 
 AgriScan is designed to **support** good judgement—not replace extension officers, veterinarians, or emergency pest response.
 
@@ -42,22 +48,18 @@ AgriScan is designed to **support** good judgement—not replace extension offic
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Users (Browser / Mobile)                     │
-│         Farmers  •  Buyers  •  Agencies  •  Site Admin          │
+│ Farmers • Buyers • Agencies • Admin • Sensors/Field Gateways    │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              AgriScan Django Application (Gunicorn)              │
-│  ┌──────────┐ ┌──────────┐ ┌───────────┐ ┌──────────────────┐  │
-│  │ Web UI & │ │ TensorFlow│ │ LangChain │ │ M-Pesa / Wallet  │  │
-│  │ Dashboards│ │ Inference │ │ RAG Chat  │ │ Monetization     │  │
-│  └──────────┘ └──────────┘ └───────────┘ └──────────────────┘  │
+│ Web UI • TensorFlow diagnosis • Crop recommendation • AgriBot  │
+│ Marketplace • Wallet/M-Pesa • Farm profiles • Telemetry API    │
 └──────┬──────────────┬──────────────┬──────────────┬────────────┘
        │              │              │              │
        ▼              ▼              ▼              ▼
-  PostgreSQL    CropModels/     Groq LLM +      Safaricom
-  (production)  .h5 files       ChromaDB        M-Pesa STK
-                Cloudinary      HuggingFace     SendGrid / OAuth
+ PostgreSQL   Crop models   Groq/ChromaDB   M-Pesa   IoT devices
 ```
 
 ### 3.2 User roles and journeys
@@ -70,7 +72,28 @@ AgriScan is designed to **support** good judgement—not replace extension offic
 | **Partner (bank/fintech)** | Authenticate with API key → query Farm Health Score for consenting farmers by phone number |
 | **Admin** | Monitor revenue, transactions, and platform metrics |
 
-### 3.3 AI crop scan pipeline
+The target farmer journey is: **register farm → capture or receive soil readings → receive crop recommendation → monitor field → diagnose symptoms → receive advice → obtain inputs or find buyers → retain an auditable season history**.
+
+### 3.3 Crop recommendation pipeline (integration target)
+
+1. Farmer enters soil/climate values or selects validated sensor and weather readings.
+2. The API validates units, ranges, freshness, and missing values.
+3. The saved scaler transforms seven ordered features.
+4. The Gaussian Naive Bayes model returns a crop recommendation from 22 classes.
+5. AgriScan displays the result, confidence/limitations, and an explanation of the input values.
+6. The request and model version are logged for field evaluation.
+
+The existing recommender is a standalone Flask application. It must be migrated behind an authenticated Django service/API, tested against the exact saved model/scaler, and validated locally before being treated as agronomic evidence.
+
+### 3.4 IoT-to-advice pipeline (planned)
+
+1. Registered field devices capture NPK and soil-moisture readings.
+2. A gateway sends timestamped, authenticated telemetry to AgriScan.
+3. The platform validates units and plausible ranges and stores accepted and rejected readings.
+4. Recent trusted readings become context for crop recommendation, diagnosis, irrigation/fertiliser guidance, and alerts.
+5. Farmers and agronomists can inspect readings and override faulty data.
+
+### 3.5 AI crop scan pipeline
 
 Every scan follows a strict, auditable pipeline:
 
@@ -85,7 +108,7 @@ Every scan follows a strict, auditable pipeline:
 
 **Model performance (training benchmarks):** ~97.2% training accuracy, ~85.6% validation accuracy, ~240 ms average inference time.
 
-### 3.4 AgriBot (RAG assistant)
+### 3.6 AgriBot (RAG assistant)
 
 1. User sends a message via the `/chat/` JSON endpoint.
 2. System retrieves relevant context from ChromaDB (embeddings via `all-MiniLM-L6-v2`).
@@ -94,7 +117,7 @@ Every scan follows a strict, auditable pipeline:
 5. First 5 chats are free; subsequent chats cost KSh 10 from the wallet.
 6. Rate limiting (`django-ratelimit`) protects against abuse.
 
-### 3.5 Farm Health Score
+### 3.7 Farm Health Score
 
 The score is recalculated when a farmer visits their profile. Algorithm (`utils_scoring.py`):
 
@@ -109,20 +132,22 @@ The score is recalculated when a farmer visits their profile. Algorithm (`utils_
 
 **Partner API:** `GET /api/v1/lending/score/?phone=<number>` with `Authorization: Bearer <api_key>`. Returns score, risk tier, scan count, and connections only if the farmer has explicitly opted in.
 
-### 3.6 Payments (M-Pesa)
+### 3.8 Payments (M-Pesa)
 
 1. User initiates top-up from the wallet modal (amount + phone).
 2. Safaricom STK Push is sent via the Daraja API.
 3. Callback at `/mpesa/callback/` atomically updates `MpesaTransaction` and credits the user's `Wallet`.
 4. All successful transactions feed the admin revenue dashboard.
 
-### 3.7 Security and access control
+### 3.9 Security and access control
 
 - Django authentication with django-allauth (including Google OAuth).
 - Role-based routing: farmers go to scan/profile; buyers and agencies to dashboards.
 - CSRF protection on web forms; bearer-token auth on partner API.
 - Session lifetime 30 minutes; HTTPS-enforced cookies in production.
 - Farmer consent required before any lending data is shared.
+- IoT devices require unique credentials; readings must include farm/device identity, timestamp, unit, and validation status.
+- Sensor data and AI outputs are advisory and must preserve provenance for audit and correction.
 
 ---
 
@@ -239,8 +264,10 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 | Payments | Safaricom M-Pesa Daraja API (STK Push) |
 | Storage | Cloudinary (production media), WhiteNoise (static) |
 | Auth | Django auth, django-allauth, Google OAuth, SendGrid email |
-| Deployment | Docker, Railway |
+| Deployment | Docker, Gunicorn, Nginx, PostgreSQL on Contabo VPS; `agriscan.co.ke` |
 | Mobile | CapacitorJS (native camera, app store packaging) |
+| Crop recommendation | scikit-learn GaussianNB + MinMaxScaler; standalone Flask source being integrated |
+| IoT (planned) | NPK and moisture sensors, controller/gateway, authenticated telemetry API |
 
 ---
 
@@ -248,9 +275,10 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 
 | Phase | Focus | Key deliverables |
 |-------|-------|------------------|
-| **Phase 1: Polish & Pilot** | Stability and payments | M-Pesa integration, mobile UX, beta with ~500 farmers |
-| **Phase 2: Growth & Marketplace** | User acquisition and revenue | Cooperative marketing, agrovet/buyer onboarding, micro-transaction revenue |
-| **Phase 3: Drone Scaling** | Large-field intelligence | Multispectral drone scanning for cooperatives, NDVI mapping integration |
+| **Phase 1: Integration** | Complete the connected core | Crop recommender, M-Pesa production, SMS/USSD, SEO, tests and security |
+| **Phase 2: IoT prototype** | Measured field intelligence | Sensor procurement, calibration, telemetry API, dashboards and alerts |
+| **Phase 3: Field validation** | Agronomic evidence | Monitored plots, agronomist comparison, farmer feedback and model improvement |
+| **Phase 4: Scale** | Markets and partnerships | Cooperative, agrovet, buyer and finance services based on validated outcomes |
 
 ---
 
@@ -258,6 +286,8 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 
 - Not a substitute for national extension policy or declared pest emergencies.
 - Not a guarantee of loans or market prices—lending requires farmer consent and partner approval.
+- Not a guarantee that a recommended crop will succeed; model outputs depend on input quality, local conditions, and field validation.
+- Not a claim that low-cost NPK sensors are laboratory-equivalent; sensor readings require calibration and quality controls.
 - Not expert-only—designed for smartphone users regardless of formal education level.
 
 ---
@@ -274,8 +304,10 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 
 ---
 
-*AgriScan — bridging practical AI, local languages, and agricultural markets for smallholders and semi-commercial growers in East Africa.*
+*AgriScan — connecting soil, crops, advice, markets, and finance in one farmer-controlled system.*
 
 **Job Nyaribari** — Founder & AI Lead  
 **Phone:** +254 758 503819  
 **Email:** [jobnyaribari808@gmail.com](mailto:jobnyaribari808@gmail.com)
+
+**Core team:** Job Nyaribari, Ziro, Lynn, and Stephen Kingori.
