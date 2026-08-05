@@ -1,8 +1,61 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { UssdSimulator } from "@/components/UssdSimulator";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "AgriScan — AI crop disease detection for Kenyan farmers",
+  },
+  description:
+    "Snap a sick plant, get treatment advice in English or Kiswahili, connect with buyers, and build a Farm Health Score.",
+  alternates: { canonical: "/" },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://agriscan.co.ke/#organization",
+      name: "AgriScan",
+      url: "https://agriscan.co.ke",
+      logo: "https://agriscan.co.ke/images/agriscan_favicon.png",
+      description:
+        "AI-powered crop disease detection and farm advisory for Kenyan farmers.",
+      areaServed: {
+        "@type": "Country",
+        name: "Kenya",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://agriscan.co.ke/#website",
+      url: "https://agriscan.co.ke",
+      name: "AgriScan",
+      publisher: { "@id": "https://agriscan.co.ke/#organization" },
+      inLanguage: ["en", "sw"],
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "AgriScan",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web, Android",
+      url: "https://agriscan.co.ke",
+      description:
+        "Take a photo of a sick plant to get disease diagnosis and treatment advice in English or Kiswahili.",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "KES",
+      },
+      inLanguage: ["en", "sw"],
+      provider: { "@id": "https://agriscan.co.ke/#organization" },
+    },
+  ],
+};
 
 const TRUST = [
   { num: "100+", label: "Diseases Detected" },
@@ -115,6 +168,10 @@ const ROLES = [
 export default function HomePage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden pt-[64px]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <SiteHeader />
 
       <section className="hero-premium">
