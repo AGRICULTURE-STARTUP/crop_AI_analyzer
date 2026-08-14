@@ -382,23 +382,100 @@ def chat(request):
                 except Exception:
                     pass
 
+        # Get session chat history (limited to last 8 messages / 4 turns to avoid token bloat)
+        chat_history = request.session.get('chat_history', [])
+
+        # Initialize LangChain ChatGroq with gpt-oss-120b
+        from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+        from langchain_groq import ChatGroq
+
+        llm = ChatGroq(
+            model="openai/gpt-oss-120b",
+            groq_api_key=os.getenv("GROQ_API_KEY"),
+            temperature=0.0
+        )
+
+        rephrased_query = user_message
+        detected_language = "English"
+
+        # Construct helper history for context analysis
+        history_str = ""
+        for msg in chat_history[-4:]:  # last 2 turns
+            role = "User" if msg.get('role') == 'user' else "Assistant"
+            content = msg.get('content', '')
+            if role == "Assistant":
+                try:
+                    parsed = json.loads(content)
+                    content = parsed.get("overview", "") + " " + " ".join(parsed.get("recommendations", []))
+                except Exception:
+                    pass
+            history_str += f"{role}: {content}\n"
+
+        analysis_prompt = f"""Given the following conversation history and a user's question, analyze the question and:
+1. Rephrase it to be a standalone search query in English. The query must incorporate all necessary context (specific crop, disease, location, etc.) from the conversation history, so that it can be used to search a database. If the question is already a standalone question, keep it as is.
+2. Detect the language of the user's question (either "Kiswahili" or "English").
+
+Output your response as a valid JSON object with the keys:
+- "rephrased_query": "standalone query in English"
+- "detected_language": "Kiswahili" or "English"
+
+Do NOT output any other text or explanation. Only return the JSON object.
+
+Conversation History:
+{history_str}
+
+User Question: {user_message}
+JSON Output:"""
+
+        try:
+            analysis_msg = llm.bind(response_format={"type": "json_object"}).invoke([HumanMessage(content=analysis_prompt)])
+            analysis_content = analysis_msg.content.strip()
+            # Clean possible markdown wrapping
+            if analysis_content.startswith("```json"):
+                analysis_content = analysis_content[7:]
+            if analysis_content.startswith("```"):
+                analysis_content = analysis_content[3:]
+            if analysis_content.endswith("```"):
+                analysis_content = analysis_content[:-3]
+            analysis_content = analysis_content.strip()
+
+            analysis_data = json.loads(analysis_content)
+            rephrased_query = analysis_data.get("rephrased_query", user_message)
+            detected_language = analysis_data.get("detected_language", "English")
+            print(f"[AgriBot] Message analysis successful. Rephrased: '{rephrased_query}', Language: '{detected_language}'")
+        except Exception as e:
+            print("[AgriBot] Error analyzing user message:", e)
+            # Fallback simple keyword language detection
+            is_swahili = any(word in user_message.lower() for word in ["je", "jee", "ugonjwa", "tibiwa", "mahindi", "kutu", "ya", "wa", "kwa", "na", "huyu", "huu", "hii"])
+            if is_swahili:
+                detected_language = "Kiswahili"
+
+        # Retrieve context using the rephrased query
         context_text = ""
         try:
             from rag.retrieve import retrieve_context
 
-            context_text, _ = retrieve_context(user_message)
+            context_text, _ = retrieve_context(rephrased_query)
         except Exception as e:
             print("Error retrieving context:", e)
+
+        user_name = "Farmer"
+        if request.user.is_authenticated:
+            if request.user.first_name:
+                user_name = request.user.first_name
+            else:
+                user_name = request.user.username
 
         system_prompt = f"""
                     You are AgriBot, an expert-level agricultural advisor specialized in small-scale and semi-commercial farming in East Africa, particularly Kenya.
                     You must provide technically accurate, practical, and context-aware guidance for any type of agriculture question.
                     Maintain a friendly, highly conversational, and caring persona—just like a trusted local extension officer. Reference previous points or crops discussed in the conversation history where appropriate.
+                    Address the user as {user_name} when responding.
 
                     LANGUAGE RULE (VERY IMPORTANT):
-                    - Always respond in the exact same language as the USER QUESTION.
-                    - If the user writes in Kiswahili, answer in clear, natural Kiswahili.
-                    - If the user writes in English, answer in English.
+                    - You MUST write your entire response in {detected_language}.
+                    - Since the target language is {detected_language}, you must translate all retrieved context, weather data, and details into {detected_language} when generating the response.
+                    - All keys in the output JSON (overview, recommendations, explanation, practical_tips, follow_up_question) must contain values written entirely in clear, natural {detected_language}.
 
                     First, internally classify the question type (do this silently):
                     - DIAGNOSTIC, ADVISORY, PLANNING, or INFORMATIONAL
@@ -407,20 +484,20 @@ def chat(request):
 
                     OUTPUT FORMAT (MUST BE A VALID JSON OBJECT ONLY):
                     {{
-                      "overview": "Two short, direct sentences that answer the question with local context. Acknowledge and build on previous conversation history if applicable.",
+                      "overview": "Two short, direct sentences that answer the question with local context in {detected_language}. Acknowledge and build on previous conversation history if applicable.",
                       "recommendations": [
-                        "clear actionable step 1",
-                        "clear actionable step 2"
+                        "clear actionable step 1 in {detected_language}",
+                        "clear actionable step 2 in {detected_language}"
                       ],
                       "explanation": [
-                        "key reason or important fact",
-                        "supporting local detail"
+                        "key reason or important fact in {detected_language}",
+                        "supporting local detail in {detected_language}"
                       ],
                       "practical_tips": [
-                        "easy implementation tip",
-                        "monitoring or follow-up step"
+                        "easy implementation tip in {detected_language}",
+                        "monitoring or follow-up step in {detected_language}"
                       ],
-                      "follow_up_question": "A friendly, conversational, and highly specific follow-up question to ask the farmer (e.g. asking about their soil, irrigation frequency, severity of symptoms, crop variety, or local weather) to help gather more context for better advice."
+                      "follow_up_question": "A friendly, conversational, and highly specific follow-up question in {detected_language} to ask the farmer (e.g. asking about their soil, irrigation frequency, severity of symptoms, crop variety, or local weather) to help gather more context for better advice."
                     }}
 
                     DEPTH REQUIREMENTS:
@@ -446,11 +523,8 @@ def chat(request):
         if user_location:
             system_prompt += f"\nNote: The user's registered location/county is {user_location}. Use this for location-specific advice if relevant."
 
-        # Initialize LangChain ChatGroq with gpt-oss-120b
-        from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
-        from langchain_groq import ChatGroq
-
-        llm = ChatGroq(
+        # Define LLM for response generation
+        llm_response = ChatGroq(
             model="openai/gpt-oss-120b",
             groq_api_key=os.getenv("GROQ_API_KEY"),
             temperature=0.3
@@ -465,11 +539,8 @@ def chat(request):
             return get_weather_data(location)
 
         tools = [get_weather]
-        llm_with_tools = llm.bind_tools(tools)
+        llm_with_tools = llm_response.bind_tools(tools)
 
-        # Get session chat history (limited to last 8 messages / 4 turns to avoid token bloat)
-        chat_history = request.session.get('chat_history', [])
-        
         messages = [
             SystemMessage(content=system_prompt)
         ]
@@ -495,11 +566,32 @@ def chat(request):
                         tool_output = get_weather.invoke(tool_call["args"])
                         messages.append(ToolMessage(content=tool_output, tool_call_id=tool_call["id"]))
                 
-                # Get final response after tool execution
-                final_msg = llm.invoke(messages)
+                # Get final response after tool execution with JSON format constraint
+                final_msg = llm_response.bind(response_format={"type": "json_object"}).invoke(messages)
                 reply = final_msg.content
             else:
                 reply = ai_msg.content
+                # Enforce valid JSON structure if not returned as one
+                try:
+                    json.loads(reply.strip())
+                except Exception:
+                    print("[AgriBot] Initial response was not valid JSON, formatting...")
+                    formatting_prompt = f"""Format the following text into the exact JSON structure required by AgriBot:
+Required JSON Structure:
+{{
+  "overview": "Overview text in {detected_language}",
+  "recommendations": ["step 1", "step 2"],
+  "explanation": ["reason 1", "reason 2"],
+  "practical_tips": ["tip 1", "tip 2"],
+  "follow_up_question": "follow up question in {detected_language}"
+}}
+
+Input Text:
+{reply}
+
+JSON Output:"""
+                    format_msg = llm_response.bind(response_format={"type": "json_object"}).invoke([HumanMessage(content=formatting_prompt)])
+                    reply = format_msg.content
                 
         except Exception as e:
             print("LangChain Chat Error:", e)
