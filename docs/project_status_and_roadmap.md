@@ -1,39 +1,34 @@
 # AgriScan — Project Status and Team Roadmap
 
-**Document owner:** Stephen Kingori (Product / delivery)  
-**Approved by:** Job Nyaribari (Founder)  
+  
 **Version:** 1.1  
 **Date:** 17 September 2026  
 **Review cadence:** every Monday (15 minutes), full rewrite at the end of each 30-day block
 
-This is the working document for the founding team. Use it to see what is true today, who does what, and what must ship in the next 30 days. Older docs (`concept_note.md`, `proposal.md`, `summary.md`) still describe an earlier four-person team; this file is the source of truth for roles until those are updated.
+This is the working document for the founding team. Use it to see what is true today, who does what, and what must ship in the next 30 days.
 
 ---
-
-
 
 ## 1. How to use this document
 
 
-| If you need…                        | Look at…                         |
-| ----------------------------------- | -------------------------------- |
-| What is already built               | §3 Status by workstream          |
-| Who does what                       | §2 Team                          |
-| How we work together in the repo    | §4 Collaboration pipelines       |
-| What happens this month             | §5 30-day plan                   |
-| What waits for the field specialist | §6 Parked agronomy work          |
-| Whether we are on track             | §7 Stage gates and weekly ritual |
+| If you need…                        | Look at…                        |
+| ----------------------------------- | ------------------------------- |
+| What is already built               | 3 Status by workstream          |
+| Who does what                       | 2 Team                          |
+| How we work together in the repo    | 4 Collaboration pipelines       |
+| What happens this month             | 5 30-day plan                   |
+| What waits for the field specialist | 6 Parked agronomy work          |
+| Whether we are on track             | 7 Stage gates and weekly ritual |
 
 
 **Rule:** every workstream has one accountable owner. Helpers can contribute; they do not replace the owner.
 
 ---
 
-
-
 ## 2. Team
 
-AgriScan is in the **idea / pre-seed** company stage: a working product exists, but farmer demand, agronomic truth, and a repeatable offer are not yet proven. Titles below are function hats, not a corporate org chart.
+AgriScan is in the **idea / pre-seed** company stage: a working product exists, but farmer demand, agronomic truth, and a repeatable offer are not yet proven. Titles below are function hats.
 
 ### Who does what
 
@@ -44,8 +39,8 @@ AgriScan is in the **idea / pre-seed** company stage: a working product exists, 
 | **Wilson Kabucho**   | Chief technology officer               | Architecture, security, DevOps, production uptime, what gets merged                                                      |
 | **Brian Ziro**       | Finance and operations lead            | Runway, books, filings, M-Pesa going live, payment records, basic compliance                                             |
 | **Stephen Kingori**  | Product / project manager and IoT lead | Backlog, weekly status, crop-recommendation integration, IoT prototype, farmer interviews until a field specialist joins |
-| **Emilio Kamau**     | Growth lead and ML support             | Farmer acquisition experiments, messaging, demos, content, early partnerships support; ML help to Job                    |
-| **Field specialist** | Agronomy / farmer success *(to hire)*  | Field protocols, agronomic review, sensor calibration, Kiswahili advice accuracy                                         |
+| **Emilio Kamau**     | Growth lead and ML support             | Farmer acquisition experiments, messaging, demos, content, early partnerships support;                                   |
+| **Field specialist** | Agronomy / farmer success *()*         | Field protocols, agronomic review, sensor calibration, Kiswahili advice accuracy                                         |
 
 
 ### Role explanations
@@ -60,19 +55,17 @@ Owns how the system is built, secured, deployed, and kept up. Reviews and merges
 Owns company money: runway, books, filings, and making M-Pesa real (live payments that can be reconciled). Owns basic compliance and consent records for money and user data. Does not own platform architecture.
 
 **Stephen Kingori — Product / project manager and IoT lead**  
-Owns the backlog, this document, and the weekly rhythm. Delivers crop-recommendation integration and the IoT prototype path. Runs farmer interviews until a field specialist joins. Does not own final AI model architecture or production DevOps.
+Owns the backlog, and the weekly rhythm. Delivers crop-recommendation integration and the IoT prototype path. Runs farmer interviews until a field specialist joins. Does not own final AI model architecture or production DevOps.
 
 **Emilio Kamau — Growth lead and ML support**  
-Owns getting real farmers in front of the product: conversations, demos, messaging, and early growth experiments. Supports Job on ML eval and model notes. Does not act as a second AI lead or run paid ads at scale.
+Owns getting real farmers in front of the product: conversations, demos, messaging, and early growth experiments. Supports Job on ML eval and model notes. 
 
 **Field specialist — Agronomy / farmer success *(to hire)***  
 Will own field protocols, agronomic review of labels and advice, sensor calibration, and Kiswahili accuracy. Until hired, the team does not invent new agronomic claims without Job’s written OK and a visible advisory disclaimer.
 
 ---
 
-
-
-## 3. Current status (17 September 2026)
+## 3. Current status 
 
 **One-line status:** The platform is past a slide deck. The company is not. The next 30 days prove that real farmers will use a thin, reliable slice of AgriScan — not that every planned module exists.
 
@@ -96,8 +89,8 @@ Not done:
 - IoT devices, telemetry API, and field dashboards
 - Agronomist-reviewed labels, advice, and field pilots
 - Repeatable farmer onboarding with evidence of retention
-
-
+- Smart irriation with IOT  sensor data
+- clear Income paths defination and locking
 
 ### Status by workstream
 
@@ -115,7 +108,7 @@ Not done:
 | **Payments / M-Pesa**               | Code ready, not production-complete | Live STK, callback, wallet credit, Brian can reconcile                                         | Brian                                           |
 | **Finance / ops / compliance**      | Not started as a company system     | Monthly cash view, receipts, consent register                                                  | Brian                                           |
 | **USSD / SMS**                      | Simulator only                      | Provider webhook live; 10 farmers complete a real session                                      | Brian (provider + billing), Stephen (menu / UX) |
-| **Growth / farmer discovery**       | Not started                         | 30 farmer conversations logged; 10 using the product twice                                     | Emilio                                          |
+| **Growth / farmer discovery**       | Not started                         | 30 farmer conversations logged; 10 using the product twice                                     | Emilio/stephen                                  |
 | **Marketplace / KAMIS**             | Partial                             | Prices and directories exist; paid connections not proven                                      | Emilio (demand), Stephen (product)              |
 | **Lender / Farm Health Score**      | Infrastructure only                 | Do not sell until farmer usage and consent are real                                            | Job (partner talks), Wilson (API)               |
 | **Field validation / agronomy**     | Parked                              | Specialist hired or advisor contracted                                                         | Field specialist *(later)*                      |
@@ -123,16 +116,14 @@ Not done:
 
 ---
 
-
-
 ## 4. Collaboration pipelines
 
-How the team ships work together. Follow these unless Wilson (for repo/deploy) or Stephen (for product process) say otherwise.
+How the team ships work together.
 
 ### Git and branches
 
 - **Do not commit or push directly to `main`.** `main` is production-protected.
-- Day-to-day work lands on a shared **`development`** branch (or the branch Wilson names as the current integration branch).
+- Day-to-day work lands on a shared `**development**` branch (or the branch Wilson names as the current integration branch).
 - For a feature or fix: branch off `development` (e.g. `feat/crop-rec-api`, `fix/mpesa-callback`), open a pull request **into `development`**, and get a review before merge.
 - Only Wilson (or someone Wilson designates) merges `development` → `main` for a production release.
 - Never put secrets, production credentials, or `.env` files in git.
@@ -150,17 +141,15 @@ How the team ships work together. Follow these unless Wilson (for repo/deploy) o
 
 ### Product and delivery rhythm
 
-- Stephen owns the backlog and this file; file product requests with Stephen, not by opening random PRs that expand scope.
-- Monday standup (see §7): report on owned items only.
+- Stephen owns the backlog , file product requests with Stephen, not by opening random PRs that expand scope.
+- Monday standup (see 7): report on owned items only.
 - Farmer conversation notes go into the shared log Emilio writes and Stephen files.
 
-### When two people disagree
+### When two people disagree/conflict resolution 
 
 Job decides the same day. Do not leave conflicts for the next Monday.
 
 ---
-
-
 
 ## 5. Roadmap — next 30 days
 
@@ -190,7 +179,7 @@ Do **not** chase 10,000 farmers, drones, or bank contracts this month.
 
 ### After this 30-day block
 
-At the end of the block, Stephen rewrites §5 for the next 30 days. Likely next themes (not commitments yet):
+At the end of the block, Stephen rewrites 5 for the next 30 days. Likely next themes (not commitments yet):
 
 - Crop recommendation live in AgriScan with logged inputs
 - M-Pesa live for wallet top-up with weekly recon
@@ -207,8 +196,6 @@ Only start these after a later gate review:
 - Multi-county expansion
 
 ---
-
-
 
 ## 6. Parked until the field specialist joins
 
@@ -229,11 +216,7 @@ Do not silently dump these onto Stephen or Emilio. Track them here; start hiring
 
 ---
 
-
-
 ## 7. Stage gates and weekly ritual
-
-
 
 ### We leave idea stage when all of these are true
 
@@ -265,8 +248,6 @@ Stephen updates the table in §5 (status: not started / in progress / done / blo
 
 ---
 
-
-
 ## 8. Risks the team must not ignore
 
 
@@ -282,8 +263,6 @@ Stephen updates the table in §5 (status: not started / in progress / done / blo
 
 
 ---
-
-
 
 ## 9. Contact and working agreement
 
