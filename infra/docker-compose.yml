@@ -152,9 +152,11 @@ services:
       - certbot_www:/var/www/certbot
       - certbot_certs:/etc/letsencrypt
     profiles: ["certs"]
-    entrypoint: >
-      sh -c "echo 'Run: docker compose --profile certs run --rm certbot certonly
-      --webroot -w /var/www/certbot -d api.example.com'"
+    # Override default help entrypoint when issuing/renewing, e.g.:
+    # docker compose --profile certs run --rm certbot certonly \
+    #   --webroot -w /var/www/certbot -d api.agriscan.co.ke \
+    #   --email you@example.com --agree-tos --no-eff-email
+    entrypoint: certbot
 
 volumes:
   pgdata:
