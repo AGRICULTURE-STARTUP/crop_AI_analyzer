@@ -12,7 +12,7 @@ agriscan/
 │   ├── service_separation_plan.md
 │   └── LOCAL_TESTING.md   # ← full local QA checklist
 └── packages/         # shared-types 
-```
+
 
 ## Local testing (recommended)
 
