@@ -156,7 +156,7 @@ export function SignupForm({
       <form onSubmit={onSubmit} className="auth-panel space-y-4">
         <div>
           <h2 className="brand-mark text-3xl text-leaf-deep">Create account</h2>
-          <p className="mt-1 text-sm text-ink/60">{meta.blurb}</p>
+          <p className="mt-1 text-sm text-ink/70">{meta.blurb}</p>
         </div>
 
         <label className="block space-y-1.5 text-sm">
@@ -258,7 +258,7 @@ export function SignupForm({
                     accept="image/*"
                     required
                   />
-                  <span className="block text-xs text-ink/50">
+                  <span className="block text-xs text-ink/65">
                     A clear photo of yourself — shown to farmers on the market
                     page with a Verified badge.
                   </span>
@@ -338,7 +338,7 @@ export function SignupForm({
               : "Creating account…"
             : `Create ${meta.label.toLowerCase()} account`}
         </button>
-        <p className="text-center text-sm text-ink/60">
+        <p className="text-center text-sm text-ink/70">
           Already registered?{" "}
           <Link href="/login" className="font-semibold text-leaf">
             Log in

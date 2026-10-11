@@ -1,0 +1,94 @@
+/* Farmer dashboard tiles. */
+
+.weather-tile {
+  display: grid;
+  gap: 1rem;
+}
+
+.weather-tile__main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--leaf-deep);
+}
+
+.weather-tile__temp {
+  font-family: var(--font-montserrat), var(--font-poppins), sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.weather-tile__facts {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--text-body);
+}
+
+.weather-tile__facts li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.weather-tile__facts svg {
+  color: var(--leaf);
+}
+
+.advice-tile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.advice-tile:hover {
+  border-color: var(--sprout);
+  background: var(--paper);
+}
+
+.advice-tile__img {
+  flex: none;
+  width: 6.5rem;
+  height: 5rem;
+  border-radius: 10px;
+}
+
+.price-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.score-meter__track {
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #fbe4e2 0%, #fdf0d5 45%, #e3f3e5 100%);
+}
+
+.score-meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--leaf-500), var(--leaf-deep));
+}
+
+.score-meter__scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.score-meter__scale strong {
+  font-size: 0.875rem;
+  color: var(--ink);
+}

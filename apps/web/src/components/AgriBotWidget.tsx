@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { AGRIBOT_OPEN_EVENT } from "@/lib/agribot";
 import { apiRequest, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
@@ -37,6 +38,17 @@ export function AgriBotWidget() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [turns, busy, open]);
 
+  // Other parts of the portal (sidebar, crop advisor) open the chat with a draft question.
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const message = (event as CustomEvent<{ message?: string }>).detail?.message;
+      setOpen(true);
+      if (message) setInput(message);
+    };
+    window.addEventListener(AGRIBOT_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(AGRIBOT_OPEN_EVENT, onOpen);
+  }, []);
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const message = input.trim();
@@ -69,14 +81,14 @@ export function AgriBotWidget() {
           <div className="flex items-start justify-between gap-3 border-b border-[var(--line)] px-4 py-3">
             <div>
               <p className="font-semibold text-leaf-deep">AgriBot</p>
-              <p className="text-xs text-ink/55">
+              <p className="text-xs text-ink/65">
                 Hi {firstName}
                 {county ? ` · ${county}` : ""} · Ask in English or Kiswahili
               </p>
             </div>
             <button
               type="button"
-              className="rounded-full px-2 py-1 text-sm text-ink/60 hover:bg-mist hover:text-ink"
+              className="rounded-full px-2 py-1 text-sm text-ink/70 hover:bg-mist hover:text-ink"
               onClick={() => setOpen(false)}
               aria-label="Close AgriBot"
             >
@@ -86,7 +98,7 @@ export function AgriBotWidget() {
 
           <div ref={listRef} className="agribot-messages">
             {turns.length === 0 ? (
-              <p className="text-sm text-ink/45">
+              <p className="text-sm text-ink/65">
                 Try: &quot;Jinsi ya kudhibiti blight kwenye nyanya?&quot; or ask
                 about weather for your farm this week.
               </p>

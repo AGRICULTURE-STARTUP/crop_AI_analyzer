@@ -1,0 +1,51 @@
+/* Admin console: activity lists and other admin-only pieces (charts live in components/ui/charts.css). */
+
+.attention {
+  display: grid;
+  gap: 0.25rem;
+  list-style: none;
+}
+
+.attention li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  font-size: 0.8125rem;
+  color: var(--text-body);
+}
+
+.attention li + li {
+  border-top: 1px solid var(--line);
+}
+
+.attention strong {
+  color: var(--ink);
+}
+
+.attention__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 10px;
+  background: var(--mist);
+  color: var(--leaf-deep);
+}
+
+.people {
+  display: grid;
+  list-style: none;
+}
+
+.people li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+}
+
+.people li + li {
+  border-top: 1px solid var(--line);
+}
