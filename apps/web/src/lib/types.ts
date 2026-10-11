@@ -135,6 +135,8 @@ export type AgencyProduct = {
   unit: string;
   image: string | null;
   is_available: boolean;
+  /** Hidden from the marketplace by an AgriScan admin. */
+  is_hidden?: boolean;
   created_at: string;
   updated_at?: string;
 };

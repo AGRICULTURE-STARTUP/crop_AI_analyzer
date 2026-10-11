@@ -1,9 +1,19 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import {
+  ArrowRightIcon,
+  BasketIcon,
+  ScanIcon,
+  SproutIcon,
+  StoreIcon,
+} from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
+import { PageHeader } from "@/components/ui/Page";
 import { apiRequest, ApiError } from "@/lib/api";
+import { statusTone } from "@/lib/format";
 import type { CropCatalogItem, ScanJob, ScanReport } from "@/lib/types";
 
 function progressLabel(job: ScanJob | null, uploading: boolean): string {
@@ -70,7 +80,7 @@ function ReportCards({ report }: { report: ScanReport }) {
               Rain (1h) {weather.rainfall_1h_mm ?? 0} mm
             </p>
           ) : (
-            <p className="mt-1 text-sm text-ink/55">
+            <p className="mt-1 text-sm text-ink/65">
               Weather could not be loaded for this location.
             </p>
           )}
@@ -83,25 +93,25 @@ function ReportCards({ report }: { report: ScanReport }) {
       )}
 
       <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/65">
           Cause
         </p>
         <p className="mt-1 text-sm leading-relaxed">{report.cause}</p>
       </div>
       <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/65">
           Symptoms
         </p>
         <p className="mt-1 text-sm leading-relaxed">{report.symptoms}</p>
       </div>
       <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-4 sm:col-span-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/65">
           Remedy
         </p>
         <p className="mt-1 text-sm leading-relaxed">{report.remedy}</p>
       </div>
       <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/65">
           Medicine to ask for
         </p>
         {medicine.length ? (
@@ -111,11 +121,11 @@ function ReportCards({ report }: { report: ScanReport }) {
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-sm text-ink/55">None needed right now.</p>
+          <p className="mt-1 text-sm text-ink/65">None needed right now.</p>
         )}
       </div>
       <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/65">
           Prevention
         </p>
         {prevention.length ? (
@@ -125,7 +135,7 @@ function ReportCards({ report }: { report: ScanReport }) {
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-sm text-ink/55">—</p>
+          <p className="mt-1 text-sm text-ink/65">—</p>
         )}
       </div>
       {report.local_tip ? (
@@ -215,20 +225,35 @@ export default function FarmerScanPage() {
   }
 
   return (
-    <PortalShell role="farmer" title="Crop scanner">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        <form onSubmit={onSubmit} className="panel space-y-5 rounded-3xl p-6">
-          <div>
-            <h1 className="brand-mark text-3xl text-leaf-deep">Scan a leaf</h1>
-            <p className="mt-1 text-sm text-ink/60">
-              Choose the crop, upload a clear leaf photo, and run the scan. Advice
-              uses your county weather and our farm knowledge base — not guesswork.
-            </p>
-          </div>
+    <PortalShell role="farmer" title="Scan crops">
+      <PageHeader
+        title="Scan a leaf"
+        lead="Choose the crop, upload a clear leaf photo and run the scan. Advice uses your county weather and our farm knowledge base."
+      />
+
+      <ul className="shortcuts">
+        {SHORTCUTS.map((s) => (
+          <li key={s.href}>
+            <Link href={s.href} className="shortcut">
+              <span className="shortcut__icon">
+                <s.Icon size={20} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="shortcut__title">{s.title}</span>
+                <span className="shortcut__text">{s.text}</span>
+              </span>
+              <ArrowRightIcon size={16} className="shortcut__arrow" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <form onSubmit={onSubmit} className="ui-card space-y-5">
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium text-ink/80">Crop</span>
             <select
-              className="field"
+              className="field capitalize"
               value={crop}
               disabled={inFlight}
               onChange={(e) => setCrop(e.target.value)}
@@ -240,45 +265,45 @@ export default function FarmerScanPage() {
               ))}
             </select>
           </label>
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium text-ink/80">Leaf image</span>
+          <label className={`dropzone ${preview ? "has-file" : ""}`}>
             <input
-              className="field"
+              className="sr-only"
               type="file"
               accept="image/*"
               capture="environment"
               disabled={inFlight}
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview} alt="Selected leaf preview" className="dropzone__preview" />
+            ) : (
+              <>
+                <span className="dropzone__icon">
+                  <ScanIcon size={28} />
+                </span>
+                <span className="dropzone__title">Take or upload a leaf photo</span>
+                <span className="dropzone__hint">One leaf, in daylight, filling most of the frame</span>
+              </>
+            )}
+            {preview ? <span className="dropzone__change">Change photo</span> : null}
           </label>
-          {preview ? (
-            <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/50">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={preview}
-                alt="Selected leaf preview"
-                className="max-h-56 w-full object-contain"
-              />
-            </div>
-          ) : null}
           {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
-          <button className="btn btn-primary" disabled={inFlight} type="submit">
+          <button className="btn btn-primary btn-pill w-full !py-3" disabled={inFlight} type="submit">
             {inFlight ? "Scanning…" : "Run scan"}
           </button>
         </form>
 
-        <section className="panel rounded-3xl p-6">
+        <section className="ui-card">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-leaf-deep">Results</h2>
-              <p className="mt-1 text-sm text-ink/55">
+              <h2 className="ui-card__title">Results</h2>
+              <p className="mt-1 text-sm text-ink/65">
                 Diagnosis and advice appear here after the scan finishes.
               </p>
             </div>
             {job ? (
-              <span className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-leaf">
-                {job.status}
-              </span>
+              <span className={`badge ${statusTone(job.status)}`}>{job.status}</span>
             ) : null}
           </div>
 
@@ -291,7 +316,7 @@ export default function FarmerScanPage() {
                 />
                 <div>
                   <p className="text-sm font-medium text-leaf-deep">{stage}</p>
-                  <p className="text-xs text-ink/55">
+                  <p className="text-xs text-ink/65">
                     Please keep this page open — we poll until the report is ready.
                   </p>
                 </div>
@@ -308,7 +333,7 @@ export default function FarmerScanPage() {
           ) : null}
 
           {!job && !uploading ? (
-            <p className="mt-4 text-sm text-ink/55">
+            <p className="mt-4 text-sm text-ink/65">
               No scan yet. Upload a leaf above and click Run scan.
             </p>
           ) : null}
@@ -331,7 +356,7 @@ export default function FarmerScanPage() {
               ) : null}
 
               {job.wallet_balance != null ? (
-                <p className="text-sm text-ink/60">
+                <p className="text-sm text-ink/70">
                   Wallet: KSh {job.wallet_balance}
                 </p>
               ) : null}
@@ -342,3 +367,24 @@ export default function FarmerScanPage() {
     </PortalShell>
   );
 }
+
+const SHORTCUTS = [
+  {
+    href: "/farmer/advisor",
+    title: "Crop advisor",
+    text: "Find the crop that suits your soil",
+    Icon: SproutIcon,
+  },
+  {
+    href: "/farmer/marketplace",
+    title: "Marketplace",
+    text: "Seed, fertiliser and sprays near you",
+    Icon: StoreIcon,
+  },
+  {
+    href: "/farmer/market",
+    title: "Prices & buyers",
+    text: "See where your harvest sells best",
+    Icon: BasketIcon,
+  },
+];

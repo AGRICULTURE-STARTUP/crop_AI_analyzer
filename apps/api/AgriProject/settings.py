@@ -117,6 +117,7 @@ INSTALLED_APPS = [
     'scanner',
     'inference',
     'accounts',
+    'recommend',
 ]
 
 
@@ -297,6 +298,8 @@ _THROTTLE_RATES = {
     "lending_score": "200/min" if DEV_ENV else "30/min",
     "weather": "200/min" if DEV_ENV else "10/min",
     "payments": "100/min" if DEV_ENV else "3/min",
+    "recommend": "200/min" if DEV_ENV else "20/min",
+    "store": "600/min" if DEV_ENV else "120/min",
 }
 
 REST_FRAMEWORK = {
@@ -345,6 +348,8 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+    # Record logins so the admin console can show "last login".
+    "UPDATE_LAST_LOGIN": True,
 }
 
 # --- Celery / Redis ---

@@ -1,0 +1,337 @@
+/* App store, module gate, admin module settings, confirm dialog. */
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 0.75rem;
+  list-style: none;
+}
+
+.module-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.module-card:hover {
+  border-color: var(--sprout);
+  box-shadow: var(--shadow-lift);
+}
+
+.module-card.is-installed {
+  border-color: rgba(46, 125, 50, 0.35);
+}
+
+.module-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.module-card__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 10px;
+  background: var(--mist);
+  color: var(--leaf-deep);
+}
+
+.module-card__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.module-card__cat {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.module-card__tagline {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--leaf-deep);
+}
+
+.module-card__desc {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-body);
+}
+
+.module-card__pages {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.module-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.module-card__price {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Dashboard strip of installed apps */
+.apps-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.apps-strip__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.apps-strip ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+}
+
+.apps-strip__app {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.apps-strip__app:hover {
+  border-color: var(--sprout);
+  background: var(--mist);
+}
+
+.apps-strip__icon {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--mist);
+  color: var(--leaf-deep);
+}
+
+.apps-strip__store {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--leaf-deep);
+}
+
+.apps-strip__store:hover {
+  text-decoration: underline;
+}
+
+.module-gate {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  max-width: 34rem;
+  margin: 1.5rem auto;
+  padding: 2rem 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  text-align: center;
+}
+
+.module-gate__icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: 14px;
+  background: var(--mist);
+  color: var(--leaf-deep);
+}
+
+.module-gate__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--leaf);
+}
+
+.module-gate__text {
+  font-size: 0.875rem;
+  color: var(--text-body);
+}
+
+.module-gate__price {
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.module-admin {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 1100px) {
+  .module-admin {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+.module-admin__info {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.module-admin__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.module-admin__field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 7rem;
+}
+
+.module-admin__field > span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.module-admin__field .field {
+  width: 9rem;
+}
+
+.module-admin__stat {
+  min-height: 2.4rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.8125rem;
+  color: var(--ink);
+}
+
+/* On/off switch */
+.switch {
+  position: relative;
+  width: 2.6rem;
+  height: 1.5rem;
+  margin: 0.45rem 0;
+  border-radius: 999px;
+  background: var(--line-strong);
+  transition: background-color 0.15s ease;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.switch.is-on {
+  background: var(--leaf-500);
+}
+
+.switch.is-on::after {
+  transform: translateX(1.1rem);
+}
+
+/* Confirm dialog */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(8, 20, 13, 0.5);
+}
+
+.dialog {
+  width: min(100%, 26rem);
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(6, 30, 16, 0.3);
+  animation: rise 0.2s ease both;
+}
+
+.dialog__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.dialog__body {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-body);
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #8c1d18;
+}

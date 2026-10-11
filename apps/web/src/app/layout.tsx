@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Montserrat, Poppins } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 
-const body = Roboto({
-  variable: "--font-body",
+// Poppins carries the whole interface; Montserrat is reserved for large
+// headlines and the wordmark on public pages.
+const ui = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const display = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  display: "swap",
 });
 
 const siteUrl = "https://agriscan.co.ke";
@@ -85,8 +95,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${body.variable} antialiased`}>
+    <html lang="en" data-scroll-behavior="smooth">
+      <head>
+        {/* Without JavaScript the scroll-reveal never runs, so show everything. */}
+        <noscript>
+          <style>{".reveal{opacity:1!important;transform:none!important}"}</style>
+        </noscript>
+      </head>
+      <body className={`${ui.variable} ${display.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

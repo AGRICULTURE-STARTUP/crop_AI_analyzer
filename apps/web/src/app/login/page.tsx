@@ -44,7 +44,7 @@ function LoginForm() {
     <form onSubmit={onSubmit} className="auth-panel space-y-4">
       <div>
         <h2 className="brand-mark text-3xl text-leaf-deep">Welcome back</h2>
-        <p className="mt-1 text-sm text-ink/60">
+        <p className="mt-1 text-sm text-ink/70">
           Sign in with your email (or username) and password. We send you to the
           portal for your role.
         </p>
@@ -67,7 +67,7 @@ function LoginForm() {
       <button className="btn btn-primary w-full" disabled={busy} type="submit">
         {busy ? (success ? "Logging you in…" : "Signing in…") : "Log in"}
       </button>
-      <p className="text-center text-sm text-ink/60">
+      <p className="text-center text-sm text-ink/70">
         New here?{" "}
         <Link href="/signup" className="font-semibold text-leaf">
           Create an account
