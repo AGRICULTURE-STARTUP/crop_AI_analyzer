@@ -1,95 +1,116 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { CoinsIcon, RefreshIcon, UsersIcon } from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
-import { apiRequest } from "@/lib/api";
-
-type RevenueData = {
-  total_revenue: string;
-  successful_transactions: number;
-  pending_transactions: number;
-  users: { total: number; farmers: number; lenders: number };
-  recent_transactions: {
-    id: number;
-    username: string;
-    amount: string;
-    status: string;
-    receipt_number: string | null;
-    created_at: string;
-  }[];
-};
+import { fetchOverview, fetchRevenue } from "@/features/admin/api";
+import { BarChart } from "@/components/ui/charts";
+import { PageHeader, Card, StatCard } from "@/components/ui/Page";
+import { formatCompact, formatKsh, statusTone } from "@/lib/format";
 
 export default function AdminRevenuePage() {
-  const revenue = useQuery({
-    queryKey: ["admin-revenue"],
-    queryFn: () => apiRequest<RevenueData>("/api/v1/admin/revenue/"),
-  });
+  const revenue = useQuery({ queryKey: ["admin-revenue"], queryFn: fetchRevenue });
+  const overview = useQuery({ queryKey: ["admin-overview"], queryFn: fetchOverview });
+  const data = revenue.data;
 
   return (
     <PortalShell role="admin" title="Revenue">
-      <div className="space-y-6">
-        <h1 className="brand-mark text-3xl text-leaf-deep">Revenue</h1>
-        {revenue.isLoading ? (
-          <p className="text-sm text-ink/55">Loading…</p>
-        ) : revenue.isError || !revenue.data ? (
-          <p className="text-sm text-[var(--danger)]">
-            Revenue metrics could not be loaded.
-          </p>
-        ) : (
-          <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                ["Revenue", `KES ${revenue.data.total_revenue}`],
-                ["Successful payments", revenue.data.successful_transactions],
-                ["Pending payments", revenue.data.pending_transactions],
-                ["Registered users", revenue.data.users.total],
-              ].map(([label, value]) => (
-                <section key={label} className="panel rounded-2xl p-5">
-                  <p className="text-xs uppercase tracking-wide text-ink/50">
-                    {label}
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold text-leaf-deep">
-                    {value}
-                  </p>
-                </section>
-              ))}
-            </div>
-            <section className="panel overflow-x-auto rounded-3xl p-6">
-              <h2 className="mb-4 text-lg font-semibold text-leaf-deep">
-                Recent transactions
-              </h2>
-              {revenue.data.recent_transactions.length === 0 ? (
-                <p className="text-sm text-ink/55">No transactions yet.</p>
-              ) : (
-                <table className="w-full min-w-xl text-left text-sm">
-                  <thead className="text-ink/50">
+      <PageHeader
+        title="Revenue"
+        lead="Wallet top-ups paid through M-Pesa."
+        actions={
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => {
+              revenue.refetch();
+              overview.refetch();
+            }}
+            disabled={revenue.isFetching}
+          >
+            <RefreshIcon size={16} className={revenue.isFetching ? "animate-spin" : ""} /> Refresh
+          </button>
+        }
+      />
+
+      {revenue.isLoading ? (
+        <p className="text-sm text-[var(--muted)]">Loading…</p>
+      ) : revenue.isError || !data ? (
+        <p className="text-sm text-[var(--danger)]">Revenue metrics could not be loaded.</p>
+      ) : (
+        <div className="space-y-6">
+          <div className="stat-cards">
+            <StatCard
+              label="Revenue · all time"
+              value={formatKsh(data.total_revenue) ?? "KSh 0"}
+              sub={overview.data ? `${formatKsh(overview.data.kpis.revenue_30d) ?? "KSh 0"} in the last 30 days` : undefined}
+              Icon={CoinsIcon}
+              tone="amber"
+            />
+            <StatCard label="Successful payments" value={data.successful_transactions} Icon={CoinsIcon} />
+            <StatCard
+              label="Pending payments"
+              value={data.pending_transactions}
+              sub="Waiting for the M-Pesa callback"
+              Icon={CoinsIcon}
+              tone="sky"
+            />
+            <StatCard
+              label="Registered users"
+              value={data.users.total}
+              sub={`${data.users.farmers} farmers · ${data.users.lenders} lenders`}
+              Icon={UsersIcon}
+              tone="plum"
+            />
+          </div>
+
+          <Card title="Revenue per day (KSh)">
+            {overview.data ? (
+              <BarChart
+                label="Revenue"
+                points={overview.data.series.revenue}
+                color="#f59e0b"
+                format={(n) => formatCompact(n)}
+              />
+            ) : (
+              <div className="skeleton h-52 rounded-xl" />
+            )}
+          </Card>
+
+          <Card title="Recent transactions">
+            {data.recent_transactions.length === 0 ? (
+              <p className="text-sm text-[var(--muted)]">No transactions yet.</p>
+            ) : (
+              <div className="table-wrap !border-0">
+                <table className="data-table min-w-xl">
+                  <thead>
                     <tr>
-                      <th className="pb-3">User</th>
-                      <th className="pb-3">Amount</th>
-                      <th className="pb-3">Status</th>
-                      <th className="pb-3">Receipt</th>
-                      <th className="pb-3">Date</th>
+                      <th>User</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Receipt</th>
+                      <th>Date</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {revenue.data.recent_transactions.map((txn) => (
-                      <tr key={txn.id} className="border-t border-ink/10">
-                        <td className="py-3">{txn.username}</td>
-                        <td className="py-3">KES {txn.amount}</td>
-                        <td className="py-3">{txn.status}</td>
-                        <td className="py-3">{txn.receipt_number || "—"}</td>
-                        <td className="py-3">
-                          {new Date(txn.created_at).toLocaleString()}
+                    {data.recent_transactions.map((txn) => (
+                      <tr key={txn.id}>
+                        <td className="font-medium text-[var(--ink)]">{txn.username}</td>
+                        <td>{formatKsh(txn.amount)}</td>
+                        <td>
+                          <span className={`badge ${statusTone(txn.status)}`}>{txn.status}</span>
                         </td>
+                        <td className="font-mono text-xs">{txn.receipt_number || "—"}</td>
+                        <td className="whitespace-nowrap">{new Date(txn.created_at).toLocaleString("en-KE")}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              )}
-            </section>
-          </>
-        )}
-      </div>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
     </PortalShell>
   );
 }

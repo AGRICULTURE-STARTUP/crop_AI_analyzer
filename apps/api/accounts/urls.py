@@ -22,13 +22,22 @@ from accounts.views import (
     WalletView,
     WeatherView,
 )
+from accounts.admin_views import (
+    AdminOverviewView,
+    AdminProductListView,
+    AdminProductVisibilityView,
+    AdminUserActiveView,
+    AdminUserListView,
+)
 from accounts.chat_views import ChatMessageView
+from accounts.farmer_views import FarmerOverviewView
 from accounts.input_views import (
     InputAgencyListView,
     InputProductListView,
     MyAgencyProductDetailView,
     MyAgencyProductListCreateView,
 )
+from accounts.store_views import StoreProductDetailView, StoreProductListView
 from accounts.ussd_views import UssdGatewayView, UssdSimulateView
 from main_app.kamis_views import (
     BuyersDirectoryView,
@@ -46,6 +55,7 @@ urlpatterns = [
     # Current user
     path("me/", MeView.as_view(), name="me"),
     path("weather/", WeatherView.as_view(), name="weather"),
+    path("farmer/overview/", FarmerOverviewView.as_view(), name="farmer_overview"),
     # Offline KAMIS market prices (SQLite cache; no live scrape)
     path(
         "market/kamis-prices/",
@@ -85,6 +95,20 @@ urlpatterns = [
         PartnerFarmHealthScoreView.as_view(),
         name="farm_health_score_api",
     ),
+    # Admin console
+    path("admin/overview/", AdminOverviewView.as_view(), name="admin_overview"),
+    path("admin/users/", AdminUserListView.as_view(), name="admin_users"),
+    path(
+        "admin/users/<int:user_id>/active/",
+        AdminUserActiveView.as_view(),
+        name="admin_user_active",
+    ),
+    path("admin/products/", AdminProductListView.as_view(), name="admin_products"),
+    path(
+        "admin/products/<int:product_id>/visibility/",
+        AdminProductVisibilityView.as_view(),
+        name="admin_product_visibility",
+    ),
     # Admin lender moderation
     path("admin/revenue/", AdminRevenueView.as_view(), name="admin_revenue"),
     path("admin/lenders/", AdminLenderListView.as_view(), name="admin_lenders"),
@@ -101,6 +125,13 @@ urlpatterns = [
     # Wallet / payments
     path("wallet/", WalletView.as_view(), name="wallet"),
     path("mpesa/topup/", MpesaTopupView.as_view(), name="api_mpesa_topup"),
+    # Public storefront (browse without an account; contacts need sign-in)
+    path("store/products/", StoreProductListView.as_view(), name="store_products"),
+    path(
+        "store/products/<int:product_id>/",
+        StoreProductDetailView.as_view(),
+        name="store_product_detail",
+    ),
     # Inputs marketplace (registered agencies only — no web agent)
     path("inputs/agencies/", InputAgencyListView.as_view(), name="inputs_agencies"),
     path("inputs/products/", InputProductListView.as_view(), name="inputs_products"),

@@ -23,7 +23,10 @@ class InputAgencyListView(APIView):
 
     def get(self, request):
         qs = AgencyProfile.objects.annotate(
-            product_count=Count("products")
+            product_count=Count(
+                "products",
+                filter=Q(products__is_available=True, products__is_hidden=False),
+            )
         ).order_by("agency_name")
 
         county = request.query_params.get("county", "")
@@ -54,7 +57,7 @@ class InputProductListView(APIView):
 
     def get(self, request):
         qs = (
-            AgencyProduct.objects.filter(is_available=True)
+            AgencyProduct.objects.filter(is_available=True, is_hidden=False)
             .select_related("agency")
             .order_by("-created_at")
         )

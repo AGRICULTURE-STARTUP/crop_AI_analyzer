@@ -24,9 +24,10 @@ class AgencyProductAdmin(admin.ModelAdmin):
         "price",
         "agency",
         "is_available",
+        "is_hidden",
         "created_at",
     )
-    list_filter = ("category", "is_available")
+    list_filter = ("category", "is_available", "is_hidden")
     search_fields = ("name", "agency__agency_name")
     raw_id_fields = ("agency",)
 

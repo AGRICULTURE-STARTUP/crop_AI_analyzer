@@ -28,6 +28,7 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     path("api/v1/", include("scanner.urls")),
     path("api/v1/", include("accounts.urls")),
+    path("api/v1/", include("recommend.urls")),
     path(
         "api/v1/auth/login/",
         EmailOrUsernameTokenObtainPairView.as_view(),

@@ -2,7 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { PortalShell } from "@/components/PortalShell";
+import { PageHeader } from "@/components/ui/Page";
 import { apiRequest } from "@/lib/api";
+import { statusTone } from "@/lib/format";
 
 type UsageRow = {
   id: number;
@@ -26,42 +28,43 @@ export default function LenderUsagePage() {
   return (
     <PortalShell role="lender" title="API usage">
       <div className="space-y-4">
-        <h1 className="brand-mark text-3xl text-leaf-deep">Usage logs</h1>
-        <p className="text-sm text-ink/65">
-          Recent Farm Health Score lookups made with your organization&apos;s
-          keys or dashboard tool.
-        </p>
+        <PageHeader
+          title="Usage logs"
+          lead="Recent Farm Health Score lookups made with your organisation’s keys or the dashboard tool."
+        />
         {usage.isLoading ? (
-          <p className="text-sm text-ink/55">Loading…</p>
+          <p className="text-sm text-ink/65">Loading…</p>
         ) : rows.length === 0 ? (
-          <p className="text-sm text-ink/55">No lookups yet.</p>
+          <p className="text-sm text-ink/65">No lookups yet.</p>
         ) : (
-          <section className="panel overflow-x-auto rounded-3xl p-6">
-            <table className="w-full min-w-xl text-left text-sm">
-              <thead className="text-ink/50">
+          <div className="table-wrap">
+            <table className="data-table min-w-xl">
+              <thead>
                 <tr>
-                  <th className="pb-3">When</th>
-                  <th className="pb-3">Status</th>
-                  <th className="pb-3">Phone hash</th>
-                  <th className="pb-3">Key</th>
+                  <th>When</th>
+                  <th>Status</th>
+                  <th>Phone hash</th>
+                  <th>Key</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-t border-ink/10">
-                    <td className="py-3">
-                      {new Date(row.created_at).toLocaleString()}
+                  <tr key={row.id}>
+                    <td>{new Date(row.created_at).toLocaleString()}</td>
+                    <td>
+                      <span className={`badge ${statusTone(row.http_status)}`}>
+                        {row.http_status}
+                      </span>
                     </td>
-                    <td className="py-3">{row.http_status}</td>
-                    <td className="py-3 font-mono text-xs">
+                    <td className="font-mono text-xs">
                       {(row.phone_queried_hash || "—").slice(0, 12)}…
                     </td>
-                    <td className="py-3">{row.api_key ?? "dashboard"}</td>
+                    <td>{row.api_key ?? "dashboard"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </section>
+          </div>
         )}
       </div>
     </PortalShell>

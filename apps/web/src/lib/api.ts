@@ -12,6 +12,13 @@ export function getApiBase(): string {
   );
 }
 
+/** Absolute URL for an uploaded file (product photo, etc.) the API returns as a relative path. */
+export function mediaUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  return `${getApiBase()}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
 export function getStoredTokens(): TokenPair | null {
   if (typeof window === "undefined") return null;
   const access = localStorage.getItem(ACCESS_KEY);
@@ -164,7 +171,7 @@ export async function apiRequest<T>(
 export function roleHome(role: string): string {
   switch (role) {
     case "farmer":
-      return "/farmer/scan";
+      return "/farmer/dashboard";
     case "buyer":
       return "/buyer/dashboard";
     case "agency":
@@ -172,7 +179,7 @@ export function roleHome(role: string): string {
     case "lender":
       return "/lender/dashboard";
     case "admin":
-      return "/admin/revenue";
+      return "/admin/dashboard";
     default:
       return "/";
   }

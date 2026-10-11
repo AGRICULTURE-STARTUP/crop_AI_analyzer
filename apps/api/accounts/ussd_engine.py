@@ -285,6 +285,7 @@ def _inputs_reply(county: str, kind: str) -> UssdReply:
     products = (
         AgencyProduct.objects.filter(
             is_available=True,
+            is_hidden=False,
             agency__county__icontains=county,
         )
         .select_related("agency")

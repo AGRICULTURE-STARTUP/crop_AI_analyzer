@@ -10,8 +10,10 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { FormField } from "@/components/FormField";
 import { PortalShell } from "@/components/PortalShell";
+import { fetchFarmerOverview } from "@/features/farmer/api";
 import { apiRequest, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { formatKsh } from "@/lib/format";
 import type {
   FarmerProfile,
   MeResponse,
@@ -55,6 +57,7 @@ export default function FarmerProfilePage() {
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
+  const [amount, setAmount] = useState("100");
   const [topupMsg, setTopupMsg] = useState("");
   const [topupError, setTopupError] = useState("");
   const [topupBusy, setTopupBusy] = useState(false);
@@ -74,6 +77,8 @@ export default function FarmerProfilePage() {
     queryKey: ["wallet"],
     queryFn: () => apiRequest<Wallet>("/api/v1/wallet/"),
   });
+
+  const overview = useQuery({ queryKey: ["farmer-overview"], queryFn: fetchFarmerOverview });
 
   const weatherQuery = useQuery({
     queryKey: ["weather", profile.county],
@@ -177,7 +182,7 @@ export default function FarmerProfilePage() {
           amount: fd.get("amount"),
         },
       });
-      setTopupMsg("STK push initiated. Complete on your phone.");
+      setTopupMsg("Check your phone and enter your M-Pesa PIN to finish.");
       walletQuery.refetch();
       refreshMe();
     } catch (err) {
@@ -189,11 +194,11 @@ export default function FarmerProfilePage() {
 
   return (
     <PortalShell role="farmer" title="Your profile">
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Hero */}
-        <section className="panel profile-hero animate-rise overflow-hidden rounded-3xl">
+        <section className="panel profile-hero animate-rise overflow-hidden rounded-2xl">
           <div className="profile-hero__glow" aria-hidden />
-          <div className="relative flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:p-8">
+          <div className="relative flex flex-col gap-5 p-5 sm:flex-row sm:items-center">
             <div className="relative shrink-0 self-center sm:self-auto">
               <div className="profile-avatar">
                 {photoUrl ? (
@@ -229,13 +234,13 @@ export default function FarmerProfilePage() {
             </div>
 
             <div className="min-w-0 flex-1 text-center sm:text-left">
-              <p className="text-sm font-medium uppercase tracking-[0.14em] text-leaf">
+              <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-leaf">
                 Farmer profile
               </p>
-              <h1 className="brand-mark mt-1 text-3xl text-leaf-deep sm:text-4xl">
+              <h1 className="page-header__title mt-1">
                 {displayName}
               </h1>
-              <p className="mt-1 text-sm text-ink/60">
+              <p className="mt-1 text-sm text-ink/70">
                 @{user?.user.username}
                 {profile.farm_name ? ` · ${profile.farm_name}` : ""}
               </p>
@@ -297,14 +302,14 @@ export default function FarmerProfilePage() {
           </div>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-5">
+        <div className="grid items-start gap-4 lg:grid-cols-5">
           {/* Weather + farm summary */}
-          <div className="flex flex-col gap-6 lg:col-span-3">
-            <section className="panel animate-rise overflow-hidden rounded-3xl [animation-delay:80ms]">
+          <div className="flex flex-col gap-4 lg:col-span-3">
+            <section className="panel animate-rise overflow-hidden rounded-2xl [animation-delay:80ms]">
               <div className="weather-panel">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-white">Local weather</h2>
+                    <h2 className="text-sm font-semibold text-white">Local weather</h2>
                     <p className="mt-0.5 text-sm text-white/75">
                       {profile.county
                         ? `${profile.county}${profile.country ? `, ${profile.country}` : ""}`
@@ -362,21 +367,21 @@ export default function FarmerProfilePage() {
               </div>
             </section>
 
-            <section className="panel animate-rise rounded-3xl p-6 [animation-delay:100ms]">
+            <section className="ui-card animate-rise [animation-delay:100ms]">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold text-leaf-deep">
+                  <h2 className="ui-card__title">
                     Farm Health Score
                   </h2>
-                  <p className="text-sm text-ink/55">
+                  <p className="text-sm text-ink/65">
                     Used by approved lending partners only when you opt in.
                   </p>
                 </div>
                 <div className="rounded-2xl bg-leaf/10 px-4 py-3 text-center">
-                  <p className="text-2xl font-semibold text-leaf-deep">
+                  <p className="text-xl font-semibold text-leaf-deep">
                     {profile.health_score ?? "—"}
                   </p>
-                  <p className="text-xs uppercase tracking-wide text-ink/50">
+                  <p className="text-xs uppercase tracking-wide text-ink/65">
                     {profile.risk_tier || "Not scored"}
                   </p>
                 </div>
@@ -415,25 +420,25 @@ export default function FarmerProfilePage() {
                 </span>
               </label>
               {profile.last_calculated ? (
-                <p className="mt-3 text-xs text-ink/45">
+                <p className="mt-3 text-xs text-ink/65">
                   Last calculated{" "}
                   {new Date(profile.last_calculated).toLocaleString()}
                 </p>
               ) : null}
             </section>
 
-            <section className="panel animate-rise rounded-3xl p-6 [animation-delay:120ms]">
+            <section className="ui-card animate-rise [animation-delay:120ms]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold text-leaf-deep">Farm details</h2>
-                  <p className="text-sm text-ink/55">
+                  <h2 className="ui-card__title">Farm details</h2>
+                  <p className="text-sm text-ink/65">
                     Keep size, crops, and location up to date for better advice.
                   </p>
                 </div>
               </div>
 
               {editing ? (
-                <form onSubmit={saveProfile} className="mt-5 grid gap-3 sm:grid-cols-2">
+                <form onSubmit={saveProfile} className="mt-4 grid gap-3 sm:grid-cols-2">
                   <FormField
                     label="First name"
                     name="first_name"
@@ -495,7 +500,7 @@ export default function FarmerProfilePage() {
                   </div>
                 </form>
               ) : (
-                <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+                <dl className="mt-4 grid gap-2.5 sm:grid-cols-2">
                   <div className="profile-stat">
                     <dt>Farm name</dt>
                     <dd>{profile.farm_name || "—"}</dd>
@@ -538,39 +543,93 @@ export default function FarmerProfilePage() {
           </div>
 
           {/* Wallet */}
-          <section className="panel animate-rise rounded-3xl p-6 lg:col-span-2 [animation-delay:160ms]">
-            <h2 className="text-xl font-semibold text-leaf-deep">Wallet</h2>
-            <p className="mt-3 text-4xl font-semibold tracking-tight text-leaf-deep">
-              KSh {walletQuery.data?.balance ?? user?.wallet?.balance ?? "0.00"}
-            </p>
-            <p className="mt-1 text-sm text-ink/55">
-              Scans: {walletQuery.data?.scan_count ?? user?.wallet?.scan_count ?? 0} ·
-              Chats: {walletQuery.data?.chat_count ?? user?.wallet?.chat_count ?? 0}
-            </p>
-            <form onSubmit={topup} className="mt-5 space-y-3">
+          <section className="ui-card animate-rise lg:col-span-2 lg:sticky lg:top-20 [animation-delay:160ms]">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="ui-card__title">Wallet</h2>
+              <span className="badge badge--plain">M-Pesa</span>
+            </div>
+            <div className="wallet-balance">
+              <p className="wallet-balance__label">Available balance</p>
+              <p className="wallet-balance__value">
+                {formatKsh(walletQuery.data?.balance ?? user?.wallet?.balance ?? "0") ?? "KSh 0"}
+              </p>
+              <p className="wallet-balance__meta">
+                {walletQuery.data?.scan_count ?? user?.wallet?.scan_count ?? 0} scans ·{" "}
+                {walletQuery.data?.chat_count ?? user?.wallet?.chat_count ?? 0} AgriBot chats
+              </p>
+            </div>
+            {overview.data ? (
+              <p className="mt-3 rounded-lg bg-mist px-3 py-2 text-xs text-leaf-deep">
+                {overview.data.wallet.free_scans_left > 0
+                  ? `${overview.data.wallet.free_scans_left} free scan${overview.data.wallet.free_scans_left === 1 ? "" : "s"} left, then ${formatKsh(overview.data.wallet.scan_fee)} per scan.`
+                  : `Each scan costs ${formatKsh(overview.data.wallet.scan_fee)} from your wallet.`}
+              </p>
+            ) : null}
+
+            <form onSubmit={topup} className="mt-4 space-y-3">
               <FormField
                 label="M-Pesa phone"
                 name="phone_number"
-                placeholder="2547…"
+                placeholder="2547XXXXXXXX"
                 required
                 defaultValue={profile.phone_number || ""}
               />
-              <FormField
-                label="Amount (KSh)"
-                name="amount"
-                type="number"
-                required
-                defaultValue="100"
-              />
+              <div className="space-y-1.5 text-sm">
+                <span className="font-medium text-ink/80">Amount (KSh)</span>
+                <div className="amount-chips" role="group" aria-label="Quick amounts">
+                  {["50", "100", "200", "500"].map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      className={amount === a ? "is-active" : ""}
+                      aria-pressed={amount === a}
+                      onClick={() => setAmount(a)}
+                    >
+                      {a}
+                    </button>
+                  ))}
+                </div>
+                <label className="sr-only" htmlFor="topup-amount">
+                  Amount in KSh
+                </label>
+                <input
+                  id="topup-amount"
+                  className="field"
+                  name="amount"
+                  type="number"
+                  min="1"
+                  step="1"
+                  required
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+              </div>
               {topupMsg ? (
-                <p className="text-sm text-[var(--ok)]">{topupMsg}</p>
+                <div className="notice notice--warn">
+                  <p>
+                    {topupMsg} Your balance updates once M-Pesa confirms.{" "}
+                    <button
+                      type="button"
+                      className="font-semibold underline"
+                      onClick={() => {
+                        walletQuery.refetch();
+                        refreshMe();
+                      }}
+                    >
+                      Refresh balance
+                    </button>
+                  </p>
+                </div>
               ) : null}
               {topupError ? (
                 <p className="text-sm text-[var(--danger)]">{topupError}</p>
               ) : null}
               <button className="btn btn-primary w-full" disabled={topupBusy} type="submit">
-                {topupBusy ? "Sending…" : "Top up with M-Pesa"}
+                {topupBusy ? "Sending request…" : `Top up ${formatKsh(amount) ?? ""} with M-Pesa`}
               </button>
+              <p className="text-center text-[0.6875rem] text-ink/65">
+                You will get an M-Pesa prompt on this phone. Enter your PIN to pay.
+              </p>
             </form>
           </section>
         </div>

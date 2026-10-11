@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-paper px-4 pb-16 pt-28">
+    <div className="min-h-screen bg-paper pb-16">
       <SiteHeader solid />
-      <article className="panel mx-auto mt-8 max-w-3xl rounded-3xl p-6 sm:p-10">
+      <article className="panel mx-4 mt-10 max-w-3xl p-6 sm:mx-auto sm:p-10">
         <h1 className="brand-mark text-4xl text-leaf-deep">Privacy policy</h1>
         <p className="mt-4 text-ink/70">
           AgriScan processes crop images, chat messages, and farm profile data to

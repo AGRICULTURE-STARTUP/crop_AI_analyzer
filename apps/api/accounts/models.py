@@ -65,6 +65,10 @@ class AgencyProduct(models.Model):
         upload_to="agency_products/", blank=True, null=True
     )
     is_available = models.BooleanField(default=True)
+    is_hidden = models.BooleanField(
+        default=False,
+        help_text="Hidden from the marketplace by an AgriScan admin.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
