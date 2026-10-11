@@ -64,10 +64,11 @@ class AgencyProductWriteSerializer(serializers.ModelSerializer):
             "unit",
             "image",
             "is_available",
+            "is_hidden",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "created_at", "updated_at")
+        read_only_fields = ("id", "is_hidden", "created_at", "updated_at")
         extra_kwargs = {
             "price": {"required": False, "allow_null": True},
             "image": {"required": False, "allow_null": True},
