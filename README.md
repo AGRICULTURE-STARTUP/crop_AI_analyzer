@@ -1,6 +1,6 @@
 # AgriScan monorepo
 
-Next.js frontend (Vercel) + Django API / workers (Contabo Docker) + Capacitor Android wrap.
+Next.js  (Vercel) + Django API / workers (Contabo Docker) + Capacitor Android wrap.
 
 ```
 agriscan/
