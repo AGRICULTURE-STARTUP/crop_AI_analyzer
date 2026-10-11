@@ -39,7 +39,7 @@ When `DEV_ENV=True`, CORS / SSL / throttles are relaxed so browser, emulator, an
 
 ## Docker Compose (Contabo / local parity)
 
-```bash
+```
 cd infra
 cp .env.example .env   # fill secrets; DEV_ENV=False in prod
 chmod +x scripts/*.sh
