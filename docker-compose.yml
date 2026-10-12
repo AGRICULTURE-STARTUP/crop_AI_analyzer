@@ -1,0 +1,95 @@
+# Ukulimabora (AgriScan crop AI analyzer) — lean production stack.
+# Host nginx reverse-proxies ukulimabora.co.ke -> web :3004 and Django paths -> api :8000.
+# ML workers (scanner / RAG) are intentionally left out to keep the shared VPS stable.
+name: ukulimabora
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ukulimabora-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ukulimabora}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-ukulimabora}
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [ukulimabora_net]
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ukulimabora} -d ${POSTGRES_DB:-ukulimabora}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ukulimabora-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - redisdata:/data
+    networks: [ukulimabora_net]
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.api
+    container_name: ukulimabora-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-ukulimabora}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ukulimabora}
+      DB_SSL_REQUIRE: "false"
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      GUNICORN_WORKERS: "2"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [ukulimabora_net]
+    ports:
+      - "127.0.0.1:8000:8000"
+    mem_limit: 1g
+    volumes:
+      - media_data:/app/media
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn AgriProject.wsgi:application
+             --bind 0.0.0.0:8000 --workers $${GUNICORN_WORKERS:-2} --timeout 60"
+
+  web:
+    build:
+      context: ./apps/web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://ukulimabora.co.ke}
+    container_name: ukulimabora-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3004:3000"
+    depends_on:
+      - api
+    networks: [ukulimabora_net]
+    mem_limit: 512m
+
+volumes:
+  pgdata:
+  redisdata:
+  media_data:
+
+networks:
+  ukulimabora_net:
+    driver: bridge
