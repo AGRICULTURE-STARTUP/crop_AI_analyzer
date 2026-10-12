@@ -44,3 +44,6 @@ apps/web/ios/DerivedData/
 .github
 *.github
 
+
+# auto-deploy runtime lock
+.auto-deploy.lock
