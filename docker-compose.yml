@@ -1,6 +1,6 @@
-# Ukulimabora (AgriScan crop AI analyzer) — lean production stack.
+# Ukulimabora (AgriScan crop AI analyzer) — production stack.
 # Host nginx reverse-proxies ukulimabora.co.ke -> web :3004 and Django paths -> api :8000.
-# ML workers (scanner / RAG) are intentionally left out to keep the shared VPS stable.
+# worker_scanner consumes the Celery "scan" queue (TensorFlow + crop models).
 name: ukulimabora
 
 services:
@@ -55,6 +55,7 @@ services:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       GUNICORN_WORKERS: "2"
+      SCAN_IMAGES_ROOT: /app/scan_images
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,10 +67,46 @@ services:
     mem_limit: 1g
     volumes:
       - media_data:/app/media
+      - scan_images:/app/scan_images
     command: >
       sh -c "python manage.py migrate --noinput &&
              gunicorn AgriProject.wsgi:application
              --bind 0.0.0.0:8000 --workers $${GUNICORN_WORKERS:-2} --timeout 60"
+
+  worker_scanner:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.worker
+      args:
+        WORKER_KIND: scanner
+    container_name: ukulimabora-worker-scanner
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-ukulimabora}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ukulimabora}
+      DB_SSL_REQUIRE: "false"
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      MAX_LOADED_CROP_MODELS: "1"
+      MODELS_DIR: /models
+      SCAN_IMAGES_ROOT: /app/scan_images
+      HF_HUB_OFFLINE: "1"
+      OMP_NUM_THREADS: "1"
+      TF_NUM_INTRAOP_THREADS: "1"
+      TF_NUM_INTEROP_THREADS: "1"
+    volumes:
+      - models_data:/models
+      - scan_images:/app/scan_images
+    mem_limit: 2g
+    cpus: "1.5"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks: [ukulimabora_net]
+    command: celery -A AgriProject worker -Q scan --pool=solo -c 1 -l INFO
 
   web:
     build:
@@ -89,6 +126,8 @@ volumes:
   pgdata:
   redisdata:
   media_data:
+  scan_images:
+  models_data:
 
 networks:
   ukulimabora_net:
