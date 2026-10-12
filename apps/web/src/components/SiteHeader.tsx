@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { CloseIcon, MenuIcon } from "@/components/Icons";
 import { roleHome } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -58,9 +59,9 @@ export function SiteHeader({
       ) : null}
 
       <header className={`site-header ${scrolled ? "scrolled" : ""}`}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 md:px-6">
-          <Link href="/" className="wordmark text-[1.7rem]" aria-label="AgriScan home">
-            Agri<span>Scan</span>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5 md:px-6 md:py-3">
+          <Link href="/" className="brand-logo-link" aria-label="Ukulima Bora home">
+            <BrandLogo className="brand-logo brand-logo--header" alt="" />
           </Link>
 
           <button

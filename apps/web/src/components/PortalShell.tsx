@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { AgriBotWidget } from "@/components/AgriBotWidget";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   AppsIcon,
   BankIcon,
@@ -284,8 +285,8 @@ export function PortalShell({
       >
         <div className="app-sidebar__brand">
           <div>
-            <Link href="/" className="wordmark wordmark--light text-[1.45rem]" aria-label="AgriScan home">
-              Agri<span>Scan</span>
+            <Link href="/" className="brand-logo-link app-sidebar__logo-plate" aria-label="Ukulima Bora home">
+              <BrandLogo className="brand-logo brand-logo--sidebar" alt="" />
             </Link>
             <p className="app-sidebar__role">{PORTAL_NAME[role] || "Portal"}</p>
           </div>

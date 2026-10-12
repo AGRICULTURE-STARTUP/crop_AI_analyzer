@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy AgriScan Compose stack on Contabo (run from infra/ or any cwd).
+# Deploy Ukulima Bora Compose stack on Contabo (run from infra/ or any cwd).
 # Explicitly uses docker-compose.yml only — never loads the dev override.
 set -euo pipefail
 

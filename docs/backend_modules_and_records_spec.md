@@ -13,15 +13,15 @@
 - The screens for the **App store**, **Farm records** and **Shop POS** are built. Today they save to the browser, so they can be used and tested before the backend exists.
 - Each feature already has an HTTP adapter written against the contract in this guide. When the endpoints ship, one environment flag per feature switches the UI over. No UI change is needed.
 - Backend work: three groups of endpoints, about seven models, a wallet-charge helper, one daily job and a permission class that checks an app is installed.
-- The web app still shows the AgriScan name; this guide uses Ukulima Bora. Code identifiers (`agriscan_*` storage keys, `AgriProject`) are unchanged.
+- Product name and browser storage keys use **Ukulima Bora** / `ukulimabora_*`. The Django project package remains `AgriProject`.
 
 ## 1. How the web app connects
 
 | Feature | UI code (adapter) | Saved today in | Flag that switches to the API | API base |
 |---|---|---|---|---|
-| App store (modules) | `features/modules/repository.ts` | `localStorage`: `agriscan_modules_settings`, `agriscan_modules_installed_<userId>` | `NEXT_PUBLIC_MODULES_API=on` | `/api/v1/modules/`, `/api/v1/admin/modules/` |
-| Farm records | `features/records/repository.ts` | `localStorage`: `agriscan_farm_records_<userId>` | `NEXT_PUBLIC_FARM_RECORDS_API=on` | `/api/v1/farm-records/` |
-| Shop POS | `features/pos/repository.ts` | `localStorage`: `agriscan_pos_sales_<userId>`; the open sale in `sessionStorage` | `NEXT_PUBLIC_POS_API=on` | `/api/v1/pos/` |
+| App store (modules) | `features/modules/repository.ts` | `localStorage`: `ukulimabora_modules_settings`, `ukulimabora_modules_installed_<userId>` | `NEXT_PUBLIC_MODULES_API=on` | `/api/v1/modules/`, `/api/v1/admin/modules/` |
+| Farm records | `features/records/repository.ts` | `localStorage`: `ukulimabora_farm_records_<userId>` | `NEXT_PUBLIC_FARM_RECORDS_API=on` | `/api/v1/farm-records/` |
+| Shop POS | `features/pos/repository.ts` | `localStorage`: `ukulimabora_pos_sales_<userId>`; the open sale in `sessionStorage` | `NEXT_PUBLIC_POS_API=on` | `/api/v1/pos/` |
 
 `NEXT_PUBLIC_*` values are baked in when `apps/web` is built, so turning a flag on means rebuilding and redeploying the web app.
 

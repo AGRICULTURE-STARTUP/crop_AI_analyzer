@@ -126,7 +126,44 @@ a {
   line-height: 1.2;
 }
 
-/* The AgriScan logo. */
+/* Official logo mark (artwork unchanged; only display box is sized). */
+.brand-logo-link {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 3.5rem;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.brand-logo--header {
+  height: 4.75rem;
+}
+
+@media (min-width: 768px) {
+  .brand-logo--header {
+    height: 5.75rem;
+  }
+}
+
+.brand-logo--footer {
+  height: 3.25rem;
+  max-width: min(100%, 17.5rem);
+  width: auto;
+}
+
+.brand-logo--sidebar {
+  height: 3.25rem;
+  max-width: 12.5rem;
+}
+
+/* Legacy text wordmark (kept for any remaining non-image uses). */
 .wordmark {
   font-family: var(--font-montserrat), var(--font-poppins), sans-serif;
   font-weight: 800;
@@ -540,6 +577,39 @@ textarea.field {
 .site-header a.nav-link.is-active {
   color: var(--leaf-deep);
   font-weight: 600;
+}
+
+.site-footer__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+/* Light plate so the official (light-bg) logo stays readable on the dark footer,
+   with tight padding — no leftover white box under the mark. */
+.site-footer__logo-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.4rem 0.65rem;
+  background: #fff;
+  border-radius: 0.55rem;
+  line-height: 0;
+}
+
+.site-footer__logo-plate .brand-logo--footer {
+  display: block;
+  height: 2.85rem;
+  max-width: min(100%, 16rem);
+}
+
+.site-footer__tagline {
+  margin: 0;
+  max-width: 22rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .site-footer {
@@ -1612,7 +1682,17 @@ textarea.field {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 0.5rem;
   padding: 1.35rem 1.25rem 1rem;
+}
+
+.app-sidebar__logo-plate {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.5rem;
+  background: #fff;
+  border-radius: 0.5rem;
+  line-height: 0;
 }
 
 .app-sidebar__role {

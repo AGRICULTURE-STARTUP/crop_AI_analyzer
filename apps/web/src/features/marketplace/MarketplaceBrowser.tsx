@@ -103,7 +103,7 @@ export function MarketplaceBrowser({
           {!compact ? (
             <p className="store-hero__lead">
               Compare prices across counties and talk to the seller directly.
-              Every listing comes from an input agency registered on AgriScan.
+              Every listing comes from an input agency registered on Ukulima Bora.
             </p>
           ) : null}
         </div>

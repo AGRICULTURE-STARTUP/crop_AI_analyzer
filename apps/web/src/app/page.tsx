@@ -19,7 +19,7 @@ import { PHOTOS } from "@/lib/photos";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "AgriScan — AI crop disease detection for Kenyan farmers",
+    absolute: "Ukulima Bora — AI crop disease detection for Kenyan farmers",
   },
   description:
     "Snap a sick plant, get treatment advice in English or Kiswahili, connect with buyers, and build a Farm Health Score.",
@@ -31,10 +31,10 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://agriscan.co.ke/#organization",
-      name: "AgriScan",
-      url: "https://agriscan.co.ke",
-      logo: "https://agriscan.co.ke/images/agriscan_favicon.png",
+      "@id": "https://ukulimabora.co.ke/#organization",
+      name: "Ukulima Bora",
+      url: "https://ukulimabora.co.ke",
+      logo: "https://ukulimabora.co.ke/UkulimaBoraagritechlogo/logo.png",
       description:
         "AI-powered crop disease detection and farm advisory for Kenyan farmers.",
       areaServed: {
@@ -44,18 +44,18 @@ const jsonLd = {
     },
     {
       "@type": "WebSite",
-      "@id": "https://agriscan.co.ke/#website",
-      url: "https://agriscan.co.ke",
-      name: "AgriScan",
-      publisher: { "@id": "https://agriscan.co.ke/#organization" },
+      "@id": "https://ukulimabora.co.ke/#website",
+      url: "https://ukulimabora.co.ke",
+      name: "Ukulima Bora",
+      publisher: { "@id": "https://ukulimabora.co.ke/#organization" },
       inLanguage: ["en", "sw"],
     },
     {
       "@type": "SoftwareApplication",
-      name: "AgriScan",
+      name: "Ukulima Bora",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web, Android",
-      url: "https://agriscan.co.ke",
+      url: "https://ukulimabora.co.ke",
       description:
         "Take a photo of a sick plant to get disease diagnosis and treatment advice in English or Kiswahili.",
       offers: {
@@ -64,7 +64,7 @@ const jsonLd = {
         priceCurrency: "KES",
       },
       inLanguage: ["en", "sw"],
-      provider: { "@id": "https://agriscan.co.ke/#organization" },
+      provider: { "@id": "https://ukulimabora.co.ke/#organization" },
     },
   ],
 };
@@ -129,7 +129,7 @@ export default function HomePage() {
       <section id="features" className="mk-section">
         <div className="mk-container grid gap-10 lg:grid-cols-[0.8fr_2.2fr] lg:items-start">
           <Reveal variant="left" className="lg:sticky lg:top-28">
-            <span className="hp-label">How AgriScan helps</span>
+            <span className="hp-label">How Ukulima Bora helps</span>
             <h2 className="section-title">Tools made for farmers</h2>
             <p className="section-lead section-lead--left">
               Simple ways to keep crops healthy, get advice, and find the right
@@ -169,7 +169,7 @@ export default function HomePage() {
       <section id="how-it-works" className="mk-section mk-section--white">
         <div className="mk-container">
           <Reveal className="mb-12 text-center">
-            <span className="hp-label">How to use AgriScan</span>
+            <span className="hp-label">How to use Ukulima Bora</span>
             <h2 className="section-title">From signup to healthier farm</h2>
             <p className="section-lead">
               The same path the app follows today — role-based signup, queued
@@ -199,7 +199,7 @@ export default function HomePage() {
         <div className="mk-container">
           <Reveal className="mb-10 text-center">
             <span className="hp-label !bg-white/15 !text-white">
-              Join AgriScan
+              Join Ukulima Bora
             </span>
             <h2 className="section-title !text-white">
               Choose how you take part

@@ -7,8 +7,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * Prod: set server.url to the Vercel deployment, or switch to a static export later.
  */
 const config: CapacitorConfig = {
-  appId: "com.agriscan.app",
-  appName: "AgriScan",
+  appId: "com.ukulimabora.app",
+  appName: "Ukulima Bora",
   webDir: "out",
   server: {
     // Live-reload against local Next during development.

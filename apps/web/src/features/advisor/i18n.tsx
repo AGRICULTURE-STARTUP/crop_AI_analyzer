@@ -148,7 +148,7 @@ const CATEGORY: Record<Lang, Record<CropCategory, string>> = {
   sw: { cereal: "Nafaka", pulse: "Jamii ya kunde", fruit: "Matunda", cash: "Mazao ya biashara" },
 };
 
-const STORAGE_KEY = "agriscan_advisor_lang";
+const STORAGE_KEY = "ukulimabora_advisor_lang";
 
 /** English / Kiswahili switch for the advisor and crop library, remembered per browser. */
 export function useAdvisorLang() {

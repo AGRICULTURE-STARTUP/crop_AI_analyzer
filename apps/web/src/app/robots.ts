@@ -13,7 +13,7 @@ export default function robots(): MetadataRoute.Robots {
         "/admin/",
       ],
     },
-    sitemap: "https://agriscan.co.ke/sitemap.xml",
-    host: "https://agriscan.co.ke",
+    sitemap: "https://ukulimabora.co.ke/sitemap.xml",
+    host: "https://ukulimabora.co.ke",
   };
 }

@@ -783,7 +783,7 @@ def market_display(request):
                     "country": buyer.country or "",
                     "location": location_label,
                     "photo": photo_url,
-                    # Registered via buyer signup = verified AgriScan buyer
+                    # Registered via buyer signup = verified Ukulima Bora buyer
                     "verified": True,
                     "verification_badge": "Verified",
                 }
@@ -958,7 +958,7 @@ class CustomPasswordResetView(PasswordResetView):
             "extra_email_context": {
                  **(self.extra_email_context or {}),
                  'domain': self.request.get_host(),
-                 'site_name': 'AgriScan'
+                 'site_name': 'Ukulima Bora'
             },
         }
         form.save(**opts)

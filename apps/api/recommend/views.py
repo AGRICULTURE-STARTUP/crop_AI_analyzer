@@ -1,4 +1,4 @@
-"""Crop recommendation API: the Panda Smart recommender, merged into AgriScan."""
+"""Crop recommendation API: the Panda Smart recommender, merged into Ukulima Bora."""
 
 from __future__ import annotations
 

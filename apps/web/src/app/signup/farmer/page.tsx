@@ -4,7 +4,7 @@ import { SignupForm } from "@/components/SignupForm";
 export const metadata: Metadata = {
   title: "Farmer signup",
   description:
-    "Create a free AgriScan farmer account. Scan crops for disease, get Kiswahili or English advice, and build your Farm Health Score.",
+    "Create a free Ukulima Bora farmer account. Scan crops for disease, get Kiswahili or English advice, and build your Farm Health Score.",
   alternates: { canonical: "/signup/farmer" },
 };
 

@@ -21,8 +21,8 @@ export type ModulesRepository = {
 
 /* ------------------------------ local adapter ----------------------------- */
 
-const SETTINGS_KEY = "agriscan_modules_settings";
-const installedKey = (userId: number) => `agriscan_modules_installed_${userId}`;
+const SETTINGS_KEY = "ukulimabora_modules_settings";
+const installedKey = (userId: number) => `ukulimabora_modules_installed_${userId}`;
 
 function readJson<T>(key: string, fallback: T): T {
   try {

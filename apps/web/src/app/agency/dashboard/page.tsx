@@ -103,7 +103,7 @@ export default function AgencyDashboardPage() {
       <div className="stat-cards mb-6">
         <StatCard label="Live listings" value={live} sub="Visible to farmers now" Icon={EyeIcon} />
         <StatCard label="Out of stock" value={out} sub="Hidden until you restock" Icon={EyeOffIcon} tone="amber" />
-        <StatCard label="Hidden by admin" value={hidden} sub="Contact AgriScan support" Icon={EyeOffIcon} tone="plum" />
+        <StatCard label="Hidden by admin" value={hidden} sub="Contact Ukulima Bora support" Icon={EyeOffIcon} tone="plum" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)]">

@@ -1,8 +1,8 @@
-# AgriScan (crop_AI_analyzer) — System Documentation
+# Ukulima Bora (crop_AI_analyzer) — System Documentation
 
-This document describes the **AgriScan** platform in `crop_AI_analyzer`, including its deployed core and the approved integration design for crop recommendation and IoT field monitoring. It is the canonical system-level view. Current production functionality is distinguished from planned functionality so that roadmap items are not mistaken for implemented features.
+This document describes the **Ukulima Bora** platform in `crop_AI_analyzer`, including its deployed core and the approved integration design for crop recommendation and IoT field monitoring. It is the canonical system-level view. Current production functionality is distinguished from planned functionality so that roadmap items are not mistaken for implemented features.
 
-**Production:** Contabo VPS at [agriscan.co.ke](https://agriscan.co.ke)
+**Production:** Contabo VPS at [ukulimabora.co.ke](https://ukulimabora.co.ke)
 **Document version:** 2.0 — 30 July 2026
 
 ---
@@ -23,7 +23,7 @@ This document describes the **AgriScan** platform in `crop_AI_analyzer`, includi
 - **Crop recommendation (integration in progress)**: recommend among 22 crops from N, P, K, temperature, humidity, pH, and rainfall using a versioned GaussianNB model and scaler.
 - **IoT field monitoring (planned prototype)**: ingest authenticated NPK and soil-moisture readings and expose quality-checked field context to recommendations and advice.
 - **Inclusive access (planned)**: SMS and USSD for selected farmer journeys.
-- **Discoverability (in progress)**: technical and content SEO for `agriscan.co.ke`.
+- **Discoverability (in progress)**: technical and content SEO for `ukulimabora.co.ke`.
 
 **Out of scope (unless added explicitly)**
 
@@ -81,7 +81,7 @@ flowchart LR
         AD[Site admin]
         D[IoT devices and gateways]
     end
-    subgraph agri [AgriScan Django App]
+    subgraph agri [Ukulima Bora Django App]
         WEB[Web UI and JSON endpoints]
     end
     subgraph external [External dependencies]
@@ -166,7 +166,7 @@ flowchart LR
 
 Measured, farmer-entered, weather-derived, and estimated values must remain distinguishable throughout this flow.
 
-Supplementary diagram assets (if maintained separately) are referenced in [AgriScan Technical Architecture Schematics.md](./AgriScan%20Technical%20Architecture%20Schematics.md); prefer **Mermaid** in version control for diagrams that must remain portable.
+Supplementary diagram assets (if maintained separately) may live under `docs/`; prefer **Mermaid** in version control for diagrams that must remain portable.
 
 ---
 
@@ -334,7 +334,7 @@ Complex logic (scoring, gatekeeper, wallet gating, M-Pesa parsing) lives in Pyth
 | **Static files** | WhiteNoise; `collectstatic` in container CMD |
 | **Media** | Cloudinary when `CLOUDINARY_URL` set; else local `media/` |
 | **Production host** | Contabo VPS |
-| **Public domain** | `https://agriscan.co.ke` |
+| **Public domain** | `https://ukulimabora.co.ke` |
 | **Reverse proxy/TLS** | Nginx with HTTPS on the VPS; configuration must be maintained in the deployment runbook |
 
 ### 4.2 Configuration (environment variables)
@@ -363,7 +363,7 @@ Complex logic (scoring, gatekeeper, wallet gating, M-Pesa parsing) lives in Pyth
 2. Back up PostgreSQL and record the rollback image/revision.
 3. Configure secrets on the host; do not store production values in Git.
 4. Run migrations and `collectstatic`.
-5. Start Gunicorn behind Nginx and verify HTTPS for `agriscan.co.ke`.
+5. Start Gunicorn behind Nginx and verify HTTPS for `ukulimabora.co.ke`.
 6. Run smoke tests for authentication, scan, chat, marketplace, and any changed integration.
 7. Verify logs, health checks, M-Pesa callback reachability, and backup status.
 8. Roll back application and migration according to the deployment runbook if acceptance checks fail.
@@ -374,7 +374,7 @@ The previous Railway configuration may remain useful as a reference, but Contabo
 
 - Session lifetime: **1800** seconds (30 minutes); `SESSION_EXPIRE_AT_BROWSER_CLOSE = True`.
 - When `DEBUG=False`: `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_SSL_REDIRECT` enabled.
-- `CSRF_TRUSTED_ORIGINS` and `ALLOWED_HOSTS` must include `agriscan.co.ke` and only approved hosts.
+- `CSRF_TRUSTED_ORIGINS` and `ALLOWED_HOSTS` must include `ukulimabora.co.ke` and only approved hosts.
 
 ---
 
@@ -435,7 +435,7 @@ The Django app’s `main_app/tests.py` is a placeholder with no test cases. **Fo
 
 | Format | Use in this project |
 |--------|---------------------|
-| **Markdown** | `README.md`, this file, `docs/proposal.md`, `docs/AgriScan_Stakeholder_Overview.md`, architecture notes under `docs/`. |
+| **Markdown** | `README.md`, this file, `docs/proposal.md`, architecture notes under `docs/`. |
 | **Mermaid** | Recommended for architecture in Git (see §2). |
 | **UML / PNG** | Optional; external hosted diagram URLs may expire. |
 | **Inline code comments** | ML, payments, and scoring modules. |

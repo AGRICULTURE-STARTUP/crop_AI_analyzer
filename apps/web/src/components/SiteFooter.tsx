@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const COLUMN_HEADING =
   "mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-sprout";
@@ -30,11 +31,11 @@ export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-3 md:grid-cols-[2fr_1fr_1fr_1fr]">
-        <div className="sm:col-span-3 md:col-span-1">
-          <p className="wordmark wordmark--light text-[1.7rem]">
-            Agri<span>Scan</span>
-          </p>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-white/75">
+        <div className="site-footer__brand sm:col-span-3 md:col-span-1">
+          <div className="site-footer__logo-plate">
+            <BrandLogo className="brand-logo brand-logo--footer" alt="Ukulima Bora" />
+          </div>
+          <p className="site-footer__tagline">
             Crop advice from a photo, help in English and Kiswahili, market
             links, and Farm Health Scores — on the app, on the web, and by
             dialling USSD.
@@ -78,7 +79,7 @@ export function SiteFooter() {
         </div>
       </div>
       <p className="mx-auto mt-12 max-w-6xl border-t border-white/15 pt-6 text-center text-xs text-white/60">
-        © {new Date().getFullYear()} AgriScan. Growing healthier farms.
+        © {new Date().getFullYear()} Ukulima Bora. Growing healthier farms.
       </p>
     </footer>
   );

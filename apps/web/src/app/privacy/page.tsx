@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 export const metadata: Metadata = {
   title: "Privacy policy",
   description:
-    "How AgriScan processes crop images, chat messages, farm profiles, and Farm Health Scores — and your rights over that data.",
+    "How Ukulima Bora processes crop images, chat messages, farm profiles, and Farm Health Scores — and your rights over that data.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       <article className="panel mx-4 mt-10 max-w-3xl p-6 sm:mx-auto sm:p-10">
         <h1 className="brand-mark text-4xl text-leaf-deep">Privacy policy</h1>
         <p className="mt-4 text-ink/70">
-          AgriScan processes crop images, chat messages, and farm profile data to
+          Ukulima Bora processes crop images, chat messages, and farm profile data to
           deliver disease diagnosis, advisory, and optional Farm Health Score
           sharing with lenders you consent to.
         </p>

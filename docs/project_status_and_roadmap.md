@@ -1,4 +1,4 @@
-# AgriScan — Project Status and Team Roadmap
+# Ukulima Bora — Project Status and Team Roadmap
 
   
 **Version:** 1.1  
@@ -28,7 +28,7 @@ This is the working document for the founding team. Use it to see what is true t
 
 ## 2. Team
 
-AgriScan is in the **idea / pre-seed** company stage: a working product exists, but farmer demand, agronomic truth, and a repeatable offer are not yet proven. Titles below are function hats.
+Ukulima Bora is in the **idea / pre-seed** company stage: a working product exists, but farmer demand, agronomic truth, and a repeatable offer are not yet proven. Titles below are function hats.
 
 ### Who does what
 
@@ -46,7 +46,7 @@ AgriScan is in the **idea / pre-seed** company stage: a working product exists, 
 ### Role explanations
 
 **Job Nyaribari — Founder / AI lead**  
-Sets company direction and represents AgriScan externally (partners, funders). Owns the quality and safety of crop-scan models and AgriBot advice. Unblocks money and partnership decisions. Does not run day-to-day servers or the weekly backlog.
+Sets company direction and represents Ukulima Bora externally (partners, funders). Owns the quality and safety of crop-scan models and AgriBot advice. Unblocks money and partnership decisions. Does not run day-to-day servers or the weekly backlog.
 
 **Wilson Kabucho — CTO**  
 Owns how the system is built, secured, deployed, and kept up. Reviews and merges work into production. Is the person to ask when something is down, insecure, or not deployable. Does not own farmer interviews or marketing copy.
@@ -67,7 +67,7 @@ Will own field protocols, agronomic review of labels and advice, sensor calibrat
 
 ## 3. Current status 
 
-**One-line status:** The platform is past a slide deck. The company is not. The next 30 days prove that real farmers will use a thin, reliable slice of AgriScan — not that every planned module exists.
+**One-line status:** The platform is past a slide deck. The company is not. The next 30 days prove that real farmers will use a thin, reliable slice of Ukulima Bora — not that every planned module exists.
 
 Live / in-repo today:
 
@@ -79,7 +79,7 @@ Live / in-repo today:
 - USSD menu engine + homepage simulator (live telecom provider not wired)
 - Farm Health Score and lender API
 - Docker / Contabo deploy path, Vercel frontend, Capacitor Android wrap
-- Public site: [agriscan.co.ke](https://agriscan.co.ke)
+- Public site: [ukulimabora.co.ke](https://ukulimabora.co.ke)
 
 Not done:
 
@@ -102,7 +102,7 @@ Not done:
 | **AI crop diagnosis**               | Built, unvalidated in field         | Scans work in product; no agronomist agreement study yet                                       | Job                                             |
 | **AgriBot / RAG**                   | Built, unvalidated in field         | Chat works; advice not field-reviewed                                                          | Job                                             |
 | **ML support / eval**               | Early                               | Shared eval notes; no weekly model review yet                                                  | Emilio (support), Job (accountable)             |
-| **Crop recommendation**             | Not integrated                      | Farmer can submit N, P, K, pH, temp, humidity, rainfall and see a versioned result in AgriScan | Stephen                                         |
+| **Crop recommendation**             | Not integrated                      | Farmer can submit N, P, K, pH, temp, humidity, rainfall and see a versioned result in Ukulima Bora | Stephen                                         |
 | **Farmer / buyer / agency product** | Partial                             | Core journeys work; crop rec and IoT screens missing                                           | Stephen                                         |
 | **IoT field layer**                 | Not started                         | Device identity, telemetry API, one calibrated plot                                            | Stephen                                         |
 | **Payments / M-Pesa**               | Code ready, not production-complete | Live STK, callback, wallet credit, Brian can reconcile                                         | Brian                                           |
@@ -158,7 +158,7 @@ Job decides the same day. Do not leave conflicts for the next Monday.
 Thin slice for this 30-day block (17 Sep – 17 Oct 2026):
 
 1. A farmer can register, scan a leaf, get a cautious result, and top up with M-Pesa (or we have a dated cutover plan with test evidence).
-2. Crop-recommendation integration is designed and in progress toward a farmer-facing result in AgriScan.
+2. Crop-recommendation integration is designed and in progress toward a farmer-facing result in Ukulima Bora.
 3. The team has spoken to at least 10 farmers and started a shared conversation log.
 4. Production stays healthy, public claims match what is live, and everyone can name their role and weekly meeting.
 
@@ -181,7 +181,7 @@ Do **not** chase 10,000 farmers, drones, or bank contracts this month.
 
 At the end of the block, Stephen rewrites 5 for the next 30 days. Likely next themes (not commitments yet):
 
-- Crop recommendation live in AgriScan with logged inputs
+- Crop recommendation live in Ukulima Bora with logged inputs
 - M-Pesa live for wallet top-up with weekly recon
 - More farmer conversations and repeat product sessions
 - IoT prototype spec and first bench path
@@ -223,7 +223,7 @@ Do not silently dump these onto Stephen or Emilio. Track them here; start hiring
 1. 30 farmer conversations exist in writing.
 2. 10 farmers came back a second time without us standing over them.
 3. Scan + wallet top-up work in production.
-4. Crop recommendation runs inside AgriScan and logs every request.
+4. Crop recommendation runs inside Ukulima Bora and logs every request.
 5. Brian can show a one-page money picture.
 6. The team has a named field-specialist candidate or a dated plan to get one.
 

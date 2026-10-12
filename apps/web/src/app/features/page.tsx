@@ -24,7 +24,7 @@ export default function FeaturesPage() {
 
       <PageHero
         crumb="Features"
-        eyebrow="How AgriScan helps"
+        eyebrow="How Ukulima Bora helps"
         title="Tools made for farmers"
         lead="Simple ways to keep crops healthy, get advice, and find the right people to buy or supply what you need."
         photo={PHOTOS.tomatoCheck}
@@ -94,7 +94,7 @@ export default function FeaturesPage() {
 
       <section className="mk-band mk-section">
         <Reveal className="mk-container text-center">
-          <span className="hp-label !bg-white/15 !text-white">Join AgriScan</span>
+          <span className="hp-label !bg-white/15 !text-white">Join Ukulima Bora</span>
           <h2 className="section-title !text-white">
             Healthier farms start with a photo
           </h2>

@@ -5,7 +5,7 @@ DATA_DIR = os.path.join(BASE_DIR, "Data")
 CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
 MANIFEST_PATH = os.path.join(CHROMA_DB_DIR, "manifest.json")
 BM25_CORPUS_PATH = os.path.join(CHROMA_DB_DIR, "bm25_corpus.jsonl")
-COLLECTION_NAME = "agriscan_kb"
+COLLECTION_NAME = "ukulimabora_kb"
 
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"

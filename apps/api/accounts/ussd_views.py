@@ -62,7 +62,7 @@ def _provider_authorized(request) -> bool:
     """Require a shared secret when the live USSD gateway is enabled.
 
     Providers differ; we accept:
-      X-AgriScan-USSD-Secret: <AFRICASTALKING_API_KEY|TWILIO_AUTH_TOKEN|TEXTSMS_API_KEY>
+      X-UkulimaBora-USSD-Secret: <AFRICASTALKING_API_KEY|TWILIO_AUTH_TOKEN|TEXTSMS_API_KEY>
     """
     if getattr(settings, "DEV_ENV", False):
         return True
@@ -76,7 +76,7 @@ def _provider_authorized(request) -> bool:
         # Fail closed outside DEV_ENV — do not leave the webhook open.
         return False
 
-    provided = request.headers.get("X-AgriScan-USSD-Secret", "")
+    provided = request.headers.get("X-UkulimaBora-USSD-Secret", "")
     return bool(provided) and hmac.compare_digest(provided, secret)
 
 
@@ -172,6 +172,6 @@ class UssdSimulateView(APIView):
                     "topup_help",
                 ],
                 "excluded": ["crop_scan"],
-                "excluded_reason": "Scanning needs a camera — use the AgriScan app.",
+                "excluded_reason": "Scanning needs a camera — use the Ukulima Bora app.",
             }
         )

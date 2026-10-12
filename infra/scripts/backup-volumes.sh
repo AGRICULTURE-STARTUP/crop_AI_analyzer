@@ -16,7 +16,7 @@ set +a
 
 echo "Dumping Postgres to $OUT_DIR/pg_$STAMP.sql ..."
 docker compose exec -T postgres \
-  pg_dump -U "${POSTGRES_USER:-agriscan}" "${POSTGRES_DB:-agriscan}" \
+  pg_dump -U "${POSTGRES_USER:-ukulimabora}" "${POSTGRES_DB:-ukulimabora}" \
   > "$OUT_DIR/pg_$STAMP.sql"
 
 echo "Volumes to include in host/Contabo snapshots: pgdata chroma_data models_data kb_data"

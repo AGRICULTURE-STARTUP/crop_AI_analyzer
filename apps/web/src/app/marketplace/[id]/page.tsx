@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${product.name} — ${product.seller.name}`,
       description:
         product.description?.slice(0, 155) ||
-        `${product.name} from ${product.seller.name}, ${product.seller.county}. Contact the seller on AgriScan.`,
+        `${product.name} from ${product.seller.name}, ${product.seller.county}. Contact the seller on Ukulima Bora.`,
       alternates: { canonical: `/marketplace/${id}` },
     };
   } catch {

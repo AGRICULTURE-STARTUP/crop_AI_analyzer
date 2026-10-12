@@ -67,7 +67,7 @@ class AgencyProduct(models.Model):
     is_available = models.BooleanField(default=True)
     is_hidden = models.BooleanField(
         default=False,
-        help_text="Hidden from the marketplace by an AgriScan admin.",
+        help_text="Hidden from the marketplace by an Ukulima Bora admin.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

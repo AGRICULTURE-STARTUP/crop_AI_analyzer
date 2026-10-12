@@ -65,14 +65,14 @@ export default function LenderDashboardPage() {
         <div className="notice notice--warn mb-6">
           <ShieldIcon size={18} />
           <p>
-            Your organisation is waiting for approval. An AgriScan admin must approve you before you can create API keys
+            Your organisation is waiting for approval. An Ukulima Bora admin must approve you before you can create API keys
             or look up scores.
           </p>
         </div>
       ) : status === "suspended" ? (
         <div className="notice notice--danger mb-6">
           <ShieldIcon size={18} />
-          <p>Your access is suspended and your API keys are switched off. Contact AgriScan support.</p>
+          <p>Your access is suspended and your API keys are switched off. Contact Ukulima Bora support.</p>
         </div>
       ) : null}
 

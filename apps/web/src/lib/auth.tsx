@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     const sessionCleared = () => setUser(null);
     const storageChanged = (event: StorageEvent) => {
-      if (event.key?.startsWith("agriscan_")) {
+      if (event.key?.startsWith("ukulimabora_")) {
         expireIfIdle();
         if (!getStoredTokens()) setUser(null);
       }
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     window.addEventListener("focus", noteActivity);
     window.addEventListener("storage", storageChanged);
-    window.addEventListener("agriscan:session-cleared", sessionCleared);
+    window.addEventListener("ukulimabora:session-cleared", sessionCleared);
     const interval = window.setInterval(expireIfIdle, 15_000);
 
     return () => {
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       window.removeEventListener("focus", noteActivity);
       window.removeEventListener("storage", storageChanged);
-      window.removeEventListener("agriscan:session-cleared", sessionCleared);
+      window.removeEventListener("ukulimabora:session-cleared", sessionCleared);
       window.clearInterval(interval);
     };
   }, []);

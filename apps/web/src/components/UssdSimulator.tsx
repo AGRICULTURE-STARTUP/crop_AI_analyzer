@@ -45,7 +45,7 @@ export function UssdSimulator() {
   const [meta, setMeta] = useState<SimMeta | null>(null);
   const [phone, setPhone] = useState("254700000000");
   const [sessionId, setSessionId] = useState(newSessionId);
-  const [screen, setScreen] = useState("Dial *384*55# to open AgriScan USSD.");
+  const [screen, setScreen] = useState("Dial *384*55# to open Ukulima Bora USSD.");
   const [ended, setEnded] = useState(true);
   const [textTrail, setTextTrail] = useState("");
   const [draft, setDraft] = useState("");
@@ -63,7 +63,7 @@ export function UssdSimulator() {
           provider: "simulate",
           features: [],
           excluded: ["crop_scan"],
-          excluded_reason: "Scanning needs a camera — use the AgriScan app.",
+          excluded_reason: "Scanning needs a camera — use the Ukulima Bora app.",
         }),
       );
   }, []);
@@ -148,7 +148,7 @@ export function UssdSimulator() {
           <div className="ussd-card">
             <div className="ussd-copy">
               <span className="hp-label">No smartphone? No problem</span>
-              <h2 className="section-title">Use AgriScan from any phone</h2>
+              <h2 className="section-title">Use Ukulima Bora from any phone</h2>
               <p className="section-lead section-lead--left">
                 Dial a short code to check your wallet, ask for advice, find
                 buyers, and more — even on a basic handset.
@@ -178,7 +178,7 @@ export function UssdSimulator() {
                     <CloseIcon size={14} />
                   </span>
                   <span>
-                    Crop photos need a camera — use the AgriScan app to scan a
+                    Crop photos need a camera — use the Ukulima Bora app to scan a
                     leaf
                   </span>
                 </li>
@@ -191,7 +191,7 @@ export function UssdSimulator() {
                   <div className="ussd-earpiece" aria-hidden />
                   <div className="ussd-screen">
                     <div className="ussd-status">
-                      <span>AgriScan</span>
+                      <span>Ukulima Bora</span>
                       <span>{pending ? "…" : ended ? "ready" : "connected"}</span>
                     </div>
                     <pre ref={screenRef} className="ussd-body">

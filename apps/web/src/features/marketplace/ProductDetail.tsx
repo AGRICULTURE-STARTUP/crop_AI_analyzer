@@ -87,7 +87,7 @@ function ProductView({
   const [copied, setCopied] = useState(false);
   const price = formatKsh(product.price);
   const phone = intlPhone(seller.phone);
-  const message = `Hello ${seller.name}, I saw "${product.name}" on AgriScan. Is it available?`;
+  const message = `Hello ${seller.name}, I saw "${product.name}" on Ukulima Bora. Is it available?`;
 
   const highlights = [
     product.unit ? `Pack size: ${product.unit}` : null,
@@ -266,7 +266,7 @@ function ProductView({
                 <p className="font-semibold text-[var(--ink)]">{seller.name}</p>
                 <p className="text-sm text-[var(--muted)]">
                   {seller.type_label}
-                  {seller.county ? ` · ${seller.county}` : ""} · On AgriScan since{" "}
+                  {seller.county ? ` · ${seller.county}` : ""} · On Ukulima Bora since{" "}
                   {formatDate(seller.member_since)}
                 </p>
                 <p className="mt-1 text-sm">

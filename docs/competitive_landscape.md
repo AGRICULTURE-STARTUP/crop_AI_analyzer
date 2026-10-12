@@ -1,14 +1,14 @@
-# AgriScan Competitive Landscape
+# Ukulima Bora Competitive Landscape
 
 **Version:** 1.0  
 **Date:** 20 September 2026  
-**Scope:** Kenya and East Africa, mapped against AgriScan’s live product and planned IoT layers — not against the slide-deck version of the company.
+**Scope:** Kenya and East Africa, mapped against Ukulima Bora’s live product and planned IoT layers — not against the slide-deck version of the company.
 
 ---
 
 ## 1. Direct answer
 
-AgriScan does not uniquely own diagnosis, soil advice, IoT, USSD, markets, or credit. Specialists already beat it on each slice.
+Ukulima Bora does not uniquely own diagnosis, soil advice, IoT, USSD, markets, or credit. Specialists already beat it on each slice.
 
 The real fight is whether one Kenyan farmer identity can close the loop:
 
@@ -28,16 +28,16 @@ That loop is the differentiator. It is also mostly unfinished.
 | Competitor lanes farmers actually compare | 6 (diagnosis, super-apps, soil/IoT, irrigation, markets, finance) |
 | Hardest Kenya platform rival              | DigiFarm (`*944#` + M-Pesa)                                       |
 | Hardest diagnosis rival                   | PlantVillage Nuru (free, offline, Swahili)                        |
-| Only durable AgriScan edge                | The closed loop — and only if IoT ships                           |
+| Only durable Ukulima Bora edge                | The closed loop — and only if IoT ships                           |
 
 
 ---
 
 
 
-## 2. What AgriScan is actually stacking
+## 2. What Ukulima Bora is actually stacking
 
-Competition only makes sense against the full stack at [agriscan.co.ke](https://agriscan.co.ke) and the IoT design in system docs: authenticated NPK and moisture telemetry, quarantined bad readings, AgriBot context, dashboards, then smart irrigation.
+Competition only makes sense against the full stack at [ukulimabora.co.ke](https://ukulimabora.co.ke) and the IoT design in system docs: authenticated NPK and moisture telemetry, quarantined bad readings, AgriBot context, dashboards, then smart irrigation.
 
 Crop recommendation, live USSD, and sensors are not production yet.
 
@@ -56,7 +56,7 @@ Crop recommendation, live USSD, and sensors are not production yet.
 | Drone / NDVI field scans                                | **Later roadmap**                | Cooperative-scale mapping                            | Farmonaut, Agrio satellite, Apollo remote sensing        |
 
 
-**AgriScan scan crops today:** maize, potato, tomato, beans, wheat, cabbage, cauliflower, capsicum, cucumber, pea, onion.
+**Ukulima Bora scan crops today:** maize, potato, tomato, beans, wheat, cabbage, cauliflower, capsicum, cucumber, pea, onion.
 
 **Missing versus Kenyan demand:** cassava, banana, coffee, tea, and sukuma wiki.
 
@@ -68,14 +68,14 @@ Internal sources: concept note, proposal, summary, system documentation, and the
 
 ## 3. Feature overlap with the players that matter
 
-Read down a column to see who can substitute AgriScan today. Read across a row to see who is a specialist versus a platform. “Yes” means shipped to farmers, not a pitch.
+Read down a column to see who can substitute Ukulima Bora today. Read across a row to see who is a specialist versus a platform. “Yes” means shipped to farmers, not a pitch.
 
 This matrix is a synthesis of public product claims, not a lab bake-off.
 
 
 | Player                | Leaf AI            | Soil / crop rec            | IoT / irrigation                            | Chat / SMS / USSD           | Market                       | Pay / credit           |
 | --------------------- | ------------------ | -------------------------- | ------------------------------------------- | --------------------------- | ---------------------------- | ---------------------- |
-| **AgriScan (target)** | Yes (11 crops)     | Designed, not in UI        | Designed, not built                         | Chat live; USSD sim         | Partial                      | Wallet code; score API |
+| **Ukulima Bora (target)** | Yes (11 crops)     | Designed, not in UI        | Designed, not built                         | Chat live; USSD sim         | Partial                      | Wallet code; score API |
 | PlantVillage Nuru     | Yes, offline       | No                         | No                                          | Swahili + iShamba SMS       | No                           | Free / donor           |
 | Plantix               | Yes, 450+ issues   | Limited                    | No                                          | Local-language recs         | Community                    | Free / ads             |
 | Agrio                 | Yes + satellite    | Limited                    | No                                          | Alerts, needs data          | No                           | M-Pesa sub             |
@@ -99,37 +99,37 @@ This matrix is a synthesis of public product claims, not a lab bake-off.
 
 ### 4.1 Pocket agronomist — diagnosis apps
 
-This is the feature farmers will compare first, because it is what AgriScan already ships. In Kenyan field roundups for 2026, Nuru is treated as the default free tool.
+This is the feature farmers will compare first, because it is what Ukulima Bora already ships. In Kenyan field roundups for 2026, Nuru is treated as the default free tool.
 
 
-| Player                     | Scale / proof                                                                                                                                                           | Why they beat AgriScan today                                                                                      | Where AgriScan can still win                                                                                                     |
+| Player                     | Scale / proof                                                                                                                                                           | Why they beat Ukulima Bora today                                                                                      | Where Ukulima Bora can still win                                                                                                     |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | **PlantVillage Nuru**      | Penn State / CGIAR; cassava, maize, potato; Swahili; offline; iShamba follow-up. Public writeups cite tens of thousands of Kenyan users and Ministry extension support. | Free. Works with no airtime. Covers cassava mosaic, brown streak, FAW, MLN. Audio/Swahili for low-literacy users. | Nuru does not bill, sell inputs, score farms, or ingest sensors. It is a public-good scanner, not a commercial operating system. |
-| **Plantix (PEAT)**         | GSMA Feb 2025: 135M downloads, ~10M farmers/year. India-first; expanding African languages. ICRISAT-backed treatment tips. Outbreak maps from farmer GPS.               | Disease encyclopedia at a scale AgriScan cannot match. Outbreak alerts are a network effect.                      | Not Kenya-native payments, KAMIS, USSD, or lender APIs. Weak on local agrovet fulfilment.                                        |
-| **Agrio**                  | Image diagnosis + satellite stress and ward-level pest movement. Premium ~KSh 500–800/month in Kenyan roundups.                                                         | Better for larger horticulture / export farms that want alerts, not a one-shot leaf photo.                        | Too expensive and connectivity-heavy for most AgriScan smallholders. No marketplace or Farm Health Score.                        |
-| **Tumaini (IITA / CGIAR)** | Fusarium and banana bacterial wilt; confidence scores; Kisii / Tharaka-Nithi use.                                                                                       | Owns banana, a crop AgriScan does not scan.                                                                       | Narrow crop. Partnership target, not a platform rival.                                                                           |
+| **Plantix (PEAT)**         | GSMA Feb 2025: 135M downloads, ~10M farmers/year. India-first; expanding African languages. ICRISAT-backed treatment tips. Outbreak maps from farmer GPS.               | Disease encyclopedia at a scale Ukulima Bora cannot match. Outbreak alerts are a network effect.                      | Not Kenya-native payments, KAMIS, USSD, or lender APIs. Weak on local agrovet fulfilment.                                        |
+| **Agrio**                  | Image diagnosis + satellite stress and ward-level pest movement. Premium ~KSh 500–800/month in Kenyan roundups.                                                         | Better for larger horticulture / export farms that want alerts, not a one-shot leaf photo.                        | Too expensive and connectivity-heavy for most Ukulima Bora smallholders. No marketplace or Farm Health Score.                        |
+| **Tumaini (IITA / CGIAR)** | Fusarium and banana bacterial wilt; confidence scores; Kisii / Tharaka-Nithi use.                                                                                       | Owns banana, a crop Ukulima Bora does not scan.                                                                       | Narrow crop. Partnership target, not a platform rival.                                                                           |
 
 
 
 
 ### 4.2 Kenya super-apps — credit, USSD, markets
 
-These are the companies a bank, county, or cooperative will name in the same sentence as AgriScan. They have distribution AgriScan does not.
+These are the companies a bank, county, or cooperative will name in the same sentence as Ukulima Bora. They have distribution Ukulima Bora does not.
 
 
-| Player                      | What they sell                                                                                                                                                                                                                                 | Threat to AgriScan                                                                                                   | Gap AgriScan can occupy                                                                                                                                                                          |
+| Player                      | What they sell                                                                                                                                                                                                                                 | Threat to Ukulima Bora                                                                                                   | Gap Ukulima Bora can occupy                                                                                                                                                                          |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **DigiFarm (Safaricom)**    | One-stop: soil testing, inputs, insurance, mechanization, extension, buyer links, M-Pesa wallet, USSD `*944#`, app, call centre. Historical reporting of 1M+ registered users. DigiFarm 2026 app notes credit scoring and Soko matching.       | Highest. They already claim the integrated smallholder platform, on the rails every Kenyan farmer uses.              | Photo diagnosis is not their core. They finance inputs; they do not close a leaf-scan → agrovet → sensor → score loop. AgriScan can partner or stay thinner and better at diagnosis-plus-record. |
-| **Apollo Agriculture**      | Kenya + Zambia. GSMA Apr 2025: ~400k farmers, yields 2–2.5× national average. Satellite + ML credit, bundled seed/fertilizer/insurance, 1,000+ agrodealers. Exploring genAI photo disease ID for field officers serving feature-phone farmers. | If they ship agent-side leaf ID, they absorb AgriScan’s diagnosis wedge inside a lending machine that already works. | Apollo is a lender with agronomy, not a farmer-owned marketplace or plot IoT system. Farm Health Score could be a third-party API into banks that are not Apollo.                                |
+| **DigiFarm (Safaricom)**    | One-stop: soil testing, inputs, insurance, mechanization, extension, buyer links, M-Pesa wallet, USSD `*944#`, app, call centre. Historical reporting of 1M+ registered users. DigiFarm 2026 app notes credit scoring and Soko matching.       | Highest. They already claim the integrated smallholder platform, on the rails every Kenyan farmer uses.              | Photo diagnosis is not their core. They finance inputs; they do not close a leaf-scan → agrovet → sensor → score loop. Ukulima Bora can partner or stay thinner and better at diagnosis-plus-record. |
+| **Apollo Agriculture**      | Kenya + Zambia. GSMA Apr 2025: ~400k farmers, yields 2–2.5× national average. Satellite + ML credit, bundled seed/fertilizer/insurance, 1,000+ agrodealers. Exploring genAI photo disease ID for field officers serving feature-phone farmers. | If they ship agent-side leaf ID, they absorb Ukulima Bora’s diagnosis wedge inside a lending machine that already works. | Apollo is a lender with agronomy, not a farmer-owned marketplace or plot IoT system. Farm Health Score could be a third-party API into banks that are not Apollo.                                |
 | **Twiga Foods**             | B2B produce logistics to dukas. ~$185M raised; peak ~140k outlets. Entered administration 17 Aug 2026 (renamed GT Flow Limited).                                                                                                               | Low as a going concern. High as a warning: farm-to-market logistics burns cash.                                      | Do not become a second Twiga. Keep marketplace as discovery and connections, not trucks and cold chain.                                                                                          |
-| **iShamba / iCow / M-Farm** | SMS advisory, livestock tips, price info. Very wide but thin.                                                                                                                                                                                  | Low on product depth; high on habit. Farmers already get texts.                                                      | AgriScan USSD must do something those SMS lines cannot: wallet, score, diagnosis follow-up.                                                                                                      |
+| **iShamba / iCow / M-Farm** | SMS advisory, livestock tips, price info. Very wide but thin.                                                                                                                                                                                  | Low on product depth; high on habit. Farmers already get texts.                                                      | Ukulima Bora USSD must do something those SMS lines cannot: wallet, score, diagnosis follow-up.                                                                                                      |
 
 
 
 
 ### 4.3 Soil, sensors, irrigation — the planned IoT layer
 
-AgriScan’s planned IoT path is:
+Ukulima Bora’s planned IoT path is:
 
 1. Registered devices
 2. Authenticated telemetry API
@@ -142,13 +142,13 @@ AgriScan’s planned IoT path is:
 That is a software and data-quality play. Hardware vendors already occupy the field.
 
 
-| Player                        | Hardware / data                                                                                                                                                                                                     | Advice layer                                                                                          | Implication for AgriScan IoT                                                                                                                                                            |
+| Player                        | Hardware / data                                                                                                                                                                                                     | Advice layer                                                                                          | Implication for Ukulima Bora IoT                                                                                                                                                            |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **UjuziKilimo SoilPal**       | Handheld IoT probe. GSMA Nov 2024: under 5 minutes, SMS with 13 factors including moisture, temp, pH, NPK. Agents take it to the shamba. Lab tests cost ~KSh 3,000; fewer than 3% of Kenyan farmers ever test soil. | Paid SMS on fertilizer, water, and crop choice. FarmSuite app. Roadmap: visual/IR pest diagnosis.     | Closest soil-IoT rival. They win point-in-time tests via agents. AgriScan wins only if sensors stay on the plot and feed diagnosis, irrigation, and the Farm Health Score continuously. |
-| **SunCulture**                | IoT solar pumps + drip. PAYG. Rolling out soil sensors and weather stations. Climate insurance with APA / IBISA (2025–26). Carbon credits on pumps.                                                                 | Usage and weather intelligence for customers who bought a pump.                                       | Do not compete on pumps. Partner: AgriScan software on SunCulture water + soil data, or stay software-only on cheaper moisture nodes.                                                   |
-| **Synnefa**                   | FarmShield: temperature, soil moisture, nitrogen, light. FarmCloud. Smart greenhouses, drip kits, solar dryers. Nairobi hardware company.                                                                           | Dashboards and post-harvest drying control. Stronger on horticulture / export herbs than maize belts. | Greenhouse and dryer specialist. Overlap is FarmShield N + moisture. AgriScan should ingest their (or similar) telemetry rather than invent another probe.                              |
-| **iTrace Africa**             | LoRaWAN soil-moisture sensors and automated valves in Kenya. Claims up to 50% water savings.                                                                                                                        | Irrigation automation, not agronomy chat or markets.                                                  | Natural actuator for AgriScan’s smart-irrigation layer. Competitor if AgriScan builds valves; partner if AgriScan stays the brain.                                                      |
-| **Virtual Agronomist (iSDA)** | No probe. WhatsApp bot pulls iSDAsoil maps from GPS. Guardian 2024: Kericho coffee farmer cut wasted fertilizer and hit 7.3 t.                                                                                      | Free, field-specific nutrient plans. Expanding in Kenya.                                              | Beats AgriScan’s unintegrated 22-crop notebook model on local credibility. AgriScan needs measured NPK (farmer or sensor), not only a generic GNB pickle.                               |
+| **UjuziKilimo SoilPal**       | Handheld IoT probe. GSMA Nov 2024: under 5 minutes, SMS with 13 factors including moisture, temp, pH, NPK. Agents take it to the shamba. Lab tests cost ~KSh 3,000; fewer than 3% of Kenyan farmers ever test soil. | Paid SMS on fertilizer, water, and crop choice. FarmSuite app. Roadmap: visual/IR pest diagnosis.     | Closest soil-IoT rival. They win point-in-time tests via agents. Ukulima Bora wins only if sensors stay on the plot and feed diagnosis, irrigation, and the Farm Health Score continuously. |
+| **SunCulture**                | IoT solar pumps + drip. PAYG. Rolling out soil sensors and weather stations. Climate insurance with APA / IBISA (2025–26). Carbon credits on pumps.                                                                 | Usage and weather intelligence for customers who bought a pump.                                       | Do not compete on pumps. Partner: Ukulima Bora software on SunCulture water + soil data, or stay software-only on cheaper moisture nodes.                                                   |
+| **Synnefa**                   | FarmShield: temperature, soil moisture, nitrogen, light. FarmCloud. Smart greenhouses, drip kits, solar dryers. Nairobi hardware company.                                                                           | Dashboards and post-harvest drying control. Stronger on horticulture / export herbs than maize belts. | Greenhouse and dryer specialist. Overlap is FarmShield N + moisture. Ukulima Bora should ingest their (or similar) telemetry rather than invent another probe.                              |
+| **iTrace Africa**             | LoRaWAN soil-moisture sensors and automated valves in Kenya. Claims up to 50% water savings.                                                                                                                        | Irrigation automation, not agronomy chat or markets.                                                  | Natural actuator for Ukulima Bora’s smart-irrigation layer. Competitor if Ukulima Bora builds valves; partner if Ukulima Bora stays the brain.                                                      |
+| **Virtual Agronomist (iSDA)** | No probe. WhatsApp bot pulls iSDAsoil maps from GPS. Guardian 2024: Kericho coffee farmer cut wasted fertilizer and hit 7.3 t.                                                                                      | Free, field-specific nutrient plans. Expanding in Kenya.                                              | Beats Ukulima Bora’s unintegrated 22-crop notebook model on local credibility. Ukulima Bora needs measured NPK (farmer or sensor), not only a generic GNB pickle.                               |
 
 
 **IoT positioning that survives contact with the market**
@@ -157,20 +157,20 @@ Sell a calibrated plot record that diagnosis and irrigation can trust.
 
 - Do not sell “we have sensors.” UjuziKilimo already has sensors.  
 - Do not sell “we irrigate.” SunCulture already irrigates.  
-- AgriScan’s IoT layer only differentiates if quarantined telemetry changes the advice, the scan interpretation, the crop choice, and later the lender score.
+- Ukulima Bora’s IoT layer only differentiates if quarantined telemetry changes the advice, the scan interpretation, the crop choice, and later the lender score.
 
 
 
 ### 4.4 Finance, insurance, inputs around the farmer
 
 
-| Player                     | Lane                                                         | Relationship to AgriScan                                                                           |
+| Player                     | Lane                                                         | Relationship to Ukulima Bora                                                                           |
 | -------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
 | FarmDrive                  | Alternative smallholder credit scores                        | Direct rival to Farm Health Score if lenders want telco/mobile data instead of scan activity.      |
-| AgriWallet                 | Value-chain wallet: save, pay agrovet, get produce payment   | Overlaps M-Pesa wallet. AgriScan should stay on Daraja, not rebuild a second agri-wallet.          |
+| AgriWallet                 | Value-chain wallet: save, pay agrovet, get produce payment   | Overlaps M-Pesa wallet. Ukulima Bora should stay on Daraja, not rebuild a second agri-wallet.          |
 | Pula                       | Index insurance bundled with seed/fertilizer; Apollo partner | Complement. Score + scan history could help insurers; do not build an insurance company.           |
 | iProcure                   | Agro-input supply chain for agrovets                         | Agency portal competitor on inputs logistics; partner for genuine product fulfilment after a scan. |
-| Farmonaut / CropIn / Amini | Satellite farm OS and Africa earth observation               | Better remote sensing than AgriScan’s later drone idea. Use them; do not fake NDVI.                |
+| Farmonaut / CropIn / Amini | Satellite farm OS and Africa earth observation               | Better remote sensing than Ukulima Bora’s later drone idea. Use them; do not fake NDVI.                |
 
 
 ---
@@ -184,7 +184,7 @@ Sell a calibrated plot record that diagnosis and irrigation can trust.
 ### 5.1 Defend these
 
 **One farmer identity across the season**  
-Nuru diagnoses and stops. UjuziKilimo tests soil and stops. SunCulture waters and stops. DigiFarm finances and stops short of a leaf model. AgriScan’s claim is the same plot ID tying recommendation, telemetry, scan, AgriBot, market, and score.
+Nuru diagnoses and stops. UjuziKilimo tests soil and stops. SunCulture waters and stops. DigiFarm finances and stops short of a leaf model. Ukulima Bora’s claim is the same plot ID tying recommendation, telemetry, scan, AgriBot, market, and score.
 
 **Diagnosis as a commerce moment**  
 The agrovet portal is timed to the scan, not to a generic input catalogue. That is closer to “right product now” than DigiFarm’s seasonal loan bundle or Plantix’s generic spray list.
@@ -193,7 +193,7 @@ The agrovet portal is timed to the scan, not to a generic input catalogue. That 
 Planned IoT is not a pretty chart. It is provenance-tagged NPK and moisture that AgriBot must cite, and that never silently enter the model if quarantined. Almost no Kenya chatbot does that.
 
 **Consent-based activity score**  
-Apollo infers risk from satellites. DigiFarm infers it from loans and sales. AgriScan’s score is built from health scans and completed market links, with an opt-in API. Different signal — only useful after real usage, which the roadmap still lacks.
+Apollo infers risk from satellites. DigiFarm infers it from loans and sales. Ukulima Bora’s score is built from health scans and completed market links, with an opt-in API. Different signal — only useful after real usage, which the roadmap still lacks.
 
 **Kenya commercial packaging**  
 KSh 10–20 M-Pesa micro-charges, Kiswahili, KAMIS, county profiles, USSD designed in. Plantix and Agrio are global apps wearing a Swahili coat. That is a real local edge if payments actually settle.
@@ -205,7 +205,7 @@ KSh 10–20 M-Pesa micro-charges, Kiswahili, KAMIS, county profiles, USSD design
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | “AI diagnosis.”                 | Nuru is free, offline, and better known. Plantix has the corpus.                                                  |
 | “We will have IoT.”             | SoilPal, FarmShield, and SunCulture already ship devices.                                                         |
-| “USSD inclusion.”               | DigiFarm `*944#` is live on Safaricom. AgriScan has a homepage keypad.                                            |
+| “USSD inclusion.”               | DigiFarm `*944#` is live on Safaricom. Ukulima Bora has a homepage keypad.                                            |
 | “Lending API.”                  | Engagement points are not agronomy. Lenders will ask for repayment data, satellite NDVI, or M-Pesa history first. |
 | “22-crop recommender.”          | Virtual Agronomist already gives plot-level fertilizer plans from soil maps Kenyan farmers are using.             |
 | “We connect farmers to buyers.” | Twiga raised ~$185M and still went into administration. Logistics is not a software feature.                      |
@@ -218,12 +218,12 @@ KSh 10–20 M-Pesa micro-charges, Kiswahili, KAMIS, county profiles, USSD design
 ## 6. Who is actually dangerous, in order
 
 
-| Rank | Player                               | Why they can make AgriScan irrelevant                                                                                                            | Counter                                                                                                                                    |
+| Rank | Player                               | Why they can make Ukulima Bora irrelevant                                                                                                            | Counter                                                                                                                                    |
 | ---- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1    | **DigiFarm**                         | Distribution, USSD, M-Pesa, credit, and markets on the national telco. If they add a decent leaf model, the integrated-platform story is theirs. | Be the diagnosis + plot-record layer they do not build. Or stay out of their loan bundle and win horticulture / county pilots they ignore. |
 | 2    | **PlantVillage Nuru**                | Farmers will not pay KSh 20 for a worse, online-only scan of maize when a free offline app exists.                                               | Charge for the report + agrovet + history, not for the raw class label. Add cassava and banana. Ship offline later.                        |
 | 3    | **Apollo Agriculture**               | They already monetize the farmer via credit. Photo ID on the field-officer app is on their GSMA roadmap.                                         | Sell the Farm Health Score to other banks/SACCOs. Do not try to out-lend Apollo.                                                           |
-| 4    | **UjuziKilimo + Virtual Agronomist** | Together they cover soil test, SMS recs, and WhatsApp fertilizer plans — AgriScan’s pre-plant and IoT stories.                                   | Integrate or white-label SoilPal / iSDAsoil instead of a generic 22-crop pickle. Win on continuous plot telemetry + diagnosis.             |
+| 4    | **UjuziKilimo + Virtual Agronomist** | Together they cover soil test, SMS recs, and WhatsApp fertilizer plans — Ukulima Bora’s pre-plant and IoT stories.                                   | Integrate or white-label SoilPal / iSDAsoil instead of a generic 22-crop pickle. Win on continuous plot telemetry + diagnosis.             |
 | 5    | **SunCulture / Synnefa / iTrace**    | They own irrigation hardware relationships and sensor installs.                                                                                  | Be the brain: ingest their moisture and N, drive AgriBot and irrigation advice. Do not start a pump company.                               |
 | 6    | **Plantix / Agrio**                  | Global diagnosis quality and outbreak maps. African language expansion is explicit.                                                              | Local fulfilment (M-Pesa, agrovet, KAMIS, USSD) and Kenyan crop mix. Do not race their image corpus.                                       |
 
@@ -248,7 +248,7 @@ KSh 10–20 M-Pesa micro-charges, Kiswahili, KAMIS, county profiles, USSD design
 
 - Being “the AI crop app.” That category is occupied by free CGIAR tools and Plantix.
 - Building another produce logistics network. Twiga’s 2026 administration is the market’s verdict on that cost structure.
-- Cheap uncalibrated NPK sticks sold as lab-grade truth. AgriScan’s own docs already flag drift. Shipping that without a protocol hands UjuziKilimo and county labs an easy attack.
+- Cheap uncalibrated NPK sticks sold as lab-grade truth. Ukulima Bora’s own docs already flag drift. Shipping that without a protocol hands UjuziKilimo and county labs an easy attack.
 - Livestock. Aniwise and iCow own animal health. Stay on crops.
 
 ---
@@ -275,4 +275,4 @@ Web search and page extracts, 20 September 2026.
 | PlantVillage Kenya                       | [https://iafrica.com/plantvillage-ai-for-crop-disease-detection-in-kenya](https://iafrica.com/plantvillage-ai-for-crop-disease-detection-in-kenya)                                                                                                                                                                                                                                     |
 
 
-AgriScan capabilities from internal documents: [concept note](./concept_note.md), [proposal](./proposal.md), [summary](./summary.md), [system documentation](./SYSTEM_DOCUMENTATION.md), and [project status and roadmap](./project_status_and_roadmap.md) (17 September 2026).
+Ukulima Bora capabilities from internal documents: [concept note](./concept_note.md), [proposal](./proposal.md), [summary](./summary.md), [system documentation](./SYSTEM_DOCUMENTATION.md), and [project status and roadmap](./project_status_and_roadmap.md) (17 September 2026).

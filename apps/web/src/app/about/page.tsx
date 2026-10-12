@@ -12,7 +12,7 @@ import { PHOTOS } from "@/lib/photos";
 export const metadata: Metadata = {
   title: "About us",
   description:
-    "AgriScan started in 2025 to help farmers stop crop losses early, feed their communities, and show lenders they are building a healthier farm.",
+    "Ukulima Bora started in 2025 to help farmers stop crop losses early, feed their communities, and show lenders they are building a healthier farm.",
   alternates: { canonical: "/about" },
 };
 
@@ -79,7 +79,7 @@ export default function AboutPage() {
           <Reveal variant="zoom">
             <div className="cta-split">
               <div className="cta-split__copy">
-                <span className="hp-label !bg-white/15 !text-white">Join AgriScan</span>
+                <span className="hp-label !bg-white/15 !text-white">Join Ukulima Bora</span>
                 <h2 className="section-title !text-white">
                   Choose how you take part
                 </h2>

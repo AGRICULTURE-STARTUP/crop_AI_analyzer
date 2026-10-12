@@ -28,7 +28,7 @@ class MpesaGateway:
             print(f"Error getting M-Pesa access token: {e}")
             return None
 
-    def initiate_stk_push(self, phone_number, amount, callback_url, account_reference="AgriScan", transaction_desc="Payment for AI Services"):
+    def initiate_stk_push(self, phone_number, amount, callback_url, account_reference="UkulimaBora", transaction_desc="Payment for AI Services"):
         """Sends an STK Push request to the user's phone."""
         token = self.get_access_token()
         if not token:

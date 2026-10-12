@@ -1,5 +1,5 @@
 """
-USSD menu engine for AgriScan farmers.
+USSD menu engine for Ukulima Bora farmers.
 
 Designed for Africa's Talking / Twilio / TextSMS style callbacks:
   session_id, phone_number, text (joined with *)
@@ -78,7 +78,7 @@ def _main_menu(farmer: FarmerProfile | None, demo: bool) -> str:
         else ("Demo farmer" if demo else "Farmer")
     )
     return (
-        f"AgriScan — Karibu {who}\n"
+        f"Ukulima Bora — Karibu {who}\n"
         "1. Wallet balance\n"
         "2. Ask AgriBot\n"
         "3. Market / produce\n"
@@ -129,7 +129,7 @@ def handle_ussd(
 
     if choice == "0":
         cache.delete(_cache_key(session_id))
-        return UssdReply("Asante. AgriScan — crop intelligence in your pocket.", end=True)
+        return UssdReply("Asante. Ukulima Bora — crop intelligence in your pocket.", end=True)
 
     # Nested AgriBot free-text: 2*<question>
     if choice == "2":
@@ -218,7 +218,7 @@ def handle_ussd(
 
     if choice == "8":
         return UssdReply(
-            "Top up via M-Pesa in the AgriScan app:\n"
+            "Top up via M-Pesa in the Ukulima Bora app:\n"
             "Profile → Wallet → Top up.\n"
             "Or STK push after you register.\n"
             "Scanning & chat use wallet credits.",
@@ -266,7 +266,7 @@ def _market_reply(farmer: FarmerProfile | None, demo: bool) -> UssdReply:
         f"Your produce: {products[:80]}\n"
         f"County: {farmer.county or '—'}\n"
         f"Completed buyer links: {connections}\n"
-        "Manage listings in the AgriScan app.",
+        "Manage listings in the Ukulima Bora app.",
         end=True,
     )
 
@@ -316,7 +316,7 @@ def _inputs_reply(county: str, kind: str) -> UssdReply:
     if not agencies:
         return UssdReply(
             f"No registered input stores in {county} yet.\n"
-            "Ask an agrovet to sign up on AgriScan.",
+            "Ask an agrovet to sign up on Ukulima Bora.",
             end=True,
         )
     lines = [
@@ -365,7 +365,7 @@ def _profile_reply(
         return UssdReply(
             f"Phone: {phone}\n"
             "Status: not registered\n"
-            "Sign up at agriscan.app /signup/farmer\n"
+            "Sign up at ukulimabora.co.ke/signup/farmer\n"
             "Use this phone number to link USSD.",
             end=True,
         )
@@ -390,7 +390,7 @@ def _agribot_reply(
         is_free = wallet.chat_count < 5
         if not is_free and wallet.balance < Decimal("10"):
             return UssdReply(
-                "Insufficient balance (KSh 10).\nTop up in the AgriScan app.",
+                "Insufficient balance (KSh 10).\nTop up in the Ukulima Bora app.",
                 end=True,
             )
 

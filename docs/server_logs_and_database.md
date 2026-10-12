@@ -1,13 +1,13 @@
 # Contabo: server logs & database access
 
-**Stack path on VPS:** `/opt/agriscan/crop_AI_analyzer/infra`  
+**Stack path on VPS:** `/opt/ukulimabora/crop_AI_analyzer/infra`  
 **Compose file:** `docker-compose.yml`  
-**DB credentials:** `infra/.env` (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` — usually `agriscan`)
+**DB credentials:** `infra/.env` (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` — usually `ukulimabora`)
 
 Always start from the infra directory:
 
 ```bash
-cd /opt/agriscan/crop_AI_analyzer/infra
+cd /opt/ukulimabora/crop_AI_analyzer/infra
 ```
 
 ---
@@ -32,7 +32,7 @@ Press `Ctrl+C` to stop following. Containers keep running.
 
 ```bash
 docker compose -f docker-compose.yml ps
-curl -s https://api.agriscan.co.ke/api/v1/health/
+curl -s https://api.ukulimabora.co.ke/api/v1/health/
 ```
 
 ---
@@ -44,9 +44,9 @@ Postgres runs inside Docker and is **not** exposed on the public internet. Conne
 ### Option A — `psql` (list tables, inspect rows)
 
 ```bash
-cd /opt/agriscan/crop_AI_analyzer/infra
+cd /opt/ukulimabora/crop_AI_analyzer/infra
 docker compose -f docker-compose.yml exec postgres \
-  psql -U agriscan -d agriscan
+  psql -U ukulimabora -d ukulimabora
 ```
 
 If your `.env` uses different `POSTGRES_USER` / `POSTGRES_DB`, substitute those values.
@@ -67,10 +67,10 @@ SELECT * FROM auth_user LIMIT 20;            -- example query
 
 ```bash
 docker compose -f docker-compose.yml exec postgres \
-  psql -U agriscan -d agriscan -c '\dt'
+  psql -U ukulimabora -d ukulimabora -c '\dt'
 
 docker compose -f docker-compose.yml exec postgres \
-  psql -U agriscan -d agriscan -c 'SELECT id, email, username FROM auth_user LIMIT 20;'
+  psql -U ukulimabora -d ukulimabora -c 'SELECT id, email, username FROM auth_user LIMIT 20;'
 ```
 
 ### Option B — Django DB shell
@@ -94,7 +94,7 @@ To enable it:
 
 3. Rebuild / restart the API, then open:
 
-   `https://api.agriscan.co.ke/admin/`
+   `https://api.ukulimabora.co.ke/admin/`
 
 Until admin is enabled, use `psql` (Option A) to inspect tables.
 
@@ -131,10 +131,10 @@ Do **not** publish Postgres on `0.0.0.0:5432`. Prefer SSH + localhost only.
 
 ## 3. TLS certificate renewal (related ops)
 
-Certbot was issued for `api.agriscan.co.ke`. Manual renew:
+Certbot was issued for `api.ukulimabora.co.ke`. Manual renew:
 
 ```bash
-cd /opt/agriscan/crop_AI_analyzer/infra
+cd /opt/ukulimabora/crop_AI_analyzer/infra
 docker compose -f docker-compose.yml --profile certs run --rm \
   --entrypoint certbot certbot renew
 docker compose -f docker-compose.yml exec nginx nginx -s reload
@@ -143,7 +143,7 @@ docker compose -f docker-compose.yml exec nginx nginx -s reload
 Suggested monthly cron (`crontab -e` as root):
 
 ```cron
-0 3 1 * * cd /opt/agriscan/crop_AI_analyzer/infra && docker compose -f docker-compose.yml --profile certs run --rm --entrypoint certbot certbot renew && docker compose -f docker-compose.yml exec nginx nginx -s reload
+0 3 1 * * cd /opt/ukulimabora/crop_AI_analyzer/infra && docker compose -f docker-compose.yml --profile certs run --rm --entrypoint certbot certbot renew && docker compose -f docker-compose.yml exec nginx nginx -s reload
 ```
 
 ---
@@ -151,14 +151,14 @@ Suggested monthly cron (`crontab -e` as root):
 ## 4. Quick reference
 
 ```bash
-cd /opt/agriscan/crop_AI_analyzer/infra
+cd /opt/ukulimabora/crop_AI_analyzer/infra
 
 # Live API logs
 docker compose -f docker-compose.yml logs -f api
 
 # Open database
-docker compose -f docker-compose.yml exec postgres psql -U agriscan -d agriscan
+docker compose -f docker-compose.yml exec postgres psql -U ukulimabora -d ukulimabora
 
 # Health
-curl -s https://api.agriscan.co.ke/api/v1/health/
+curl -s https://api.ukulimabora.co.ke/api/v1/health/
 ```

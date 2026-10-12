@@ -1,10 +1,10 @@
-/** * AgriScan SPA & UI Logic
+/** * Ukulima Bora SPA & UI Logic
  * Handles dynamic navigation, state persistence, and AI interactions.
  */
 
 const pageCache = new Map();
-const CHAT_STORAGE_KEY = 'agriscan_chat_history';
-const SCAN_STORAGE_KEY = 'agriscan_last_scan';
+const CHAT_STORAGE_KEY = 'ukulimabora_chat_history';
+const SCAN_STORAGE_KEY = 'ukulimabora_last_scan';
 
 document.addEventListener('DOMContentLoaded', function() {
     initSPA();

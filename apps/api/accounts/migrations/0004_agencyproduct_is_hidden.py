@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='agencyproduct',
             name='is_hidden',
-            field=models.BooleanField(default=False, help_text='Hidden from the marketplace by an AgriScan admin.'),
+            field=models.BooleanField(default=False, help_text='Hidden from the marketplace by an Ukulima Bora admin.'),
         ),
     ]

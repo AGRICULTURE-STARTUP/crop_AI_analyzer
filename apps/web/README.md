@@ -1,4 +1,4 @@
-# AgriScan web (Next.js App Router + Capacitor)
+# Ukulima Bora web (Next.js App Router + Capacitor)
 
 ## Setup
 

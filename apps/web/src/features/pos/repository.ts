@@ -48,7 +48,7 @@ export function validateSale(input: SaleInput): string | null {
 
 /* ------------------------------ local adapter ----------------------------- */
 
-const key = (userId: number) => `agriscan_pos_sales_${userId}`;
+const key = (userId: number) => `ukulimabora_pos_sales_${userId}`;
 
 function read(userId: number): PosSale[] {
   try {

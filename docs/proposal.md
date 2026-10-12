@@ -1,26 +1,26 @@
-# Grant Proposal: AgriScan — Universal Digital Agricultural Intelligence Platform
+# Grant Proposal: Ukulima Bora — Universal Digital Agricultural Intelligence Platform
 
 **Version:** 2.0
 **Updated:** 30 July 2026
 
 ## Executive Summary
 
-Smallholder farmers frequently choose crops, apply inputs, irrigate, and respond to crop stress without timely soil data or agronomic support. AgriScan addresses this problem through one connected platform for crop recommendation, IoT field monitoring, AI crop diagnosis, multilingual advice, market access, mobile money, and consent-based farm records.
+Smallholder farmers frequently choose crops, apply inputs, irrigate, and respond to crop stress without timely soil data or agronomic support. Ukulima Bora addresses this problem through one connected platform for crop recommendation, IoT field monitoring, AI crop diagnosis, multilingual advice, market access, mobile money, and consent-based farm records.
 
-The core Django application is deployed on a Contabo VPS at **[agriscan.co.ke](https://agriscan.co.ke)**. The next stage will integrate Stephen Kingori’s 22-crop recommendation system, complete M-Pesa and SMS/USSD access, implement SEO, and prototype an affordable IoT layer for NPK and soil-moisture data. These capabilities will allow AgriBot to give advice based not only on a photograph or question, but also on measured field conditions and farm history.
+The core Django application is deployed on a Contabo VPS at **[ukulimabora.co.ke](https://ukulimabora.co.ke)**. The next stage will integrate Stephen Kingori’s 22-crop recommendation system, complete M-Pesa and SMS/USSD access, implement SEO, and prototype an affordable IoT layer for NPK and soil-moisture data. These capabilities will allow AgriBot to give advice based not only on a photograph or question, but also on measured field conditions and farm history.
 
-AgriScan seeks **USD 75,000** to complete integration, procure and validate IoT hardware, conduct agronomist-supervised field pilots, improve accessibility, and prepare the platform for responsible scale over 18 months.
+Ukulima Bora seeks **USD 75,000** to complete integration, procure and validate IoT hardware, conduct agronomist-supervised field pilots, improve accessibility, and prepare the platform for responsible scale over 18 months.
 
 ## Organization and Team
 
-AgriScan is being developed by a four-person multidisciplinary team:
+Ukulima Bora is being developed by a four-person multidisciplinary team:
 
 - **Job Nyaribari — Founder, Product and AI/Technical Lead:** product direction, architecture, AI diagnosis, security, and partnerships.
 - **Ziro — Platform and Integrations Lead:** backend integrations, USSD/SMS, DevOps, observability, and data services.
 - **Lynn — Agricultural Operations and Farmer Success Lead:** agronomic content, field protocols, farmer training, and validation.
 - **Stephen Kingori — Crop Recommendation and Project Management Lead:** crop-recommendation product ownership, model integration, delivery tracking, technical documentation, and cross-team coordination.
 
-Stephen joins AgriScan with an existing Flask and Gaussian Naive Bayes crop recommendation system. Its integration provides a tested starting point while the team validates assumptions and adapts the model to local field conditions.
+Stephen joins Ukulima Bora with an existing Flask and Gaussian Naive Bayes crop recommendation system. Its integration provides a tested starting point while the team validates assumptions and adapts the model to local field conditions.
 
 ## Problem or Need
 
@@ -37,7 +37,7 @@ The result is unsuitable crop selection, delayed intervention, avoidable input u
 
 ## Proposed Solution
 
-AgriScan supports the farming lifecycle through:
+Ukulima Bora supports the farming lifecycle through:
 
 - **Crop recommendation:** Uses N, P, K, pH, temperature, humidity, and rainfall to suggest suitable crops.
 - **IoT monitoring:** Collects NPK and soil-moisture readings from field sensors, with room for temperature, humidity, pH, and other devices.
@@ -55,7 +55,7 @@ The platform supports, but does not replace, qualified agronomists or extension 
 
 ### 18-month objectives
 
-1. Integrate crop recommendation into AgriScan and validate it against agronomist-reviewed Kenyan cases within four months.
+1. Integrate crop recommendation into Ukulima Bora and validate it against agronomist-reviewed Kenyan cases within four months.
 2. Complete production M-Pesa, SMS, and USSD flows and test them with representative users within six months.
 3. Prototype, calibrate, and field-test NPK and soil-moisture telemetry on at least 20 plots within nine months.
 4. Onboard up to 10,000 farmers and facilitate 50,000 crop scans or recommendations within 18 months, subject to pilot evidence and partner capacity.
@@ -117,4 +117,4 @@ Potential revenue includes affordable scan and advisory microtransactions, agenc
 **Job Nyaribari**
 **Phone:** +254 758 503819
 **Email:** [jobnyaribari808@gmail.com](mailto:jobnyaribari808@gmail.com)
-**Website:** [agriscan.co.ke](https://agriscan.co.ke)
+**Website:** [ukulimabora.co.ke](https://ukulimabora.co.ke)

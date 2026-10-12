@@ -18,7 +18,7 @@ set -a
 source .env
 set +a
 
-echo "WARNING: This replaces data in database '${POSTGRES_DB:-agriscan}'."
+echo "WARNING: This replaces data in database '${POSTGRES_DB:-ukulimabora}'."
 echo "Dump: $DUMP"
 read -r -p "Type RESTORE to continue: " confirm
 if [[ "$confirm" != "RESTORE" ]]; then
@@ -28,21 +28,21 @@ fi
 
 echo "Dropping and recreating database..."
 docker compose exec -T postgres \
-  psql -U "${POSTGRES_USER:-agriscan}" -d postgres \
-  -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${POSTGRES_DB:-agriscan}' AND pid <> pg_backend_pid();" \
+  psql -U "${POSTGRES_USER:-ukulimabora}" -d postgres \
+  -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${POSTGRES_DB:-ukulimabora}' AND pid <> pg_backend_pid();" \
   || true
 
 docker compose exec -T postgres \
-  psql -U "${POSTGRES_USER:-agriscan}" -d postgres \
-  -c "DROP DATABASE IF EXISTS ${POSTGRES_DB:-agriscan};"
+  psql -U "${POSTGRES_USER:-ukulimabora}" -d postgres \
+  -c "DROP DATABASE IF EXISTS ${POSTGRES_DB:-ukulimabora};"
 
 docker compose exec -T postgres \
-  psql -U "${POSTGRES_USER:-agriscan}" -d postgres \
-  -c "CREATE DATABASE ${POSTGRES_DB:-agriscan} OWNER ${POSTGRES_USER:-agriscan};"
+  psql -U "${POSTGRES_USER:-ukulimabora}" -d postgres \
+  -c "CREATE DATABASE ${POSTGRES_DB:-ukulimabora} OWNER ${POSTGRES_USER:-ukulimabora};"
 
 echo "Restoring..."
 docker compose exec -T postgres \
-  psql -U "${POSTGRES_USER:-agriscan}" -d "${POSTGRES_DB:-agriscan}" \
+  psql -U "${POSTGRES_USER:-ukulimabora}" -d "${POSTGRES_DB:-ukulimabora}" \
   < "$DUMP"
 
 echo "Running migrations to catch schema drift..."

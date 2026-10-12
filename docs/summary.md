@@ -1,8 +1,8 @@
-# AgriScan — Executive Summary
+# Ukulima Bora — Executive Summary
 
-**AgriScan** is a universal digital agricultural platform built for East Africa, beginning in Kenya. It helps farmers select suitable crops, monitor soil conditions through IoT sensors, diagnose crop problems from phone photographs, receive contextual English/Kiswahili advice, connect with buyers and suppliers, and build a consent-based digital farm record.
+**Ukulima Bora** is a universal digital agricultural platform built for East Africa, beginning in Kenya. It helps farmers select suitable crops, monitor soil conditions through IoT sensors, diagnose crop problems from phone photographs, receive contextual English/Kiswahili advice, connect with buyers and suppliers, and build a consent-based digital farm record.
 
-The core platform is deployed on a Contabo VPS at **[agriscan.co.ke](https://agriscan.co.ke)**. Crop-recommendation integration, production M-Pesa, SMS/USSD, SEO, and the IoT field layer are the current priorities.
+The core platform is deployed on a Contabo VPS at **[ukulimabora.co.ke](https://ukulimabora.co.ke)**. Crop-recommendation integration, production M-Pesa, SMS/USSD, SEO, and the IoT field layer are the current priorities.
 
 **Primary contact:** Job Nyaribari — +254 758 503819 — [jobnyaribari808@gmail.com](mailto:jobnyaribari808@gmail.com)
 
@@ -26,7 +26,7 @@ Agriculture employs much of East Africa's rural workforce, yet many farmers make
 
 ## 2. Solution
 
-AgriScan provides an **AI-assisted agronomist, field monitor, and market connector** through a mobile-first web platform. It supports farmer decisions but does not replace qualified agronomists or extension officers.
+Ukulima Bora provides an **AI-assisted agronomist, field monitor, and market connector** through a mobile-first web platform. It supports farmer decisions but does not replace qualified agronomists or extension officers.
 
 The platform combines six capabilities:
 
@@ -37,7 +37,7 @@ The platform combines six capabilities:
 5. **Role-based marketplace and payments** — Farmer, buyer, and agency portals link diagnosis and production to products, markets, and M-Pesa.
 6. **Farm Health Score and lending API** — A consent-based score derived from platform activity provides a potential signal for approved financial partners.
 
-AgriScan is designed to **support** good judgement—not replace extension officers, veterinarians, or emergency pest response.
+Ukulima Bora is designed to **support** good judgement—not replace extension officers, veterinarians, or emergency pest response.
 
 ---
 
@@ -53,7 +53,7 @@ AgriScan is designed to **support** good judgement—not replace extension offic
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              AgriScan Django Application (Gunicorn)              │
+│              Ukulima Bora Django Application (Gunicorn)              │
 │ Web UI • TensorFlow diagnosis • Crop recommendation • AgriBot  │
 │ Marketplace • Wallet/M-Pesa • Farm profiles • Telemetry API    │
 └──────┬──────────────┬──────────────┬──────────────┬────────────┘
@@ -80,7 +80,7 @@ The target farmer journey is: **register farm → capture or receive soil readin
 2. The API validates units, ranges, freshness, and missing values.
 3. The saved scaler transforms seven ordered features.
 4. The Gaussian Naive Bayes model returns a crop recommendation from 22 classes.
-5. AgriScan displays the result, confidence/limitations, and an explanation of the input values.
+5. Ukulima Bora displays the result, confidence/limitations, and an explanation of the input values.
 6. The request and model version are logged for field evaluation.
 
 The existing recommender is a standalone Flask application. It must be migrated behind an authenticated Django service/API, tested against the exact saved model/scaler, and validated locally before being treated as agronomic evidence.
@@ -88,7 +88,7 @@ The existing recommender is a standalone Flask application. It must be migrated 
 ### 3.4 IoT-to-advice pipeline (planned)
 
 1. Registered field devices capture NPK and soil-moisture readings.
-2. A gateway sends timestamped, authenticated telemetry to AgriScan.
+2. A gateway sends timestamped, authenticated telemetry to Ukulima Bora.
 3. The platform validates units and plausible ranges and stores accepted and rejected readings.
 4. Recent trusted readings become context for crop recommendation, diagnosis, irrigation/fertiliser guidance, and alerts.
 5. Farmers and agronomists can inspect readings and override faulty data.
@@ -153,7 +153,7 @@ The score is recalculated when a farmer visits their profile. Algorithm (`utils_
 
 ## 4. Revenue Streams
 
-AgriScan uses a **freemium + micro-transaction + B2B API** model suited to mobile-money economies.
+Ukulima Bora uses a **freemium + micro-transaction + B2B API** model suited to mobile-money economies.
 
 ### 4.1 Active revenue streams (implemented)
 
@@ -185,7 +185,7 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 
 ```
                     ┌─────────────────────────────────────┐
-                    │         AgriScan Revenue            │
+                    │         Ukulima Bora Revenue            │
                     └─────────────────────────────────────┘
                                       │
           ┌───────────────────────────┼───────────────────────────┐
@@ -264,7 +264,7 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 | Payments | Safaricom M-Pesa Daraja API (STK Push) |
 | Storage | Cloudinary (production media), WhiteNoise (static) |
 | Auth | Django auth, django-allauth, Google OAuth, SendGrid email |
-| Deployment | Docker, Gunicorn, Nginx, PostgreSQL on Contabo VPS; `agriscan.co.ke` |
+| Deployment | Docker, Gunicorn, Nginx, PostgreSQL on Contabo VPS; `ukulimabora.co.ke` |
 | Mobile | CapacitorJS (native camera, app store packaging) |
 | Crop recommendation | scikit-learn GaussianNB + MinMaxScaler; standalone Flask source being integrated |
 | IoT (planned) | NPK and moisture sensors, controller/gateway, authenticated telemetry API |
@@ -282,7 +282,7 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 
 ---
 
-## 8. What AgriScan is not
+## 8. What Ukulima Bora is not
 
 - Not a substitute for national extension policy or declared pest emergencies.
 - Not a guarantee of loans or market prices—lending requires farmer consent and partner approval.
@@ -298,13 +298,13 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 |----------|----------|
 | [README.md](../README.md) | Installation, features, and quick start |
 | [SYSTEM_DOCUMENTATION.md](./SYSTEM_DOCUMENTATION.md) | Full technical specs, API contracts, operations |
-| [AgriScan_Stakeholder_Overview.md](./AgriScan_Stakeholder_Overview.md) | Non-technical overview for farmers and partners |
+| [Ukulima Bora_Stakeholder_Overview.md](./Ukulima Bora_Stakeholder_Overview.md) | Non-technical overview for farmers and partners |
 | [proposal.md](./proposal.md) | Grant proposal, budget, and SMART objectives |
-| [AgriScan Technical Architecture Schematics.md](./AgriScan%20Technical%20Architecture%20Schematics.md) | Architecture diagrams |
+| [Ukulima Bora Technical Architecture Schematics.md](./Ukulima Bora%20Technical%20Architecture%20Schematics.md) | Architecture diagrams |
 
 ---
 
-*AgriScan — connecting soil, crops, advice, markets, and finance in one farmer-controlled system.*
+*Ukulima Bora — connecting soil, crops, advice, markets, and finance in one farmer-controlled system.*
 
 **Job Nyaribari** — Founder & AI Lead  
 **Phone:** +254 758 503819  

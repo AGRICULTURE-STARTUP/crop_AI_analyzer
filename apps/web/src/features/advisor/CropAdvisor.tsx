@@ -71,7 +71,7 @@ function toDraft(values: Partial<SoilClimate>): Draft {
 const fmt = (n: number) => String(Math.round(n * 10) / 10);
 
 /**
- * The Panda Smart crop recommender as one AgriScan screen: soil + weather form,
+ * The Panda Smart crop recommender as one Ukulima Bora screen: soil + weather form,
  * results with "how your field compares", and (signed in) weather pre-fill and history.
  */
 export function CropAdvisor({ mode }: { mode: "public" | "portal" }) {

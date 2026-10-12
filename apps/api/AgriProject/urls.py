@@ -43,7 +43,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path(
         "favicon.ico",
-        RedirectView.as_view(url="/static/images/agriscan_favicon.png"),
+        RedirectView.as_view(url="/static/images/ukulimabora_favicon.png"),
     ),
 ]
 

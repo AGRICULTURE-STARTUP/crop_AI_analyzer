@@ -1,12 +1,12 @@
 
-# Concept Note: AgriScan
+# Concept Note: Ukulima Bora
 
 **Document version:** 2.0
 **Updated:** 30 July 2026
 
 ## 1. Project Title
 
-**AgriScan: A Universal AI, IoT, Market, and Financial Platform for Smallholder Agriculture**
+**Ukulima Bora: A Universal AI, IoT, Market, and Financial Platform for Smallholder Agriculture**
 
 ## 2. Background and Problem Statement
 
@@ -16,7 +16,7 @@ These information gaps contribute to unsuitable crop selection, delayed treatmen
 
 ## 3. Proposed Solution
 
-AgriScan is a mobile-first digital agricultural platform that connects the full farming cycle:
+Ukulima Bora is a mobile-first digital agricultural platform that connects the full farming cycle:
 
 1. **Plan:** Recommend suitable crops using nitrogen, phosphorus, potassium, pH, temperature, humidity, and rainfall.
 2. **Monitor:** Collect field data from IoT sensors, beginning with NPK and soil-moisture measurements.
@@ -25,7 +25,7 @@ AgriScan is a mobile-first digital agricultural platform that connects the full 
 5. **Act and transact:** Connect farmers to buyers and trusted input suppliers and support low-cost payments through M-Pesa.
 6. **Build a farm record:** Maintain a consent-based digital farm profile and Farm Health Score for farmer support and responsible financial services.
 
-The web platform is deployed on a Contabo VPS and accessible at **[agriscan.co.ke](https://agriscan.co.ke)**. SMS and USSD access, production payment completion, crop-recommendation integration, SEO, and the IoT layer are the next implementation priorities.
+The web platform is deployed on a Contabo VPS and accessible at **[ukulimabora.co.ke](https://ukulimabora.co.ke)**. SMS and USSD access, production payment completion, crop-recommendation integration, SEO, and the IoT layer are the next implementation priorities.
 
 ## 4. Target Users and Customers
 
@@ -44,7 +44,7 @@ The web platform is deployed on a Contabo VPS and accessible at **[agriscan.co.k
 
 ## 5. Innovation and Uniqueness
 
-AgriScan combines capabilities normally delivered by separate systems:
+Ukulima Bora combines capabilities normally delivered by separate systems:
 
 - Soil- and climate-based crop recommendation.
 - IoT-supported field monitoring.
@@ -71,7 +71,7 @@ AI recommendations will be presented as decision support rather than guaranteed 
 
 ## 7. Expected Impact
 
-AgriScan is expected to:
+Ukulima Bora is expected to:
 
 - Improve crop selection using soil and climate conditions.
 - Detect crop health problems earlier through images and field measurements.
@@ -92,8 +92,8 @@ AgriScan is expected to:
 - **Job Nyaribari:** Founder, Product and AI/Technical Lead.
 - **Ziro:** Platform, integrations, DevOps, and data engineering.
 - **Lynn:** Agricultural operations, farmer success, content, and field validation.
-- **Stephen Kingori:** Crop Recommendation and Project Management Lead; owner of the existing crop recommendation system and its integration into AgriScan.
+- **Stephen Kingori:** Crop Recommendation and Project Management Lead; owner of the existing crop recommendation system and its integration into Ukulima Bora.
 
 ## 10. Conclusion
 
-AgriScan is evolving from an AI crop-diagnosis application into a universal digital agricultural system. By combining crop planning, IoT field monitoring, diagnosis, advice, markets, payments, and consent-based farm records, it can support farmers from pre-planting decisions through production and sale.
+Ukulima Bora is evolving from an AI crop-diagnosis application into a universal digital agricultural system. By combining crop planning, IoT field monitoring, diagnosis, advice, markets, payments, and consent-based farm records, it can support farmers from pre-planting decisions through production and sale.

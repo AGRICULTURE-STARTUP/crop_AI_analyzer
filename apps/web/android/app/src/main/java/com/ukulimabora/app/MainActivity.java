@@ -1,4 +1,4 @@
-package com.agriscan.app;
+package com.ukulimabora.app;
 
 import com.getcapacitor.BridgeActivity;
 

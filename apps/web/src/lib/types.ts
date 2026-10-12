@@ -135,7 +135,7 @@ export type AgencyProduct = {
   unit: string;
   image: string | null;
   is_available: boolean;
-  /** Hidden from the marketplace by an AgriScan admin. */
+  /** Hidden from the marketplace by an Ukulima Bora admin. */
   is_hidden?: boolean;
   created_at: string;
   updated_at?: string;

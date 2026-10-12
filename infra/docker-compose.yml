@@ -1,4 +1,4 @@
-# AgriScan Contabo stack — tuned for 4 vCPU / 8 GB RAM (see docs/service_separation_plan.md §7.8).
+# Ukulima Bora Contabo stack — tuned for 4 vCPU / 8 GB RAM (see docs/service_separation_plan.md §7.8).
 # Usage (from infra/):
 #   cp .env.example .env   # fill secrets
 #   docker compose up -d --build
@@ -9,13 +9,13 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-agriscan}
+      POSTGRES_USER: ${POSTGRES_USER:-ukulimabora}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-agriscan}
+      POSTGRES_DB: ${POSTGRES_DB:-ukulimabora}
     volumes:
       - pgdata:/var/lib/postgresql/data
     mem_limit: 1g
-    networks: [agriscan_net]
+    networks: [ukulimabora_net]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -29,7 +29,7 @@ services:
     volumes:
       - redisdata:/data
     mem_limit: 256m
-    networks: [agriscan_net]
+    networks: [ukulimabora_net]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -43,7 +43,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-agriscan}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agriscan}
+      DATABASE_URL: postgres://${POSTGRES_USER:-ukulimabora}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ukulimabora}
       DB_SSL_REQUIRE: "false"
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
@@ -56,7 +56,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks: [agriscan_net]
+    networks: [ukulimabora_net]
     command: >
       sh -c "python manage.py migrate --noinput &&
              gunicorn AgriProject.wsgi:application
@@ -75,7 +75,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-agriscan}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agriscan}
+      DATABASE_URL: postgres://${POSTGRES_USER:-ukulimabora}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ukulimabora}
       DB_SSL_REQUIRE: "false"
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
@@ -99,7 +99,7 @@ services:
         condition: service_healthy
       api:
         condition: service_started
-    networks: [agriscan_net]
+    networks: [ukulimabora_net]
     command: celery -A AgriProject worker -Q scan --pool=solo -c 1 -l INFO
 
   worker_rag:
@@ -111,7 +111,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-agriscan}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agriscan}
+      DATABASE_URL: postgres://${POSTGRES_USER:-ukulimabora}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ukulimabora}
       DB_SSL_REQUIRE: "false"
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
@@ -129,7 +129,7 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    networks: [agriscan_net]
+    networks: [ukulimabora_net]
     command: celery -A AgriProject worker -Q rag -c 1 -l INFO
 
   nginx:
@@ -143,7 +143,7 @@ services:
       - certbot_certs:/etc/letsencrypt
     depends_on:
       - api
-    networks: [agriscan_net]
+    networks: [ukulimabora_net]
     mem_limit: 128m
 
   certbot:
@@ -154,7 +154,7 @@ services:
     profiles: ["certs"]
     # Override default help entrypoint when issuing/renewing, e.g.:
     # docker compose --profile certs run --rm certbot certonly \
-    #   --webroot -w /var/www/certbot -d api.agriscan.co.ke \
+    #   --webroot -w /var/www/certbot -d api.ukulimabora.co.ke \
     #   --email you@example.com --agree-tos --no-eff-email
     entrypoint: certbot
 
@@ -170,5 +170,5 @@ volumes:
   certbot_certs:
 
 networks:
-  agriscan_net:
+  ukulimabora_net:
     driver: bridge

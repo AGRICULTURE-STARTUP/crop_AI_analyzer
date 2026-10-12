@@ -329,7 +329,7 @@ if DEV_ENV or os.getenv("USE_LOCMEM_CACHE", "").lower() in ("1", "true", "yes"):
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "agriscan-local",
+            "LOCATION": "ukulimabora-local",
         }
     }
 else:
@@ -337,7 +337,7 @@ else:
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
             "LOCATION": _redis_cache_url,
-            "KEY_PREFIX": "agriscan",
+            "KEY_PREFIX": "ukulimabora",
         }
     }
 

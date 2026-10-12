@@ -32,7 +32,7 @@ export default function AdminModulesPage() {
     <PortalShell role="admin" title="App store">
       <PageHeader
         title="App store"
-        lead="Every app farmers and agrovets can install from their App store. Switch an app on or off and set it free, paid once or paid monthly. Paid apps are charged from the account's AgriScan wallet."
+        lead="Every app farmers and agrovets can install from their App store. Switch an app on or off and set it free, paid once or paid monthly. Paid apps are charged from the account's Ukulima Bora wallet."
       />
 
       {!MODULES_API_ENABLED ? (

@@ -82,7 +82,7 @@ class Command(BaseCommand):
 
             self.stdout.write(f"  ↓ Downloading {filename} from {repo_id}@{revision} …")
             try:
-                staging_dir = tempfile.mkdtemp(prefix="agriscan_model_")
+                staging_dir = tempfile.mkdtemp(prefix="ukulimabora_model_")
                 staging_path = Path(staging_dir) / filename
                 cached = hf_hub_download(
                     repo_id=repo_id,

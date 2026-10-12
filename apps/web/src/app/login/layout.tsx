@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Log in",
   description:
-    "Sign in to AgriScan to scan crops, chat with AgriBot, check markets, or review Farm Health Scores.",
+    "Sign in to Ukulima Bora to scan crops, chat with AgriBot, check markets, or review Farm Health Scores.",
   alternates: { canonical: "/login" },
   robots: { index: false, follow: true },
 };

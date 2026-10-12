@@ -183,7 +183,7 @@ These were made outside §2's "requested from the owner" rule, at the product ow
 
 **Checks:** `tsc` passes with no errors. ESLint shows 0 errors and 2 earlier `<img>` warnings. `next build` builds all 56 routes. Flows were checked in a browser on desktop and at phone width.
 
-**Still open:** the Ukulima Bora rename in the UI (the web app still says AgriScan); farmer validation of Farm records (A0), using these screens as the prototype; the Workstream B items not yet covered.
+**Still open:** farmer validation of Farm records (A0), using these screens as the prototype; the Workstream B items not yet covered.
 
 ## 10. Status
 
@@ -193,5 +193,5 @@ These were made outside §2's "requested from the owner" rule, at the product ow
 - [x] App store and Shop POS: screens and API contract written (same doc, §2 and §4)
 - [ ] Backend for the App store, Farm records and Shop POS (Wilson, Brian)
 - [x] Workstream B: design system split into feature CSS and shared components; marketplace pagination
-- [ ] Ukulima Bora name in the UI
+- [x] Ukulima Bora name in the UI
 - [ ] Design files location added to this doc

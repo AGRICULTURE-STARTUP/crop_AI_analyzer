@@ -149,7 +149,7 @@ export function SignupForm({
 
   return (
     <AuthShell
-      eyebrow="Join AgriScan"
+      eyebrow="Join Ukulima Bora"
       title="One platform. Four roles."
       subtitle="Pick how you take part — farmer, buyer, input shop, or lender — and we open the right portal for you."
     >

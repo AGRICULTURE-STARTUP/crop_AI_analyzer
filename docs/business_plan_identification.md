@@ -1,8 +1,8 @@
-# AgriScan Business Plan — Problem Identification
+# Ukulima Bora Business Plan — Problem Identification
 
 **Version:** 1.0  
 **Date:** 27 September 2026  
-**Scope:** Kenyan smallholder and semi-commercial crop farmers. This document defines the problems AgriScan's business model is built on. Customer segments, value proposition, revenue, and financials follow in later sections.
+**Scope:** Kenyan smallholder and semi-commercial crop farmers. This document defines the problems Ukulima Bora's business model is built on. Customer segments, value proposition, revenue, and financials follow in later sections.
 
 ---
 
@@ -14,9 +14,9 @@ A Kenyan smallholder loses money at three points in every season:
 2. **At harvest:** the farmer must sell quickly, to one broker, at a low price.
 3. **Between seasons:** the farmer has no record of how they farm, so cannot get credit for the next season's inputs.
 
-AgriScan leads with Problem 1. Diagnosis is live, it is the reason farmers open the app, and it creates the users and data that Problems 2 and 3 depend on.
+Ukulima Bora leads with Problem 1. Diagnosis is live, it is the reason farmers open the app, and it creates the users and data that Problems 2 and 3 depend on.
 
-| # | Problem | When it hits | AgriScan answer | Status |
+| # | Problem | When it hits | Ukulima Bora answer | Status |
 | - | ------- | ------------ | --------------- | ------ |
 | 1 | Sick crop, no trusted fix in time | During the growing season | Leaf diagnosis, Kiswahili/English advice, matching product at a nearby agrovet, M-Pesa payment | Diagnosis and AgriBot live; agrovet and M-Pesa partial |
 | 2 | Forced quick sale at a low price | At harvest | More buyers, trust from scan history, grouped selling with neighbours | Portals and KAMIS prices partial |
@@ -42,7 +42,7 @@ When a smallholder sees disease or pest damage, there is no one to give a confid
 - **Agrovets:** miss sales at the moment of need; sell by guesswork.
 - **Counties:** cannot extend extension coverage without hiring many more officers.
 
-### What AgriScan does
+### What Ukulima Bora does
 
 Photo of a leaf → diagnosis with confidence level → Kiswahili or English advice from AgriBot → matching product at a nearby agrovet → M-Pesa payment → follow-up scan. Uncertain or high-risk cases are escalated to an agronomist.
 
@@ -50,12 +50,12 @@ Photo of a leaf → diagnosis with confidence level → Kiswahili or English adv
 
 | Solution | Offered to | Price | How they pay |
 | -------- | ---------- | ----- | ------------ |
-| **Leaf diagnosis report** (disease, confidence, treatment by active ingredient, nearby agrovets) | Farmers | 2 free scans, then **KSh 20 per scan** (current price) | M-Pesa STK push tops up the AgriScan wallet; each scan is deducted from the balance |
+| **Leaf diagnosis report** (disease, confidence, treatment by active ingredient, nearby agrovets) | Farmers | 2 free scans, then **KSh 20 per scan** (current price) | M-Pesa STK push tops up the Ukulima Bora wallet; each scan is deducted from the balance |
 | **AgriBot advice** (Kiswahili / English) | Farmers | 5 free questions, then **KSh 10 per question** (current price) | Deducted from the same wallet |
 | **Season pack** (to test) | Farmers | e.g. **KSh 150 for 10 scans + 20 questions** | One M-Pesa top-up |
 | **Basic agrovet listing** | Agrovets | **Free** (keeps coverage wide and product data complete) | — |
-| **Verified Partner** (badge, featured placement, stock updates, monthly referral and sales report) | Agrovets | **KSh 2,000 per month**, after a free 3-month pilot | Monthly M-Pesa payment to the AgriScan Paybill (account = agrovet ID), or an STK prompt sent each month |
-| **Order commission** (once M-Pesa ordering is live) | Agrovets | **3–5% of orders** paid through AgriScan (to test) | Deducted automatically before the agrovet is paid out via M-Pesa |
+| **Verified Partner** (badge, featured placement, stock updates, monthly referral and sales report) | Agrovets | **KSh 2,000 per month**, after a free 3-month pilot | Monthly M-Pesa payment to the Ukulima Bora Paybill (account = agrovet ID), or an STK prompt sent each month |
+| **Order commission** (once M-Pesa ordering is live) | Agrovets | **3–5% of orders** paid through Ukulima Bora (to test) | Deducted automatically before the agrovet is paid out via M-Pesa |
 | **Outbreak and demand reports** | Pesticide and seed manufacturers, distributors | Starting hypotheses: **KSh 50,000–150,000 per county-season report**, or **KSh 300,000–1,000,000 per year** subscription. Confirm in buyer interviews. | Invoice; bank transfer or M-Pesa Paybill; quarterly or annual contract |
 | **Public outbreak alerts** | Ministry, counties, farmers | **Free** | — |
 | **Outbreak dashboards and surveillance** | Counties, research bodies, development programmes | Grant- or contract-funded, priced per project | Bank transfer against milestones in the grant or contract |
@@ -68,23 +68,23 @@ Photo of a leaf → diagnosis with confidence level → Kiswahili or English adv
 
 ### Agrovet partnership model
 
-Agrovets in each county share their product catalogue, prices, and stock. AgriScan sends them farmers who have just diagnosed a problem and need a specific product. Once AgriScan can prove it brings customers, agrovets pay a monthly fee.
+Agrovets in each county share their product catalogue, prices, and stock. Ukulima Bora sends them farmers who have just diagnosed a problem and need a specific product. Once Ukulima Bora can prove it brings customers, agrovets pay a monthly fee.
 
 #### What each side gets
 
 | Party | Gets |
 | ----- | ---- |
 | **Agrovets** | Customers at the moment of need: a farmer who has just scanned late blight is ready to buy today. |
-| **AgriScan** | Accurate, local product and price data, so advice points to products farmers can actually buy nearby. |
+| **Ukulima Bora** | Accurate, local product and price data, so advice points to products farmers can actually buy nearby. |
 | **Farmers** | A complete answer: what is wrong, what to buy, where, and at what price. |
 
 #### Design rules
 
-1. **Prove value before charging.** Agrovets are small, cash-tight shops. They will not pay until AgriScan can show how many customers it sent them.
+1. **Prove value before charging.** Agrovets are small, cash-tight shops. They will not pay until Ukulima Bora can show how many customers it sent them.
 2. **Track every referral.** Without tracking, agrovets cannot see the value and will stop paying. Options, from weakest to strongest:
    - Referral code on the scan result, shown at the shop.
-   - Discount voucher redeemable only through AgriScan.
-   - Payment through AgriScan via M-Pesa, so every sale is recorded.
+   - Discount voucher redeemable only through Ukulima Bora.
+   - Payment through Ukulima Bora via M-Pesa, so every sale is recorded.
 3. **Make price and stock updates effortless.** Agrovets will not log into a website weekly. Stale data (product missing, price wrong) destroys farmer trust.
    - Updates by WhatsApp or SMS (e.g. "Ridomil 250g 850").
    - Weekly update reminders.
@@ -97,13 +97,13 @@ Agrovets in each county share their product catalogue, prices, and stock. AgriSc
 5. **Recommend only legal products from licensed shops.** In 2025 the Pest Control Products Board (PCPB) withdrew 77 pesticide products and restricted 202 more, and it is cracking down on agrovets selling unregistered products.
    - Only PCPB-registered products are recommended.
    - Partner agrovets are checked for valid licences.
-   - "Verified by AgriScan" becomes part of what is sold.
+   - "Verified by Ukulima Bora" becomes part of what is sold.
 
 #### Fee economics (KSh 2,000 per month)
 
-**For the agrovet.** If agrovet margins are about 15–25% (an assumption to confirm in interviews), KSh 2,000 is covered by about KSh 8,000–13,000 of extra monthly sales: roughly 8–13 farmers spending about KSh 1,000 each. Realistic once AgriScan has active users in the area, not before.
+**For the agrovet.** If agrovet margins are about 15–25% (an assumption to confirm in interviews), KSh 2,000 is covered by about KSh 8,000–13,000 of extra monthly sales: roughly 8–13 farmers spending about KSh 1,000 each. Realistic once Ukulima Bora has active users in the area, not before.
 
-**For AgriScan.** Kenya has over 10,000 agro-dealers. ([FSD Kenya](https://fsdkenya.org/blog/evolving-agricultural-credit-a-combi-model-for-input-and-trade-financing/https://fsdkenya.org/blog/evolving-agricultural-credit-a-combi-model-for-input-and-trade-financing))
+**For Ukulima Bora.** Kenya has over 10,000 agro-dealers. ([FSD Kenya](https://fsdkenya.org/blog/evolving-agricultural-credit-a-combi-model-for-input-and-trade-financing/https://fsdkenya.org/blog/evolving-agricultural-credit-a-combi-model-for-input-and-trade-financing))
 
 | Paying agrovets | Monthly | Yearly |
 | --------------- | ------- | ------ |
@@ -115,18 +115,18 @@ A meaningful revenue stream, but not enough on its own. It sits alongside farmer
 
 #### Rollout plan
 
-1. **Pilot (about 3 months).** 20–50 agrovets in 1–2 counties, free. They share catalogue and prices; AgriScan tracks every farmer it sends them.
+1. **Pilot (about 3 months).** 20–50 agrovets in 1–2 counties, free. They share catalogue and prices; Ukulima Bora tracks every farmer it sends them.
 2. **Proof.** Each agrovet receives a monthly report, e.g. "32 farmers were sent to you, 19 bought, estimated KSh 24,000 in sales."
 3. **Charge.** Recommended mixed model:
    - **Free basic listing:** keeps coverage wide and product data complete.
    - **Verified Partner, KSh 2,000/month:** badge, featured placement, stock updates, monthly sales report.
-   - **Commission:** a small percentage on orders paid through AgriScan once M-Pesa is live.
+   - **Commission:** a small percentage on orders paid through Ukulima Bora once M-Pesa is live.
 
 Alternatives considered: flat subscription for all (simple, predictable, harder to sell early) and pay per customer, e.g. KSh 50–100 per farmer who buys (easiest to accept, less predictable).
 
 #### Competitor to watch: Shamba Pride
 
-[Shamba Pride](https://techcrunch.com/2024/01/21/shamba-pride-raises-3-7m-funding) raised $3.7M in 2024. It gives agrovets inventory, ordering, and record-keeping tools, brands them as "DigiShops", and runs farmer advice by USSD (`*483*199#`). Shamba Pride helps agrovets run their shops; AgriScan brings them customers with a diagnosed problem. That makes it a possible partner rather than a direct rival.
+[Shamba Pride](https://techcrunch.com/2024/01/21/shamba-pride-raises-3-7m-funding) raised $3.7M in 2024. It gives agrovets inventory, ordering, and record-keeping tools, brands them as "DigiShops", and runs farmer advice by USSD (`*483*199#`). Shamba Pride helps agrovets run their shops; Ukulima Bora brings them customers with a diagnosed problem. That makes it a possible partner rather than a direct rival.
 
 #### Open questions
 
@@ -161,17 +161,17 @@ Over time, scans and agrovet data show which diseases are spreading, where, what
 
 #### Two tiers: public good and paid product
 
-- **Free:** basic public outbreak alerts (e.g. "fall armyworm reports rising in Trans Nzoia this week") shared with the Ministry, counties, and farmers. Builds trust, attracts grants, and helps farmers AgriScan does not yet serve.
+- **Free:** basic public outbreak alerts (e.g. "fall armyworm reports rising in Trans Nzoia this week") shared with the Ministry, counties, and farmers. Builds trust, attracts grants, and helps farmers Ukulima Bora does not yet serve.
 - **Paid:** detailed commercial analytics for companies: demand, stock gaps, trends, and custom cuts of the data.
 
 #### What must be true before anyone pays
 
 1. **Enough data.** A steady flow of scans in each reported county, every season. Sell data for pilot counties only at first.
-2. **Accuracy.** The disease models are not yet field-validated, and a false outbreak alert would damage AgriScan's reputation quickly.
+2. **Accuracy.** The disease models are not yet field-validated, and a false outbreak alert would damage Ukulima Bora's reputation quickly.
    - Count only high-confidence diagnoses.
    - Have a regular sample checked by an agronomist, ideally with KALRO or KEPHIS.
    - Publish the accuracy level with each report.
-3. **Honesty about coverage.** The data reflects AgriScan users only: mostly smartphone owners in certain counties and crops. Reports say so rather than claim to represent all of Kenya.
+3. **Honesty about coverage.** The data reflects Ukulima Bora users only: mostly smartphone owners in certain counties and crops. Reports say so rather than claim to represent all of Kenya.
 4. **Privacy.**
    - Combine data at ward or sub-county level.
    - Never show an area with fewer than about 10 farmers.
@@ -217,13 +217,13 @@ At harvest, perishable produce must sell within days. Smallholders usually have 
 - **Farmers:** low prices, spoiled produce.
 - **Buyers, cooperatives, exporters:** inconsistent supply and unknown quality.
 
-### What AgriScan does
+### What Ukulima Bora does
 
 - Farmers list produce; buyers post what they need; both sides browse each other.
 - Scan history acts as a quality signal ("this plot was checked healthy three times this season").
 - Later: neighbours group their produce to reach bulk buyers.
 
-### What AgriScan will not do
+### What Ukulima Bora will not do
 
 Own trucks, warehouses, or cold rooms; buy and resell produce; guarantee prices. Twiga Foods raised about $157–185M building that logistics layer and entered administration in August 2026. Market access is a software feature connected to diagnosis and the farm record, not a logistics business.
 
@@ -236,12 +236,12 @@ Own trucks, warehouses, or cold rooms; buy and resell produce; guarantee prices.
 | **Post buyer requests and browse farmers** | Buyers | **Free during the pilot** | — |
 | **Buyer subscription** (early access to listings, quality information, unlimited contacts) | Small traders | e.g. **KSh 500 per month** (to test) | M-Pesa STK prompt or Paybill, monthly |
 | **Buyer subscription** | Bulk buyers: hotels, schools, hospitals, processors | e.g. **KSh 2,000–5,000 per month** (to test) | M-Pesa Paybill or invoice and bank transfer, monthly or quarterly |
-| **Unlock farmer contact** (alternative to subscription) | Occasional buyers | e.g. **KSh 50–100 per contact** (Uza Zao charges KSh 100 per lead) | Deducted from the buyer's AgriScan wallet, topped up by M-Pesa |
+| **Unlock farmer contact** (alternative to subscription) | Occasional buyers | e.g. **KSh 50–100 per contact** (Uza Zao charges KSh 100 per lead) | Deducted from the buyer's Ukulima Bora wallet, topped up by M-Pesa |
 | **Commission on deals** (later, once M-Pesa deposits exist) | Buyers | **2–5% of deal value** | Buyer pays the full amount by M-Pesa; the farmer is paid via M-Pesa on confirmed collection, minus the commission |
 
 **Notes**
 
-- Farmers do not pay on the marketplace. They are the side AgriScan is protecting, and buyers get the most value from reliable supply.
+- Farmers do not pay on the marketplace. They are the side Ukulima Bora is protecting, and buyers get the most value from reliable supply.
 - Start with free access for both sides, then introduce subscriptions or contact unlocks once buyers are finding real supply.
 - **Holding buyer money before releasing it to farmers may require Central Bank of Kenya authorisation** under payment rules. Before launching deposits, get legal advice, or use a licensed payment provider's escrow instead of holding funds directly.
 
@@ -270,7 +270,7 @@ Buyers post what they need, farmers post what they have, and both sides browse e
 
 #### Why "Mark as sold" matters
 
-Even with no money passing through AgriScan, recorded deals provide:
+Even with no money passing through Ukulima Bora, recorded deals provide:
 
 - **Proof** for investors and funders: "X deals worth KSh Y completed in 3 months."
 - **Farm Health Score data:** the score already counts market connections.
@@ -283,7 +283,7 @@ To get deals recorded, make it one tap or one SMS: "Did you sell to [buyer]? Rep
 | Feature | Add when |
 | ------- | -------- |
 | Bidding (with farmer minimum price, short 2–24 hour auctions, "Buy now") | An area has enough active buyers per crop for real competition |
-| M-Pesa deposit held by AgriScan, released on collection | Buyer no-shows or farm-gate price cuts become a reported problem, or commission charging starts |
+| M-Pesa deposit held by Ukulima Bora, released on collection | Buyer no-shows or farm-gate price cuts become a reported problem, or commission charging starts |
 | Pooled lots from neighbouring farmers | Bulk buyers ask for volumes single farmers cannot supply |
 | Partner transporters (never owned trucks) | Collection becomes the main reason deals fail |
 | Listing and accepting deals by SMS / USSD | USSD goes live |
@@ -300,7 +300,7 @@ Benchmark: [Uza Zao](https://www.uzazao.com/) charges 5% per sale, KSh 100 per l
 
 #### Competitors and lessons
 
-- **Uza Zao** and **E-azy Agro** already run produce listing and bidding marketplaces in Kenya. Listing alone is not a differentiator; AgriScan's edge is that farmers are already in the app for diagnosis, and scan history proves quality.
+- **Uza Zao** and **E-azy Agro** already run produce listing and bidding marketplaces in Kenya. Listing alone is not a differentiator; Ukulima Bora's edge is that farmers are already in the app for diagnosis, and scan history proves quality.
 - **India's e-NAM** online produce auctions showed what breaks bidding: too few bidders, trader collusion (about 81% of surveyed farmers named cartels as their top problem), buyers refusing to bid on produce they cannot see, lower bids after rejection, and slow payment. ([Sage journal study](https://journals.sagepub.com/doi/10.1177/2277975218807277); [Extension Journal](https://www.extensionjournal.com/article/view/632/7-5-33); [MicroSave report](https://www.microsave.net/wp-content/uploads/2019/06/190624_eNAM-report.pdf)) This is why bidding is deferred.
 
 #### Open questions
@@ -330,11 +330,11 @@ Smallholders have no verifiable record of what they grow, how they manage their 
 - **Lenders and insurers:** no data to price smallholder risk.
 - **Agrovets:** defaults and disputes on informal credit.
 
-### What AgriScan does
+### What Ukulima Bora does
 
 Every scan, treatment, purchase, and sale builds a farm record. With the farmer's consent, it becomes a Farm Health Score (300–850) that lenders can query through an API. The farmer controls who sees it.
 
-This problem is only solvable once farmers use AgriScan repeatedly. It is the third step, not the opening pitch.
+This problem is only solvable once farmers use Ukulima Bora repeatedly. It is the third step, not the opening pitch.
 
 ### Solution, pricing, and payment
 
@@ -343,10 +343,10 @@ This problem is only solvable once farmers use AgriScan repeatedly. It is the th
 | **Farm record and share code** (farmer shares their report with a chosen lender) | Farmers | **Free, always**. Charging farmers to access credit would hurt trust and look exploitative to funders. | — |
 | **Farm Activity Report per query** | SACCOs, microfinance institutions, insurers | **KSh 100–300 per report** (to test) | Prepaid credits bought by M-Pesa Paybill or bank transfer, or a monthly invoice based on `LendingAPIUsageLog` |
 | **Lender subscription** (bulk checks) | Lenders checking many farmers | e.g. **KSh 10,000–30,000 per month** for a set number of reports (to test) | Monthly invoice; bank transfer or M-Pesa Paybill |
-| **Referral fee per approved loan** | Lenders | e.g. **KSh 200–500 flat, or 1–2% of the loan value** (to test) | Monthly invoice for loans approved through AgriScan share codes |
+| **Referral fee per approved loan** | Lenders | e.g. **KSh 200–500 flat, or 1–2% of the loan value** (to test) | Monthly invoice for loans approved through Ukulima Bora share codes |
 | **Credit checks for input credit** | Agrovets offering inputs on credit | A set number of checks included in Verified Partner (KSh 2,000/month), then e.g. **KSh 50 per check** | Added to the monthly Verified Partner M-Pesa payment |
-| **Validation pilot** (100–200 farmers) | One SACCO or agrovet group | **Free** (AgriScan needs the repayment data to prove the score) | — |
-| **Data supplied through a credit reference bureau** (if AgriScan partners with one) | Credit reference bureau | Revenue share or data licence, negotiated | Per the bureau contract; bank transfer |
+| **Validation pilot** (100–200 farmers) | One SACCO or agrovet group | **Free** (Ukulima Bora needs the repayment data to prove the score) | — |
+| **Data supplied through a credit reference bureau** (if Ukulima Bora partners with one) | Credit reference bureau | Revenue share or data licence, negotiated | Per the bureau contract; bank transfer |
 
 **Notes**
 
@@ -356,7 +356,7 @@ This problem is only solvable once farmers use AgriScan repeatedly. It is the th
 
 ### Farm record and lender model
 
-With the farmer's permission, AgriScan shares a farm report and score with a lender when the farmer applies for a loan. The lender uses it alongside its own checks to decide.
+With the farmer's permission, Ukulima Bora shares a farm report and score with a lender when the farmer applies for a loan. The lender uses it alongside its own checks to decide.
 
 #### Already built
 
@@ -367,18 +367,18 @@ With the farmer's permission, AgriScan shares a farm report and score with a len
 #### Problems with the current score
 
 1. **Easy to game.** Scanning the same healthy leaf 20 times gives 300 + 200 + 200 = 700, "Low Risk", with no sales at all.
-2. **Punishes good farmers.** Rewarding the share of "healthy" results lowers the score of farmers who scan because they spotted disease, which is exactly the behaviour AgriScan wants.
+2. **Punishes good farmers.** Rewarding the share of "healthy" results lowers the score of farmers who scan because they spotted disease, which is exactly the behaviour Ukulima Bora wants.
 3. **Market connections can be faked.** Three completed connections give full points, and a friend with a buyer account can mark them completed.
 4. **Measures app use, not ability to repay.** Lenders care about income, farm size, sales, and repayment history.
 5. **Not tested against real loans.** Nobody has checked whether high scores repay more often.
 
 #### What lenders actually want
 
-| Lender's question | Data AgriScan can provide |
+| Lender's question | Data Ukulima Bora can provide |
 | ----------------- | ------------------------- |
 | Does the farm exist, and is it the size claimed? | GPS location from scans, farm size, crops grown, seasons active |
 | Do they manage the crop well? | Disease caught **and treated**, with a follow-up scan showing recovery |
-| Do they invest in inputs? | Agrovet purchases through AgriScan (Problem 1) |
+| Do they invest in inputs? | Agrovet purchases through Ukulima Bora (Problem 1) |
 | Do they earn money? | Marketplace sales marked sold, with value (Problem 2) |
 | Are they consistent? | Activity across more than one season |
 | Later | Soil and moisture sensor data, M-Pesa wallet history |
@@ -388,15 +388,15 @@ The agrovet purchases and marketplace sales are what make the score believable. 
 #### Legal: consent and regulation
 
 - **Data Protection Act 2019.** Register with the Office of the Data Protection Commissioner (ODPC). Consent must be specific, informed, and revocable. A single yes/no opt-in flag is not enough; the farmer approves each share, with each lender, for each application.
-- **Credit reference rules.** The Central Bank of Kenya licenses credit reference bureaus (Metropol, TransUnion, Creditinfo). A lawyer must confirm whether selling a "credit score" to lenders brings AgriScan under those rules. Safer options:
+- **Credit reference rules.** The Central Bank of Kenya licenses credit reference bureaus (Metropol, TransUnion, Creditinfo). A lawyer must confirm whether selling a "credit score" to lenders brings Ukulima Bora under those rules. Safer options:
   - Call it a **Farm Activity Report** and let the lender make the credit decision.
   - **Partner with a licensed credit reference bureau** and supply data through them.
-- **Do not lend.** Lending brings AgriScan under the Central Bank's digital credit rules. AgriScan stays a data provider.
+- **Do not lend.** Lending brings Ukulima Bora under the Central Bank's digital credit rules. Ukulima Bora stays a data provider.
 
-#### Sharing flow: the farmer shares, not AgriScan
+#### Sharing flow: the farmer shares, not Ukulima Bora
 
 1. The farmer applies for a loan at a SACCO or agrovet.
-2. In AgriScan (or by USSD) they tap "Share my farm report with [lender]" and get a one-time code.
+2. In Ukulima Bora (or by USSD) they tap "Share my farm report with [lender]" and get a one-time code.
 3. The lender enters the code and sees the report and score, once.
 4. Every share is logged, and the farmer can see who viewed their data.
 
@@ -411,8 +411,8 @@ The agrovet purchases and marketplace sales are what make the score believable. 
 
 Pilot with one SACCO or a group of agrovets:
 
-1. They lend to 100–200 AgriScan farmers using their normal process, with the AgriScan report alongside.
-2. AgriScan tracks who repays.
+1. They lend to 100–200 Ukulima Bora farmers using their normal process, with the Ukulima Bora report alongside.
+2. Ukulima Bora tracks who repays.
 3. The score is adjusted until it actually separates farmers who repay from those who do not.
 
 Only after this is the score worth paying for.
@@ -440,7 +440,7 @@ This revenue comes after agrovet and marketplace revenue. It needs one to two se
 - **DigiFarm (Safaricom):** input loans on M-Pesa data.
 - **Credit reference bureaus:** hold repayment history; potential partners rather than rivals.
 
-AgriScan's different signal is crop management, input purchases, and sales from the same farmer identity, not satellite images or telco data.
+Ukulima Bora's different signal is crop management, input purchases, and sales from the same farmer identity, not satellite images or telco data.
 
 #### Open questions
 
@@ -468,7 +468,7 @@ Scan and treatment history ──► buyer trust at harvest
               Better inputs → healthier crop
 ```
 
-Each problem feeds the next. Other players solve one point: PlantVillage Nuru diagnoses, DigiFarm finances and links to markets, Apollo lends. AgriScan's claim is one farmer identity across all three.
+Each problem feeds the next. Other players solve one point: PlantVillage Nuru diagnoses, DigiFarm finances and links to markets, Apollo lends. Ukulima Bora's claim is one farmer identity across all three.
 
 ---
 
@@ -476,8 +476,8 @@ Each problem feeds the next. Other players solve one point: PlantVillage Nuru di
 
 | Audience | Problem framing |
 | -------- | --------------- |
-| **Investors** | Kenyan smallholders lose a large share of each harvest because diagnosis comes too late and is not linked to buying the right fix. AgriScan turns each sick-leaf photo into an agrovet sale, then into better market access and a farm record lenders can use: three points where AgriScan can earn. |
-| **Grant funders** | With about one extension officer per 1,380 farmers, most smallholders get no timely help when crops get sick, lose produce after harvest, and cannot borrow. AgriScan gives them Kiswahili diagnosis and advice, links to genuine inputs and buyers, and a farm record they own. |
+| **Investors** | Kenyan smallholders lose a large share of each harvest because diagnosis comes too late and is not linked to buying the right fix. Ukulima Bora turns each sick-leaf photo into an agrovet sale, then into better market access and a farm record lenders can use: three points where Ukulima Bora can earn. |
+| **Grant funders** | With about one extension officer per 1,380 farmers, most smallholders get no timely help when crops get sick, lose produce after harvest, and cannot borrow. Ukulima Bora gives them Kiswahili diagnosis and advice, links to genuine inputs and buyers, and a farm record they own. |
 | **Internal** | The job to win first is "my crop is sick — what do I buy, where, today?" Every feature should shorten that path. Market access and credit build on the users it creates. |
 
 ---
@@ -494,7 +494,7 @@ Each problem feeds the next. Other players solve one point: PlantVillage Nuru di
 
 ## 8. Evidence gaps to close
 
-1. **Willingness to pay.** Desk research shows the problems exist, not that farmers will pay AgriScan to solve them. Use live platform data: scans per user, scan-to-purchase conversion, repeat use.
+1. **Willingness to pay.** Desk research shows the problems exist, not that farmers will pay Ukulima Bora to solve them. Use live platform data: scans per user, scan-to-purchase conversion, repeat use.
 2. **Field interviews.** Interview 20–30 farmers and 5–10 agrovets on Problems 1 and 2.
 3. **Kenya-specific crop-loss figures.** Replace the global 30–40% pest-loss figure with Kenyan maize and tomato estimates from CABI's Global Burden of Crop Loss work.
 4. **One smallholder count.** Choose a single, sourced number of Kenyan smallholders (currently 4.5M–8.7M).

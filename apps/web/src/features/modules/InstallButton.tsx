@@ -30,7 +30,7 @@ export function InstallButton({
   const small = size === "sm" ? "!py-1.5 text-xs" : "";
   // Farmers top up from their profile; other roles have no top-up screen yet.
   const topUpPath = user?.role === "farmer" ? "/farmer/profile" : null;
-  const payFrom = user?.role === "farmer" ? "your wallet" : "your AgriScan account balance";
+  const payFrom = user?.role === "farmer" ? "your wallet" : "your Ukulima Bora account balance";
 
   async function run(action: "install" | "remove") {
     setError("");
@@ -46,7 +46,7 @@ export function InstallButton({
         short
           ? topUpPath
             ? "Not enough money in your wallet. Top up and try again."
-            : "Your account balance is too low for this app. Contact AgriScan support to top up."
+            : "Your account balance is too low for this app. Contact Ukulima Bora support to top up."
           : err instanceof ApiError
             ? err.message
             : "Something went wrong. Try again."

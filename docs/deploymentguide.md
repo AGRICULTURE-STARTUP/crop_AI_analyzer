@@ -1,4 +1,4 @@
-# AgriScan Deployment Guide
+# Ukulima Bora Deployment Guide
 
 **Target:** Contabo Cloud VPS (~$5–6 / Cloud VPS 4 · **4 vCPU · 8 GB RAM**) + Vercel (Next.js)  
 **Stack:** Docker Compose API / workers on Contabo · frontend on Vercel · Cloudinary for media  
@@ -10,7 +10,7 @@ This guide assumes **Contabo** is your production API host. Compose (`infra/dock
 
 ## 0. Start afresh on a new server (read this first)
 
-Use this section when you have a **brand-new VPS** (empty Ubuntu install, new IP, no previous AgriScan containers). Do not try to reuse an old server’s Docker volumes unless you are deliberately migrating data (§0.3).
+Use this section when you have a **brand-new VPS** (empty Ubuntu install, new IP, no previous Ukulima Bora containers). Do not try to reuse an old server’s Docker volumes unless you are deliberately migrating data (§0.3).
 
 ### 0.1 What you need before SSH
 
@@ -34,11 +34,11 @@ Work through these in order. Details for each step are in §3–§5 and §7.
 2. **SSH as root** (this guide stays on root — no extra Linux user). Optionally add your SSH key under `/root/.ssh/authorized_keys` (§4 Step 1).
 3. **Install Docker + Compose** as root (§4 Step 2).
 4. **Firewall:** allow 22, 80, 443 only — never expose 5432/6379 (§4 Step 3).
-5. **Clone** the repo to `/opt/agriscan` as root (§4 Step 5).
+5. **Clone** the repo to `/opt/ukulimabora` as root (§4 Step 5).
 6. **Create `infra/.env`** from `.env.example` with `DEV_ENV=False`, `DEBUG=False`, new `SECRET_KEY`, new Postgres password, Contabo IP in `ALLOWED_HOSTS` / CSRF, Cloudinary, Groq, and HF settings (§4 Step 6).
 7. **First deploy:**
    ```bash
-   cd /opt/agriscan/infra
+   cd /opt/ukulimabora/infra
    chmod +x scripts/*.sh
    ./scripts/deploy.sh
    ```
@@ -285,8 +285,8 @@ Wait until `dig +short api.yourdomain.com` returns the Contabo IP before enablin
 ### Step 5 — Clone the repo on the VPS
 
 ```bash
-mkdir -p /opt/agriscan
-cd /opt/agriscan
+mkdir -p /opt/ukulimabora
+cd /opt/ukulimabora
 git clone https://github.com/YOUR_ORG/crop_AI_analyzer.git .
 # Private repo: use a GitHub deploy key (read-only) or HTTPS + PAT
 ```
@@ -301,7 +301,7 @@ git log -1 --oneline
 ### Step 6 — Production env file
 
 ```bash
-cd /opt/agriscan/infra
+cd /opt/ukulimabora/infra
 cp .env.example .env
 chmod 600 .env
 nano .env   # or vim
@@ -318,9 +318,9 @@ openssl rand -base64 32                                         # POSTGRES_PASSW
 
 ```bash
 # --- Postgres ---
-POSTGRES_USER=agriscan
+POSTGRES_USER=ukulimabora
 POSTGRES_PASSWORD=<long-random-password>
-POSTGRES_DB=agriscan
+POSTGRES_DB=ukulimabora
 
 # --- Django ---
 SECRET_KEY=<django-secret-key>
@@ -386,7 +386,7 @@ Also set a strong `ADMIN_PASSWORD` if you use the custom admin bootstrap path (c
 On Contabo, always use the production compose file (do **not** rely on `docker-compose.override.yml`):
 
 ```bash
-cd /opt/agriscan/infra
+cd /opt/ukulimabora/infra
 chmod +x scripts/*.sh
 ./scripts/deploy.sh
 ```
@@ -407,7 +407,7 @@ docker compose -f docker-compose.yml logs -f api worker_scanner worker_rag
 If model sync fails (missing `HF_MODEL_REPO_ID`, bad `HF_TOKEN`, or network):
 
 ```bash
-cd /opt/agriscan/infra
+cd /opt/ukulimabora/infra
 docker compose -f docker-compose.yml run --rm \
   -e HF_HUB_OFFLINE=0 \
   worker_scanner python manage.py sync_models
@@ -433,7 +433,7 @@ $COMPOSE ps
 A fresh Postgres volume has **no users**. Create one:
 
 ```bash
-cd /opt/agriscan/infra
+cd /opt/ukulimabora/infra
 docker compose -f docker-compose.yml exec api python manage.py createsuperuser
 ```
 
@@ -478,7 +478,7 @@ docker compose -f docker-compose.yml up -d --build nginx
 
 ```bash
 # crontab -e as root
-0 3 1 * * cd /opt/agriscan/infra && docker compose -f docker-compose.yml --profile certs run --rm certbot renew && docker compose -f docker-compose.yml exec nginx nginx -s reload
+0 3 1 * * cd /opt/ukulimabora/infra && docker compose -f docker-compose.yml --profile certs run --rm certbot renew && docker compose -f docker-compose.yml exec nginx nginx -s reload
 ```
 
 ### Step 11 — KAMIS price DB on the VPS
@@ -491,7 +491,7 @@ The market API reads offline SQLite (`apps/api/data/kamis_prices.db`). Options:
 
 ```bash
 # crontab -e
-0 */6 * * * cd /opt/agriscan/infra && docker compose -f docker-compose.yml exec -T api python manage.py ingest_kamis_prices >> /var/log/kamis-ingest.log 2>&1
+0 */6 * * * cd /opt/ukulimabora/infra && docker compose -f docker-compose.yml exec -T api python manage.py ingest_kamis_prices >> /var/log/kamis-ingest.log 2>&1
 ```
 
 (May need a writable mount for `data/` if the image filesystem is read-only — if ingest fails, bind-mount `../apps/api/data` into the api service.)
@@ -499,7 +499,7 @@ The market API reads offline SQLite (`apps/api/data/kamis_prices.db`). Options:
 ### Step 12 — Backups
 
 ```bash
-cd /opt/agriscan/infra
+cd /opt/ukulimabora/infra
 ./scripts/backup-volumes.sh
 # copies to infra/backups/pg_*.sql
 ```
@@ -527,7 +527,7 @@ This is also your **frontend CI/CD**: once the project is linked to GitHub, ever
 | **Domain + TLS ready** | `https://api.yourdomain.com` |
 
 
-1. Deploy. Note the URL (`https://agriscan-xxx.vercel.app`) — no custom domain required on Vercel day one.
+1. Deploy. Note the URL (`https://ukulimabora-xxx.vercel.app`) — no custom domain required on Vercel day one.
 2. Update Contabo `infra/.env`:
   - `CORS_ALLOWED_ORIGINS` must include the Vercel URL (and custom domain if any)
   - `CSRF_TRUSTED_ORIGINS` same
@@ -535,7 +535,7 @@ This is also your **frontend CI/CD**: once the project is linked to GitHub, ever
 3. Restart API so CORS reloads:
 
 ```bash
-cd /opt/agriscan/infra
+cd /opt/ukulimabora/infra
 docker compose up -d api
 ```
 
@@ -667,7 +667,7 @@ Local QA before Contabo: follow `[LOCAL_TESTING.md](./LOCAL_TESTING.md)` with `D
 **Manual fallback** (SSH):
 
 ```bash
-cd /opt/agriscan
+cd /opt/ukulimabora
 git pull
 cd infra
 ./scripts/deploy.sh
@@ -755,25 +755,25 @@ If `.github/workflows/deploy-contabo.yml` is not in the repo yet, create it (or 
 On your **laptop**:
 
 ```bash
-ssh-keygen -t ed25519 -C "github-actions-contabo" -f ~/.ssh/agriscan_deploy -N ""
+ssh-keygen -t ed25519 -C "github-actions-contabo" -f ~/.ssh/ukulimabora_deploy -N ""
 ```
 
 On the **VPS** (as `root`):
 
 ```bash
 mkdir -p /root/.ssh && chmod 700 /root/.ssh
-echo "PASTE_PUBLIC_KEY_HERE" >> /root/.ssh/authorized_keys   # contents of agriscan_deploy.pub
+echo "PASTE_PUBLIC_KEY_HERE" >> /root/.ssh/authorized_keys   # contents of ukulimabora_deploy.pub
 chmod 600 /root/.ssh/authorized_keys
 ```
 
-Confirm the clone at `/opt/agriscan` can `git pull` (deploy key or HTTPS with a PAT if the repo is private). Prefer a **read-only GitHub deploy key** on the VPS for `git fetch`, separate from the Actions SSH key that logs into the machine.
+Confirm the clone at `/opt/ukulimabora` can `git pull` (deploy key or HTTPS with a PAT if the repo is private). Prefer a **read-only GitHub deploy key** on the VPS for `git fetch`, separate from the Actions SSH key that logs into the machine.
 
 If the repo is private, on the VPS:
 
 ```bash
 # Option A: HTTPS + fine-grained PAT stored in git credential helper
 # Option B: GitHub deploy key (read-only) added to the repo
-cd /opt/agriscan && git remote -v
+cd /opt/ukulimabora && git remote -v
 ```
 
 
@@ -787,9 +787,9 @@ Repo → **Settings → Secrets and variables → Actions** → add:
 | ------------------ | --------------------------------------------------------------------------------- |
 | `CONTABO_HOST`     | `91.x.x.x` or `api.yourdomain.com`                                                |
 | `CONTABO_USER`     | `root`                                                                            |
-| `CONTABO_SSH_KEY`  | Full private key (`-----BEGIN OPENSSH PRIVATE KEY-----` …) from `agriscan_deploy` |
+| `CONTABO_SSH_KEY`  | Full private key (`-----BEGIN OPENSSH PRIVATE KEY-----` …) from `ukulimabora_deploy` |
 | `CONTABO_SSH_PORT` | `22` (optional)                                                                   |
-| `CONTABO_APP_DIR`  | `/opt/agriscan` (optional)                                                        |
+| `CONTABO_APP_DIR`  | `/opt/ukulimabora` (optional)                                                        |
 
 
 
@@ -812,7 +812,7 @@ Update Contabo `CORS_ALLOWED_ORIGINS` if the Vercel URL changes.
 
 ### 10.5 First manual deploy still required
 
-CI/CD assumes the **new** Contabo already has Docker, `/opt/agriscan` cloned, `infra/.env` filled, and a successful first `./scripts/deploy.sh` (including `sync_models`). Actions only **update** that install. When you change servers, update `CONTABO_HOST` (and the deploy SSH key if the old key lived only on the previous VPS).
+CI/CD assumes the **new** Contabo already has Docker, `/opt/ukulimabora` cloned, `infra/.env` filled, and a successful first `./scripts/deploy.sh` (including `sync_models`). Actions only **update** that install. When you change servers, update `CONTABO_HOST` (and the deploy SSH key if the old key lived only on the previous VPS).
 
 ### 10.6 Safety tips
 

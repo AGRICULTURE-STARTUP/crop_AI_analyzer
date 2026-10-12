@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 KAMIS_MARKET_URL = "https://kamis.kilimo.go.ke/site/market"
 USER_AGENT = (
-    "AgriScanKamisIngest/1.0 (+https://github.com; offline market cache)"
+    "Ukulima BoraKamisIngest/1.0 (+https://github.com; offline market cache)"
 )
 REQUEST_TIMEOUT = 45
 

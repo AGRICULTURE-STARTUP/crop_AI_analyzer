@@ -1,9 +1,9 @@
-# AgriScan monorepo
+# Ukulima Bora monorepo
 
 Next.js  (Vercel) + Django API / workers (Contabo Docker) + Capacitor Android wrap.
 
 ```
-agriscan/
+ukulimabora/
 ├── apps/
 │   ├── api/          # Django 5 + DRF + Celery task code
 │   └── web/          # Next.js + Capacitor (android/)

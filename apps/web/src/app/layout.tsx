@@ -19,8 +19,8 @@ const display = Montserrat({
   display: "swap",
 });
 
-const siteUrl = "https://agriscan.co.ke";
-const siteTitle = "AgriScan — AI crop disease detection for Kenyan farmers";
+const siteUrl = "https://ukulimabora.co.ke";
+const siteTitle = "Ukulima Bora — AI crop disease detection for Kenyan farmers";
 const siteDescription =
   "Take a photo of a sick plant to get treatment advice in English or Kiswahili, connect with buyers, and build a Farm Health Score.";
 
@@ -28,12 +28,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: siteTitle,
-    template: "%s | AgriScan",
+    template: "%s | Ukulima Bora",
   },
   description: siteDescription,
-  applicationName: "AgriScan",
+  applicationName: "Ukulima Bora",
   keywords: [
-    "AgriScan",
+    "Ukulima Bora",
     "crop disease detection",
     "plant disease AI",
     "Kenya farming",
@@ -43,12 +43,20 @@ export const metadata: Metadata = {
     "Farm Health Score",
     "agricultural technology Kenya",
   ],
-  authors: [{ name: "AgriScan", url: siteUrl }],
-  creator: "AgriScan",
-  publisher: "AgriScan",
+  authors: [{ name: "Ukulima Bora", url: siteUrl }],
+  creator: "Ukulima Bora",
+  publisher: "Ukulima Bora",
   icons: {
-    icon: "/images/agriscan_favicon.png",
-    apple: "/images/agriscan_favicon.png",
+    // PNGs generated from image 2 (same artwork, cropped to fill the icon box —
+    // the raw SVG has large empty canvas so it looked tiny in browser tabs).
+    icon: [
+      { url: "/UkulimaBoraagritechlogo/favicon.ico", sizes: "48x48" },
+      { url: "/UkulimaBoraagritechlogo/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/UkulimaBoraagritechlogo/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/UkulimaBoraagritechlogo/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/UkulimaBoraagritechlogo/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/UkulimaBoraagritechlogo/favicon.ico",
   },
   alternates: {
     canonical: "/",
@@ -57,7 +65,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_KE",
     url: siteUrl,
-    siteName: "AgriScan",
+    siteName: "Ukulima Bora",
     title: siteTitle,
     description: siteDescription,
     images: [
@@ -65,7 +73,7 @@ export const metadata: Metadata = {
         url: "/images/ai_assistant.jpeg",
         width: 1200,
         height: 675,
-        alt: "Farmer getting crop advice with AgriScan",
+        alt: "Farmer getting crop advice with Ukulima Bora",
       },
     ],
   },

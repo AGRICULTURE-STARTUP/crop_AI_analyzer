@@ -17,7 +17,7 @@ import { PHOTOS } from "@/lib/photos";
 export const CONTACT_EMAIL = "jobnyaribari808@gmail.com";
 
 export const STORY =
-  "AgriScan started in 2025 because crop disease often arrives too late, and markets feel far away. We help farmers stop losses early, feed their communities, and show lenders they are building a healthier farm.";
+  "Ukulima Bora started in 2025 because crop disease often arrives too late, and markets feel far away. We help farmers stop losses early, feed their communities, and show lenders they are building a healthier farm.";
 
 export const TRUST = [
   { num: "100+", label: "Diseases Detected", Icon: ScanIcon },
@@ -53,7 +53,7 @@ export const FEATURES = [
   {
     slug: "scan",
     title: "Spot crop disease early",
-    copy: "Take a clear photo of a sick leaf. AgriScan tells you what is wrong and how to treat it — for maize, potato, tomato, cassava, and more.",
+    copy: "Take a clear photo of a sick leaf. Ukulima Bora tells you what is wrong and how to treat it — for maize, potato, tomato, cassava, and more.",
     Icon: ScanIcon,
     photo: PHOTOS.leafScan,
   },
@@ -101,7 +101,7 @@ export const JOURNEY = [
   },
   {
     title: "Scan a leaf (farmers)",
-    copy: "In Crop scanner, choose the crop, upload a clear leaf photo, and submit. AgriScan queues the job on a background worker, checks that the image is a plant, then returns the disease result.",
+    copy: "In Crop scanner, choose the crop, upload a clear leaf photo, and submit. Ukulima Bora queues the job on a background worker, checks that the image is a plant, then returns the disease result.",
   },
   {
     title: "Act on the result",
@@ -148,7 +148,7 @@ export const HELP_ROWS = [
   {
     photo: PHOTOS.produceMarket,
     title: "Sell what you grow",
-    copy: "When your crops are healthy, AgriScan helps you reach buyers who need fresh produce. List what you have, find fair connections, and turn a good harvest into income.",
+    copy: "When your crops are healthy, Ukulima Bora helps you reach buyers who need fresh produce. List what you have, find fair connections, and turn a good harvest into income.",
   },
   {
     photo: PHOTOS.sustainableFarm,
@@ -158,6 +158,6 @@ export const HELP_ROWS = [
   {
     photo: PHOTOS.kaleTablet,
     title: "Get answers when you need them",
-    copy: "Not sure which spray to use or why leaves are yellowing? Ask AgriScan any time — day or night — and get practical steps you can follow in the field.",
+    copy: "Not sure which spray to use or why leaves are yellowing? Ask Ukulima Bora any time — day or night — and get practical steps you can follow in the field.",
   },
 ];

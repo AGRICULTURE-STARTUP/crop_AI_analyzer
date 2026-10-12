@@ -188,7 +188,7 @@ export default function BuyerDashboardPage() {
                     photo={f.photo}
                     phone={f.phone_number}
                     tags={cropTags(f.products)}
-                    whatsappText={`Hello ${name}, I saw your farm on AgriScan. Do you have produce for sale?`}
+                    whatsappText={`Hello ${name}, I saw your farm on Ukulima Bora. Do you have produce for sale?`}
                   />
                 );
               })}

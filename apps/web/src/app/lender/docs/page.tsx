@@ -2,7 +2,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { Card, PageHeader } from "@/components/ui/Page";
 
 export default function LenderDocsPage() {
-  const base = process.env.NEXT_PUBLIC_API_URL || "https://api.agriscan.example.com";
+  const base = process.env.NEXT_PUBLIC_API_URL || "https://api.ukulimabora.example.com";
 
   return (
     <PortalShell role="lender" title="API docs">

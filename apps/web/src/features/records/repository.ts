@@ -28,7 +28,7 @@ export function newId() {
 /* ------------------------------ local adapter ----------------------------- */
 
 const EMPTY: FarmRecords = { fields: [], activities: [], sales: [] };
-const key = (userId: number) => `agriscan_farm_records_${userId}`;
+const key = (userId: number) => `ukulimabora_farm_records_${userId}`;
 
 function read(userId: number): FarmRecords {
   try {

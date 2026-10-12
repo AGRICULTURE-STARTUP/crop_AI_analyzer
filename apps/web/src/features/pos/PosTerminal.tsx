@@ -36,7 +36,7 @@ const ksh = (n: number) => formatKsh(n) ?? "KSh 0";
 /** The sale being rung up survives a refresh or a visit to Sales history (this tab only). */
 type Draft = { lines: CartLine[]; discount: number };
 const EMPTY_DRAFT: Draft = { lines: [], discount: 0 };
-const draftKey = (userId: number) => `agriscan_pos_cart_${userId}`;
+const draftKey = (userId: number) => `ukulimabora_pos_cart_${userId}`;
 
 function loadDraft(userId: number): Draft {
   try {

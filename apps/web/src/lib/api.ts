@@ -1,8 +1,8 @@
 import type { TokenPair } from "./types";
 
-const ACCESS_KEY = "agriscan_access";
-const REFRESH_KEY = "agriscan_refresh";
-const LAST_ACTIVITY_KEY = "agriscan_last_activity";
+const ACCESS_KEY = "ukulimabora_access";
+const REFRESH_KEY = "ukulimabora_refresh";
+const LAST_ACTIVITY_KEY = "ukulimabora_last_activity";
 export const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 
 export function getApiBase(): string {
@@ -37,7 +37,7 @@ export function clearTokens() {
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);
   localStorage.removeItem(LAST_ACTIVITY_KEY);
-  window.dispatchEvent(new Event("agriscan:session-cleared"));
+  window.dispatchEvent(new Event("ukulimabora:session-cleared"));
 }
 
 export function recordActivity() {

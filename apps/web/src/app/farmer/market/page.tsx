@@ -42,7 +42,7 @@ function MarketContent() {
       <section className="space-y-4">
         <div>
           <h2 className="pd-section-title !mb-1">Produce buyers</h2>
-          <p className="text-sm text-ink/70">Buyers registered on AgriScan. Call or WhatsApp them when your harvest is ready.</p>
+          <p className="text-sm text-ink/70">Buyers registered on Ukulima Bora. Call or WhatsApp them when your harvest is ready.</p>
         </div>
         {buyers.isError ? (
           <p className="text-sm text-[var(--danger)]">
@@ -68,7 +68,7 @@ function MarketContent() {
                   phone={b.phone_number || (b.contact && /\d{9,}/.test(b.contact) ? b.contact : undefined)}
                   email={b.email}
                   badge={b.verified !== false ? b.verification_badge || "Verified" : undefined}
-                  whatsappText={`Hello ${name}, I am a farmer on AgriScan with produce to sell.`}
+                  whatsappText={`Hello ${name}, I am a farmer on Ukulima Bora with produce to sell.`}
                 />
               );
             })}

@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Farm Profile | AgriScan{% endblock %}
+{% block title %}My Farm Profile | Ukulima Bora{% endblock %}
 
 {% block extra_css %}
-    <meta name="description" content="Manage your farmer profile on AgriScan – update personal details, track your registered crops, and view local weather conditions.">
+    <meta name="description" content="Manage your farmer profile on Ukulima Bora – update personal details, track your registered crops, and view local weather conditions.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -549,7 +549,7 @@
                 <div class="profile-card-header">
                     <div class="card-header-icon" style="background: linear-gradient(135deg, #25D366, #128C7E);"><i class="fa-solid fa-wallet"></i></div>
                     <div>
-                        <h2>AgriScan Wallet</h2>
+                        <h2>Ukulima Bora Wallet</h2>
                         <span>Current Balance: <strong>KSh {{ wallet.balance|floatformat:2 }}</strong></span>
                     </div>
                 </div>
@@ -638,7 +638,7 @@
                         <input type="checkbox" id="opt_in_for_lending" name="opt_in_for_lending" style="width: 1.2rem; height: 1.2rem; margin-top: 0.2rem; cursor: pointer;" {% if health_profile.opt_in_for_lending %}checked{% endif %}>
                         <div>
                             <label for="opt_in_for_lending" style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); cursor: pointer;">Opt-in to Financial Data Sharing</label>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">By checking this box, I legally allow AgriScan to securely share my Farm Health Score with partnered banks and fintechs.</p>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">By checking this box, I legally allow Ukulima Bora to securely share my Farm Health Score with partnered banks and fintechs.</p>
                             <button type="submit" class="btn-save" style="margin-top: 1rem; padding: 0.6rem 1.5rem; font-size: 0.85rem;" onclick="this.innerHTML='<i class=&quot;fa-solid fa-circle-notch spin&quot;></i> Updating...';">
                                 <i class="fa-solid fa-shield-halved"></i> Update Consent
                             </button>
