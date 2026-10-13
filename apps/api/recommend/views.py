@@ -140,11 +140,19 @@ class CropWeatherView(APIView):
             )
             location = (getattr(profile, "county", "") or "").strip()
             country = (getattr(profile, "country", "") or "").strip() or "Kenya"
-        if not location:
+        lat = request.query_params.get("lat")
+        lon = request.query_params.get("lon")
+        if lat and lon:
+            try:
+                weather = recommendation_weather(location, country, lat=float(lat), lon=float(lon))
+            except (TypeError, ValueError):
+                weather = recommendation_weather(location, country)
+        elif location:
+            weather = recommendation_weather(location, country)
+        else:
             return Response(
                 {"weather": None, "detail": "Enter a town or county to load weather."}
             )
-        weather = recommendation_weather(location, country)
         if weather is None:
             return Response(
                 {"weather": None, "detail": f"Could not load weather for {location}."}

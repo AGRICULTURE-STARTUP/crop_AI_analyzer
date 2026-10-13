@@ -34,6 +34,7 @@ from accounts.farmer_views import FarmerOverviewView
 from accounts.input_views import (
     InputAgencyListView,
     InputProductListView,
+    NearestAgencyListView,
     MyAgencyProductDetailView,
     MyAgencyProductListCreateView,
 )
@@ -138,6 +139,11 @@ urlpatterns = [
     ),
     # Inputs marketplace (registered agencies only — no web agent)
     path("inputs/agencies/", InputAgencyListView.as_view(), name="inputs_agencies"),
+    path(
+        "inputs/agencies/nearest/",
+        NearestAgencyListView.as_view(),
+        name="inputs_agencies_nearest",
+    ),
     path("inputs/products/", InputProductListView.as_view(), name="inputs_products"),
     path(
         "inputs/my-products/",

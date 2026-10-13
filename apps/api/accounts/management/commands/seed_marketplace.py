@@ -16,22 +16,24 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         agencies = [
-            ("GreenLeaf Agrovet", "agrovet", "0722000001", "Nakuru"),
-            ("HighYield Fertiliser Co", "fertiliser", "0722000002", "Uasin Gishu"),
-            ("Kilimo Seed Bank", "seed", "0722000003", "Kiambu"),
-            ("SafeCrop Pesticides", "pesticide", "0722000004", "Meru"),
+            ("GreenLeaf Agrovet", "agrovet", "0722000001", "Nakuru", -0.303099, 36.080025),
+            ("HighYield Fertiliser Co", "fertiliser", "0722000002", "Uasin Gishu", 0.514278, 35.269780),
+            ("Kilimo Seed Bank", "seed", "0722000003", "Kiambu", -1.171400, 36.835600),
+            ("SafeCrop Pesticides", "pesticide", "0722000004", "Meru", 0.046700, 37.655900),
         ]
         by_type = {}
-        for name, atype, phone, county in agencies:
+        for name, atype, phone, county, lat, lon in agencies:
             email = name.lower().replace(" ", "").replace("'", "") + "@ukulimabora.co.ke"
             user, _ = User.objects.get_or_create(username=email, defaults={"email": email})
-            profile, created = AgencyProfile.objects.get_or_create(
+            profile, created = AgencyProfile.objects.update_or_create(
                 user=user,
                 defaults={
                     "agency_name": name,
                     "agency_type": atype,
                     "phone": phone,
                     "county": county,
+                    "latitude": lat,
+                    "longitude": lon,
                 },
             )
             by_type[atype] = profile

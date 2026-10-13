@@ -14,13 +14,18 @@ logger = logging.getLogger(__name__)
 BASE = "https://api.openweathermap.org/data/2.5"
 
 
-def recommendation_weather(location: str, country: str = "Kenya") -> dict | None:
+def recommendation_weather(location: str, country: str = "Kenya", lat=None, lon=None) -> dict | None:
     api_key = os.getenv("OPEN_WEATHER_API_KEY")
     place = (location or "").strip()
-    if not api_key or not place:
+    if not api_key:
         return None
-    query = place if not country or country.lower() in place.lower() else f"{place},{country}"
-    params = {"q": query, "appid": api_key, "units": "metric"}
+    if lat is not None and lon is not None:
+        params = {"lat": lat, "lon": lon, "appid": api_key, "units": "metric"}
+    else:
+        if not place:
+            return None
+        query = place if not country or country.lower() in place.lower() else f"{place},{country}"
+        params = {"q": query, "appid": api_key, "units": "metric"}
     try:
         current = requests.get(f"{BASE}/weather", params=params, timeout=8)
         current.raise_for_status()
