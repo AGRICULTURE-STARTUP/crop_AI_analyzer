@@ -37,6 +37,10 @@ from accounts.input_views import (
     MyAgencyProductDetailView,
     MyAgencyProductListCreateView,
 )
+from accounts.farmer_product_views import (
+    MyFarmerProductDetailView,
+    MyFarmerProductListCreateView,
+)
 from accounts.store_views import StoreProductDetailView, StoreProductListView
 from accounts.ussd_views import UssdGatewayView, UssdSimulateView
 from main_app.kamis_views import (
@@ -144,6 +148,17 @@ urlpatterns = [
         "inputs/my-products/<int:product_id>/",
         MyAgencyProductDetailView.as_view(),
         name="inputs_my_product_detail",
+    ),
+    # Farmer produce listings
+    path(
+        "farmer/products/",
+        MyFarmerProductListCreateView.as_view(),
+        name="farmer_products",
+    ),
+    path(
+        "farmer/products/<int:product_id>/",
+        MyFarmerProductDetailView.as_view(),
+        name="farmer_product_detail",
     ),
     # USSD / SMS gateway (+ homepage simulator)
     path("ussd/", UssdGatewayView.as_view(), name="ussd_gateway"),

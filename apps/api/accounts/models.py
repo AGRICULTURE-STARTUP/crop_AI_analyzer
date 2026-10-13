@@ -183,3 +183,39 @@ class LendingAPIUsageLog(models.Model):
 
     def __str__(self):
         return f"{self.partner_id} status={self.http_status} @ {self.created_at}"
+
+
+class FarmerProduct(models.Model):
+    """Produce / input listed by a farmer for the marketplace."""
+
+    CATEGORY_CHOICES = [
+        ("produce", "Produce"),
+        ("seed", "Seed"),
+        ("other", "Other"),
+    ]
+
+    farmer = models.ForeignKey(
+        "main_app.FarmerProfile",
+        on_delete=models.CASCADE,
+        related_name="market_products",
+    )
+    name = models.CharField(max_length=150)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="produce")
+    description = models.TextField(blank=True, default="")
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    unit = models.CharField(max_length=40, blank=True, default="")
+    quantity = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text="Available quantity",
+    )
+    image = models.ImageField(upload_to="farmer_products/", blank=True, null=True)
+    is_available = models.BooleanField(default=True)
+    is_hidden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} — {self.farmer.user.username}"
