@@ -154,8 +154,16 @@ class StoreProductListView(APIView):
             row["category"]: row["n"]
             for row in base.values("category").annotate(n=Count("id"))
         }
+        category_counts["produce"] = FarmerProduct.objects.filter(
+            is_available=True, is_hidden=False
+        ).count()
         category = params.get("category", "").strip().lower()
-        qs = base.filter(category=category) if category in CATEGORY_LABELS else base
+        if category == "produce":
+            qs = base.none()
+        elif category in CATEGORY_LABELS:
+            qs = base.filter(category=category)
+        else:
+            qs = base
 
         sort = params.get("sort", "newest")
         if sort not in SORTS:
