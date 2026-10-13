@@ -240,8 +240,8 @@ def _wallet_reply(farmer: FarmerProfile | None, demo: bool) -> UssdReply:
         )
     wallet = _get_wallet(farmer)
     assert wallet is not None
-    free_scans = max(0, 2 - wallet.scan_count)
-    free_chats = max(0, 5 - wallet.chat_count)
+    free_scans = max(0, 10 - wallet.scan_count)
+    free_chats = max(0, 10 - wallet.chat_count)
     return UssdReply(
         f"Wallet\n"
         f"Balance: KSh {wallet.balance}\n"
@@ -387,7 +387,7 @@ def _agribot_reply(
 
     wallet = _get_wallet(farmer) if farmer and not demo else None
     if wallet is not None:
-        is_free = wallet.chat_count < 5
+        is_free = wallet.chat_count < 10
         if not is_free and wallet.balance < Decimal("10"):
             return UssdReply(
                 "Insufficient balance (KSh 10).\nTop up in the Ukulima Bora app.",
@@ -397,7 +397,7 @@ def _agribot_reply(
     overview = _short_advice(question)
 
     if wallet is not None:
-        if wallet.chat_count < 5:
+        if wallet.chat_count < 10:
             wallet.chat_count += 1
         else:
             wallet.balance -= Decimal("10")

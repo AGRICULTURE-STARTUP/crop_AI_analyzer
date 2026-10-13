@@ -13,7 +13,7 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 SCAN_FEE = Decimal("20.00")
-FREE_SCANS = 2
+FREE_SCANS = 10
 
 
 def _delete_scan_image(job):
