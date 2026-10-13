@@ -35,8 +35,14 @@ export function deleteHistory(id: number) {
   return apiRequest<void>(`/api/v1/recommend/history/${id}/`, { method: "DELETE" });
 }
 
-export function fetchAdvisorWeather(location: string) {
-  const qs = location.trim() ? `?location=${encodeURIComponent(location.trim())}` : "";
+/** Weather by place name, or by the farmer's geolocation (lat/lon). */
+export function fetchAdvisorWeather(input: string | { lat: number; lon: number }) {
+  const qs =
+    typeof input === "string"
+      ? input.trim()
+        ? `?location=${encodeURIComponent(input.trim())}`
+        : ""
+      : `?lat=${input.lat}&lon=${input.lon}`;
   return apiRequest<{ weather: AdvisorWeather | null; detail?: string }>(
     `/api/v1/recommend/weather/${qs}`
   );
