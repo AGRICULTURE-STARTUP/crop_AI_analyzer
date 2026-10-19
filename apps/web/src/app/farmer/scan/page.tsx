@@ -383,7 +383,7 @@ const SHORTCUTS = [
   },
   {
     href: "/farmer/market",
-    title: "Prices & buyers",
+    title: "Market prices",
     text: "See where your harvest sells best",
     Icon: BasketIcon,
   },

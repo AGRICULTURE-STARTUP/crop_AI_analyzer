@@ -51,6 +51,7 @@ services:
       GUNICORN_WORKERS: "2"
       DEBUG: ${DEBUG:-False}
       SCAN_IMAGES_ROOT: /app/scan_images
+      KAMIS_DB_PATH: /app/data/kamis_prices.db
     depends_on:
       postgres:
         condition: service_healthy
@@ -65,6 +66,7 @@ services:
     volumes:
       - media_tmp:/app/media
       - scan_images:/app/scan_images
+      - kamis_data:/app/data
 
   worker_scanner:
     build:
@@ -166,6 +168,7 @@ volumes:
   kb_data:
   media_tmp:
   scan_images:
+  kamis_data:
   certbot_www:
   certbot_certs:
 

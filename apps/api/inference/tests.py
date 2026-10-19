@@ -77,6 +77,142 @@ class ResolveModelPathTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# Gatekeeper (exact labels, fail-closed)
+# ---------------------------------------------------------------------------
+class GatekeeperEvaluateTests(unittest.TestCase):
+    def _pred(self, *pairs):
+        """Build fake decode_predictions tuples from (label, score) pairs."""
+        return [(f"n{i}", label, score) for i, (label, score) in enumerate(pairs)]
+
+    def test_rejects_empty(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        self.assertFalse(evaluate_predictions([]))
+
+    def test_rejects_uncertain_non_plant(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        # Former fail-open hole: low confidence non-plant used to pass.
+        decoded = self._pred(
+            ("running_shoe", 0.22),
+            ("sock", 0.18),
+            ("backpack", 0.10),
+            ("pillow", 0.08),
+            ("notebook", 0.05),
+        )
+        self.assertFalse(evaluate_predictions(decoded))
+
+    def test_rejects_teapot_despite_pot_substring(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        decoded = self._pred(
+            ("teapot", 0.91),
+            ("coffeepot", 0.05),
+            ("cup", 0.02),
+            ("coffee_mug", 0.01),
+            ("vase", 0.005),
+        )
+        self.assertFalse(evaluate_predictions(decoded))
+
+    def test_rejects_hippopotamus_despite_hip_substring(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        decoded = self._pred(
+            ("hippopotamus", 0.88),
+            ("hog", 0.04),
+            ("wild_boar", 0.02),
+            ("water_buffalo", 0.01),
+            ("ox", 0.005),
+        )
+        self.assertFalse(evaluate_predictions(decoded))
+
+    def test_rejects_spotlight_despite_pot_substring(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        decoded = self._pred(("spotlight", 0.55), ("lampshade", 0.1), ("torch", 0.05))
+        self.assertFalse(evaluate_predictions(decoded))
+
+    def test_accepts_corn_leaf_evidence(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        decoded = self._pred(
+            ("corn", 0.42),
+            ("ear", 0.12),
+            ("broom", 0.05),
+            ("hay", 0.04),
+            ("hook", 0.02),
+        )
+        self.assertTrue(evaluate_predictions(decoded))
+
+    def test_accepts_plant_in_top5_not_top1(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        decoded = self._pred(
+            ("hook", 0.20),
+            ("chain", 0.15),
+            ("head_cabbage", 0.12),
+            ("nail", 0.08),
+            ("screw", 0.05),
+        )
+        self.assertTrue(evaluate_predictions(decoded))
+
+    def test_rejects_when_plant_evidence_too_weak(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        decoded = self._pred(
+            ("hook", 0.30),
+            ("chain", 0.20),
+            ("corn", 0.03),  # below default min 0.08
+            ("nail", 0.02),
+            ("screw", 0.01),
+        )
+        self.assertFalse(evaluate_predictions(decoded, min_plant_conf=0.08))
+
+    def test_deny_beats_weaker_plant(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        decoded = self._pred(
+            ("laptop", 0.40),
+            ("notebook", 0.20),
+            ("corn", 0.10),
+            ("monitor", 0.08),
+            ("desk", 0.05),
+        )
+        self.assertFalse(evaluate_predictions(decoded))
+
+    def test_exact_pot_flowerpot_can_pass(self):
+        from inference.gatekeeper import evaluate_predictions
+
+        decoded = self._pred(
+            ("pot", 0.35),
+            ("vase", 0.10),
+            ("barrel", 0.05),
+            ("bucket", 0.04),
+            ("ashcan", 0.02),
+        )
+        self.assertTrue(evaluate_predictions(decoded))
+
+    def test_plant_and_nonplant_label_sets_are_exact_imagenet_names(self):
+        """If the Keras ImageNet index is cached, every curated label must exist."""
+        from pathlib import Path
+
+        from inference.gatekeeper import NON_PLANT_LABELS, PLANT_LABELS
+
+        index_path = Path.home() / ".keras" / "models" / "imagenet_class_index.json"
+        if not index_path.is_file():
+            self.skipTest("ImageNet class index not cached locally")
+        import json
+
+        with index_path.open() as fh:
+            data = json.load(fh)
+        labels = {v[1].lower() for v in data.values()}
+        missing_plant = sorted(PLANT_LABELS - labels)
+        missing_deny = sorted(NON_PLANT_LABELS - labels)
+        self.assertEqual(missing_plant, [], f"Unknown plant labels: {missing_plant}")
+        self.assertEqual(missing_deny, [], f"Unknown deny labels: {missing_deny}")
+
+
+# ---------------------------------------------------------------------------
 # Image cleanup helper
 # ---------------------------------------------------------------------------
 class DeleteScanImageTests(unittest.TestCase):

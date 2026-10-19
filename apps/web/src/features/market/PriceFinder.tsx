@@ -7,7 +7,7 @@ import { ApiError } from "@/lib/api";
 import { fetchKamisPrices } from "./api";
 import { bestMarket } from "./prices";
 
-/** KAMIS price search shared by the farmer market page and the buyer dashboard. */
+/** KAMIS price search for farmers (seller-oriented ranking). */
 export function PriceFinder({
   initialCrop = "",
   audience,

@@ -13,7 +13,6 @@ import { formatKsh } from "@/lib/format";
 const AUDIENCE: Record<string, string> = {
   farmer: "Farmers",
   agency: "Agrovets",
-  buyer: "Buyers",
   lender: "Lenders",
 };
 

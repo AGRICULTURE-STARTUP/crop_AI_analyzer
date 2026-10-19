@@ -7,8 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import PasswordResetView
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
-from .forms import SignupFormfarmer, SignupFormbuyer
-from .models import FarmerProfile, BuyerProfile, CropScanLog, PartnerAPIKey, FarmHealthProfile
+from .forms import SignupFormfarmer
 from .utils_scoring import calculate_farm_health_score
 from .agents import run_agrovet_agent
 import os
@@ -20,7 +19,7 @@ from django.utils.html import strip_tags, escape
 from .utils_weather import get_weather_data
 from .mpesa_utils import MpesaGateway
 from .models import (
-    FarmerProfile, BuyerProfile, CropScanLog,
+    FarmerProfile, CropScanLog,
     PartnerAPIKey, FarmHealthProfile, Wallet,
     MpesaTransaction
 )
@@ -36,19 +35,12 @@ mpesa_client = MpesaGateway()
 
 # Legacy in-process cache (template /process path). Prefer inference.model_lru in workers.
 loaded_models = {}
-_gatekeeper_model = None
 
 
 farmer_required = user_passes_test(
     lambda user: user.is_authenticated
     and not user.is_staff
     and hasattr(user, "farmer_profile"),
-    login_url="login",
-)
-buyer_required = user_passes_test(
-    lambda user: user.is_authenticated
-    and not user.is_staff
-    and hasattr(user, "buyer_profile"),
     login_url="login",
 )
 staff_required = user_passes_test(
@@ -58,71 +50,17 @@ staff_required = user_passes_test(
 
 
 def get_gatekeeper():
-    global _gatekeeper_model
-    if _gatekeeper_model is None:
-        from keras.applications.efficientnet import EfficientNetB0
-        from tensorflow.keras import mixed_precision
+    """Delegate to shared scanner gatekeeper (exact labels, fail-closed)."""
+    from inference.gatekeeper import get_gatekeeper as _get
 
-        mixed_precision.set_global_policy("float32")
-        _gatekeeper_model = EfficientNetB0(weights="imagenet")
-    return _gatekeeper_model
+    return _get()
 
 
 def is_plant_image(img_path):
-    """
-    Returns True if the image is likely a plant/crop, False if it's a known non-plant.
-    Uses a pre-trained ImageNet EfficientNetB0 to filter out obvious out-of-distribution images.
-    """
-    import numpy as np
-    from keras.applications.efficientnet import decode_predictions, preprocess_input
-    from keras.preprocessing import image
+    """Return True only when the image has clear plant/produce evidence."""
+    from inference.gatekeeper import is_plant_image as _is_plant
 
-    model = get_gatekeeper()
-    img = image.load_img(img_path, target_size=(224, 224))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)
-
-    preds = model.predict(img_array)
-    decoded = decode_predictions(preds, top=5)[0]
-
-    print(f"\n--- GATEKEEPER IMAGE-NET PREDICTIONS ---")
-    for i, (imagenet_id, label, score) in enumerate(decoded):
-        print(f"{i + 1}: {label} ({score * 100:.2f}%)")
-    print("----------------------------------------\n")
-
-    plant_whitelist = [
-        'plant', 'leaf', 'flower', 'tree', 'grass', 'daisy', 'pot', 'earthstar',
-        'corn', 'cabbage', 'cucumber', 'zucchini', 'bell_pepper', 'strawberry',
-        'orange', 'lemon', 'fig', 'pineapple', 'banana', 'apple', 'broccoli',
-        'cauliflower', 'artichoke', 'turnip', 'mushroom', 'agaric', 'gyromitra',
-        'stinkhorn', 'bolete', 'buckeye', 'acorn', 'rapeseed',
-        'head_cabbage', 'vegetable', 'fruit', 'greenhouse', 'hay', 'thistle',
-        'cardoon', 'squash', 'pomegranate', 'jackfruit', 'custard_apple',
-        'granny_smith', 'lady\'s_slipper', 'hip', 'coral_fungus', 'hen-of-the-woods',
-        'velvet', 'sponge', 'tuber', 'root', 'stalk', 'vine', 'pod', 'seed', 'grain'
-    ]
-
-    top_label = decoded[0][1].lower()
-    top_score = decoded[0][2]
-
-    is_top_plant = any(w in top_label for w in plant_whitelist)
-    if not is_top_plant and top_score > 0.8:
-        print(f"Gatekeeper: Strict rejection - Highly confident non-plant: {top_label} ({top_score*100:.1f}%)")
-        return False
-
-    for _, label, conf in decoded:
-        if any(w in label.lower() for w in plant_whitelist):
-            if conf > 0.05:
-                return True
-
-    non_plant_strict = ['car', 'truck', 'bus', 'vehicle', 'tire', 'wheel', 'logo', 'sign', 'building', 'furniture', 'person', 'dog', 'cat']
-    if top_score < 0.3:
-        if not any(w in top_label for w in non_plant_strict):
-            print(f"Gatekeeper: Low confidence fallback - allowing uncertain image '{top_label}' ({top_score*100:.1f}%)")
-            return True
-
-    return False
+    return _is_plant(img_path)
 
 
 beans_classes = ['angular_leaf_spot', 'anthracnose', 'bean_rust', 'healthy', 'mosaic_virus']
@@ -222,8 +160,6 @@ def get_crop_model(crop_selection):
 @login_required(login_url='login')
 @farmer_required
 def page(request):
-    if hasattr(request.user, 'buyer_profile'):
-        return redirect('buyer_dashboard_view')
     return render(request,"index.html")
 
 @login_required(login_url='login')
@@ -375,12 +311,6 @@ def chat(request):
                 user_location = request.user.farmer_profile.county
             except Exception:
                 pass
-        
-            if not user_location:
-                try:
-                    user_location = request.user.buyer_profile.county
-                except Exception:
-                    pass
 
         # Get session chat history (limited to last 8 messages / 4 turns to avoid token bloat)
         chat_history = request.session.get('chat_history', [])
@@ -480,28 +410,25 @@ JSON Output:"""
                     First, internally classify the question type (do this silently):
                     - DIAGNOSTIC, ADVISORY, PLANNING, or INFORMATIONAL
 
-                    Then generate your response using EXACTLY this output structure.
+                    CORE RULE — answer only what was asked:
+                    - Match depth and sections to the question. Do NOT pad every reply with recommendations, tips, or follow-ups.
+                    - INFORMATIONAL / definitional questions: fill overview (and explanation if helpful); leave recommendations, practical_tips, and follow_up_question empty.
+                    - DIAGNOSTIC / ADVISORY / PLANNING: add recommendations and tips only when they help this specific question.
+                    - Never invent crop plans, irrigation steps, or weather advice the farmer did not ask about.
 
                     OUTPUT FORMAT (MUST BE A VALID JSON OBJECT ONLY):
                     {{
-                      "overview": "Two short, direct sentences that answer the question with local context in {detected_language}. Acknowledge and build on previous conversation history if applicable.",
-                      "recommendations": [
-                        "clear actionable step 1 in {detected_language}",
-                        "clear actionable step 2 in {detected_language}"
-                      ],
-                      "explanation": [
-                        "key reason or important fact in {detected_language}",
-                        "supporting local detail in {detected_language}"
-                      ],
-                      "practical_tips": [
-                        "easy implementation tip in {detected_language}",
-                        "monitoring or follow-up step in {detected_language}"
-                      ],
-                      "follow_up_question": "A friendly, conversational, and highly specific follow-up question in {detected_language} to ask the farmer (e.g. asking about their soil, irrigation frequency, severity of symptoms, crop variety, or local weather) to help gather more context for better advice."
+                      "overview": "Direct answer to the question in {detected_language}. Build on conversation history only if relevant.",
+                      "recommendations": [],
+                      "explanation": [],
+                      "practical_tips": [],
+                      "follow_up_question": ""
                     }}
+                    Fill array/string fields only when they add value for THIS question; otherwise use [] or "".
 
                     DEPTH REQUIREMENTS:
-                    - Be extremely specific: name exact varieties, fertilizer types/rates, timing, and local practices.
+                    - When giving practical advice, be specific: varieties, fertilizer types/rates, timing, local practices.
+                    - For simple questions, stay short — a clear definition or fact is enough.
                     - Prioritize low-cost, sustainable solutions for farmers.
 
                     FORMATTING RULES:
@@ -512,8 +439,8 @@ JSON Output:"""
 
                     STRICT RULES:
                     - Must be valid parsable JSON.
-                    - Never skip any section.
-                    - No greetings, no conclusions, no repetition.
+                    - Empty unused sections rather than inventing filler.
+                    - No forced greetings, thank-you scripts, or repetition.
                     - Stay concise — remove any repeated information.
 
                     CONTEXT:
@@ -576,14 +503,15 @@ JSON Output:"""
                     json.loads(reply.strip())
                 except Exception:
                     print("[AgriBot] Initial response was not valid JSON, formatting...")
-                    formatting_prompt = f"""Format the following text into the exact JSON structure required by AgriBot:
+                    formatting_prompt = f"""Format the following text into AgriBot JSON.
+Use only sections that match the content. Leave unused arrays empty and unused strings as "".
 Required JSON Structure:
 {{
-  "overview": "Overview text in {detected_language}",
-  "recommendations": ["step 1", "step 2"],
-  "explanation": ["reason 1", "reason 2"],
-  "practical_tips": ["tip 1", "tip 2"],
-  "follow_up_question": "follow up question in {detected_language}"
+  "overview": "Direct answer in {detected_language}",
+  "recommendations": [],
+  "explanation": [],
+  "practical_tips": [],
+  "follow_up_question": ""
 }}
 
 Input Text:
@@ -648,33 +576,6 @@ def signup_farmer(request):
         form = SignupFormfarmer()
     return render(request, 'signup.html', {'form': form, 'user_type': 'Farmer'})
 
-@ratelimit(key='ip', rate='3/m', block=False)
-def signup_buyer(request):
-    was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
-    if was_limited:
-        return render(request, 'signup.html', {'form': SignupFormbuyer(), 'user_type': 'Buyer', 'error': 'Too many registration attempts. Please try again later.'})
-    if request.method == 'POST':
-        form = SignupFormbuyer(request.POST, request.FILES)
-        if not request.POST.get('privacy-accept'):
-            return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer', 'error': 'You must accept the Privacy Policy to register.'})
-        if form.is_valid():
-            user = form.save()
-            BuyerProfile.objects.create(
-                user=user,
-                phone_number=form.cleaned_data.get('phone_number'),
-                county=form.cleaned_data.get('county'),
-                country=form.cleaned_data.get('country'),
-                first_name=form.cleaned_data.get('first_name'),
-                email=form.cleaned_data.get("email"),
-                photo=form.cleaned_data.get("photo"),
-            )
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-
-            return redirect('page')
-    else:
-        form = SignupFormbuyer()
-    return render(request, 'signup.html', {'form': form, 'user_type': 'Buyer'})
-
 @ratelimit(key='ip', rate='5/m', block=False)
 def signin_view(request):
     was_limited = getattr(request, 'ratelimit', {}).get('was_limited', False)
@@ -702,10 +603,6 @@ def signin_view(request):
             
             if hasattr(user, 'farmer_profile'):
                 return redirect('page')
-            elif hasattr(user, 'buyer_profile'):
-                return redirect('buyer_dashboard_view')
-            elif hasattr(user, 'buyer_profile'):
-                return redirect('buyer_dashboard_view')
             else:
                 return redirect('page')
     else:
@@ -746,104 +643,6 @@ def fertiliser_display(request):
             pass
 
         return JsonResponse({'products': data})
-@login_required(login_url='login')
-@farmer_required
-def market_view(request):
-    return render(request,"market_buyers.html")
-
-@login_required(login_url='login')
-@farmer_required
-def market_display(request):
-    if request.method == "GET":
-        qs = BuyerProfile.objects.all().order_by("first_name", "id")
-        location = (request.GET.get("location") or "").strip()
-        if location:
-            qs = qs.filter(county__icontains=location)
-
-        buyer_list = []
-        for buyer in qs:
-            location_label = ", ".join(
-                part for part in [buyer.county, buyer.country] if part
-            )
-            photo_url = None
-            if buyer.photo:
-                try:
-                    photo_url = request.build_absolute_uri(buyer.photo.url)
-                except Exception:
-                    photo_url = buyer.photo.url
-            buyer_list.append(
-                {
-                    "id": buyer.id,
-                    "name": buyer.first_name or buyer.user.get_username(),
-                    "first_name": buyer.first_name,
-                    "email": buyer.email,
-                    "phone_number": buyer.phone_number or "",
-                    "contact": buyer.phone_number or buyer.email or "",
-                    "county": buyer.county or "",
-                    "country": buyer.country or "",
-                    "location": location_label,
-                    "photo": photo_url,
-                    # Registered via buyer signup = verified Ukulima Bora buyer
-                    "verified": True,
-                    "verification_badge": "Verified",
-                }
-            )
-        return JsonResponse({"buyer_list": buyer_list, "count": len(buyer_list)})
-
-@login_required(login_url='login')
-@buyer_required
-def farmer_view(request):
-    return render(request, "farmers.html")
-
-@login_required(login_url='login')
-@buyer_required
-def farmer_display(request):
-    if request.method == "GET":
-        farmers = FarmerProfile.objects.select_related("user").all()
-        county_q = (request.GET.get("county") or request.GET.get("location") or "").strip()
-        crop_q = (request.GET.get("crop") or request.GET.get("products") or "").strip()
-        if county_q:
-            farmers = farmers.filter(county__icontains=county_q)
-        if crop_q:
-            farmers = farmers.filter(products__icontains=crop_q)
-
-        data = []
-        for farmer in farmers:
-            photo_url = None
-            if farmer.profile_photo:
-                try:
-                    photo_url = request.build_absolute_uri(farmer.profile_photo.url)
-                except Exception:
-                    photo_url = farmer.profile_photo.url
-            name = " ".join(
-                part
-                for part in [farmer.user.first_name, farmer.user.last_name]
-                if part
-            ).strip() or farmer.user.username
-            location_label = ", ".join(
-                part for part in [farmer.county, farmer.country] if part
-            )
-            data.append(
-                {
-                    "id": farmer.id,
-                    "username": farmer.user.username,
-                    "name": name,
-                    "phone_number": farmer.phone_number or "",
-                    "county": farmer.county or "",
-                    "country": farmer.country or "",
-                    "location": location_label,
-                    "products": farmer.products or "",
-                    "farm_name": farmer.farm_name or "",
-                    "farm_size_acres": (
-                        str(farmer.farm_size_acres)
-                        if farmer.farm_size_acres is not None
-                        else ""
-                    ),
-                    "photo": photo_url,
-                }
-            )
-        return JsonResponse({"farmer_list": data, "count": len(data)})
-
 
 
 @login_required(login_url='login')
@@ -993,45 +792,6 @@ def farm_health_score_api(request):
         return JsonResponse({"error": error}, status=http_status)
     return JsonResponse(payload, status=http_status)
 
-
-@login_required(login_url='login')
-@buyer_required
-def buyer_dashboard_view(request):
-    try:
-        buyer_profile = request.user.buyer_profile
-    except BuyerProfile.DoesNotExist:
-        return redirect('page')
-
-    success_message = None
-
-    if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        email = request.POST.get('email', '').strip()
-        phone_number = request.POST.get('phone_number', '').strip()
-        county = request.POST.get('county', '').strip()
-        country = request.POST.get('country', '').strip()
-
-        # Update BuyerProfile
-        if first_name: buyer_profile.first_name = first_name
-        if email: buyer_profile.email = email
-        if phone_number: buyer_profile.phone_number = phone_number
-        if county: buyer_profile.county = county
-        if country: buyer_profile.country = country
-        
-        buyer_profile.save()
-        success_message = "Profile updated successfully."
-
-    farmers = FarmerProfile.objects.all()
-
-    context = {
-        'buyer_profile': buyer_profile,
-        'farmers': farmers,
-        'success_message': success_message
-    }
-    return render(request, 'buyer_dashboard.html', context)
-
-
-    return redirect('buyer_dashboard_view')
 
 @csrf_exempt
 @ratelimit(key='ip', rate='60/m', block=True)

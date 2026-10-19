@@ -10,8 +10,6 @@ def _role_for_user(user) -> str | None:
         return "lender"
     if hasattr(user, "agency_profile"):
         return "agency"
-    if hasattr(user, "buyer_profile"):
-        return "buyer"
     if hasattr(user, "farmer_profile"):
         return "farmer"
     return "user"
@@ -27,20 +25,6 @@ class IsFarmer(BasePermission):
 
     def has_permission(self, request, view):
         return _role_for_user(request.user) == "farmer"
-
-
-class IsBuyer(BasePermission):
-    message = "Only buyer accounts can perform this action."
-
-    def has_permission(self, request, view):
-        return _role_for_user(request.user) == "buyer"
-
-
-class IsFarmerOrBuyer(BasePermission):
-    message = "Only farmer and buyer accounts can perform this action."
-
-    def has_permission(self, request, view):
-        return _role_for_user(request.user) in ("farmer", "buyer")
 
 
 class IsAgency(BasePermission):

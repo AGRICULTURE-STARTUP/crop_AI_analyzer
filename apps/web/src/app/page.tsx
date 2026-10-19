@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     absolute: "Ukulima Bora — AI crop disease detection for Kenyan farmers",
   },
   description:
-    "Snap a sick plant, get treatment advice in English or Kiswahili, connect with buyers, and build a Farm Health Score.",
+    "Snap a sick plant, get treatment advice in English or Kiswahili, check market prices, and build a Farm Health Score.",
   alternates: { canonical: "/" },
 };
 
@@ -87,7 +87,7 @@ export default function HomePage() {
             </h1>
             <p className="hero-description animate-rise delay-1">
               Snap a sick plant, get treatment advice in English or Kiswahili,
-              and connect with buyers when your harvest is ready.
+              and check the latest market prices when your harvest is ready.
             </p>
             <div className="flex flex-wrap gap-3 animate-rise delay-2">
               <Link href="/signup?role=farmer" className="btn-hero-primary">

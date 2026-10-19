@@ -22,7 +22,7 @@ const display = Montserrat({
 const siteUrl = "https://ukulimabora.co.ke";
 const siteTitle = "Ukulima Bora — AI crop disease detection for Kenyan farmers";
 const siteDescription =
-  "Take a photo of a sick plant to get treatment advice in English or Kiswahili, connect with buyers, and build a Farm Health Score.";
+  "Take a photo of a sick plant to get treatment advice in English or Kiswahili, check market prices, and build a Farm Health Score.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

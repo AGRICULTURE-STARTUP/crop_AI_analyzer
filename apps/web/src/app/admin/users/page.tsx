@@ -11,11 +11,10 @@ import { PageHeader, FilterTabs } from "@/components/ui/Page";
 import { ApiError } from "@/lib/api";
 import { formatDate, initialsOf, timeAgo } from "@/lib/format";
 
-type RoleFilter = "" | "farmer" | "buyer" | "agency" | "lender" | "admin";
+type RoleFilter = "" | "farmer" | "agency" | "lender" | "admin";
 
 const ROLE_LABELS: Record<Exclude<RoleFilter, "">, string> = {
   farmer: "Farmers",
-  buyer: "Buyers",
   agency: "Agencies",
   lender: "Lenders",
   admin: "Admins",

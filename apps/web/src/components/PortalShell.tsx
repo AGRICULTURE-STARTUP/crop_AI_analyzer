@@ -72,22 +72,12 @@ const NAV: Record<string, NavGroup[]> = {
       label: "Market",
       items: [
         { href: "/farmer/marketplace", label: "Marketplace", Icon: StoreIcon },
-        { href: "/farmer/market", label: "Prices & buyers", Icon: BasketIcon },
+        { href: "/farmer/market", label: "Market prices", Icon: BasketIcon },
       ],
     },
     {
       label: "Account",
       items: [{ href: "/farmer/profile", label: "Profile & wallet", Icon: UserIcon }],
-    },
-  ],
-  buyer: [
-    {
-      label: "Market",
-      items: [{ href: "/buyer/dashboard", label: "Dashboard", Icon: GridIcon }],
-    },
-    {
-      label: "Account",
-      items: [{ href: "/buyer/profile", label: "Profile", Icon: UserIcon }],
     },
   ],
   agency: [
@@ -144,7 +134,6 @@ const NAV: Record<string, NavGroup[]> = {
 
 const PORTAL_NAME: Record<string, string> = {
   farmer: "Farmer portal",
-  buyer: "Buyer portal",
   agency: "Agency portal",
   lender: "Lender portal",
   admin: "Admin console",

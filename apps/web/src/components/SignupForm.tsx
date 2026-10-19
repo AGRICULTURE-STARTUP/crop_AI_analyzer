@@ -9,7 +9,7 @@ import { apiRequest, ApiError, roleHome } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { TokenPair } from "@/lib/types";
 
-export type SignupRole = "farmer" | "buyer" | "agency" | "lender";
+export type SignupRole = "farmer" | "agency" | "lender";
 
 const ROLES: {
   value: SignupRole;
@@ -20,14 +20,8 @@ const ROLES: {
   {
     value: "farmer",
     label: "Farmer",
-    blurb: "Scan crops, chat with AgriBot, and manage your Farm Health Score.",
+    blurb: "Scan crops, chat with AgriBot, check market prices, and manage your Farm Health Score.",
     endpoint: "/api/v1/auth/register/farmer/",
-  },
-  {
-    value: "buyer",
-    label: "Buyer",
-    blurb: "Browse farmer listings and build market connections.",
-    endpoint: "/api/v1/auth/register/buyer/",
   },
   {
     value: "agency",
@@ -77,46 +71,19 @@ export function SignupForm({
       return;
     }
 
-    if (role === "buyer") {
-      const photo = fd.get("photo");
-      if (!(photo instanceof File) || photo.size === 0) {
-        setError("Please upload a photo to continue as a buyer.");
-        setBusy(false);
-        return;
-      }
-    }
-
     try {
-      let res: TokenPair & { role?: string };
-
-      if (role === "buyer") {
-        // Multipart — buyer photo is required
-        const payload = new FormData();
-        fd.forEach((v, k) => {
-          if (k === "password_confirm" || k === "privacy_accept" || k === "role") {
-            return;
-          }
-          payload.append(k, v);
-        });
-        res = await apiRequest<TokenPair & { role?: string }>(meta.endpoint, {
-          method: "POST",
-          auth: false,
-          formData: payload,
-        });
-      } else {
-        const body: Record<string, string> = {};
-        fd.forEach((v, k) => {
-          if (k === "password_confirm" || k === "privacy_accept" || k === "role") {
-            return;
-          }
-          body[k] = String(v);
-        });
-        res = await apiRequest<TokenPair & { role?: string }>(meta.endpoint, {
-          method: "POST",
-          auth: false,
-          body,
-        });
-      }
+      const body: Record<string, string> = {};
+      fd.forEach((v, k) => {
+        if (k === "password_confirm" || k === "privacy_accept" || k === "role") {
+          return;
+        }
+        body[k] = String(v);
+      });
+      const res = await apiRequest<TokenPair & { role?: string }>(meta.endpoint, {
+        method: "POST",
+        auth: false,
+        body,
+      });
 
       const session = await acceptTokens({
         access: res.access,
@@ -150,8 +117,8 @@ export function SignupForm({
   return (
     <AuthShell
       eyebrow="Join Ukulima Bora"
-      title="One platform. Four roles."
-      subtitle="Pick how you take part — farmer, buyer, input shop, or lender — and we open the right portal for you."
+      title="One platform. Three roles."
+      subtitle="Pick how you take part — farmer, input shop, or lender — and we open the right portal for you."
     >
       <form onSubmit={onSubmit} className="auth-panel space-y-4">
         <div>
@@ -183,7 +150,7 @@ export function SignupForm({
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          {role === "farmer" || role === "buyer" ? (
+          {role === "farmer" ? (
             <>
               <FormField
                 label="Username"
@@ -229,7 +196,7 @@ export function SignupForm({
         </div>
 
         <div key={role} className="grid gap-4 sm:grid-cols-2">
-          {role === "farmer" || role === "buyer" ? (
+          {role === "farmer" ? (
             <>
               <FormField label="Phone" name="phone_number" required />
               <FormField label="County" name="county" required />
@@ -239,31 +206,12 @@ export function SignupForm({
                 required
                 defaultValue="Kenya"
               />
-              {role === "farmer" ? (
-                <FormField
-                  label="Crops / products"
-                  name="products"
-                  as="textarea"
-                  placeholder="Maize, tomato, beans"
-                />
-              ) : (
-                <label className="block space-y-1.5 text-sm sm:col-span-2">
-                  <span className="font-medium text-ink/80">
-                    Photo <span className="text-[var(--danger)]">*</span>
-                  </span>
-                  <input
-                    className="field"
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    required
-                  />
-                  <span className="block text-xs text-ink/65">
-                    A clear photo of yourself — shown to farmers on the market
-                    page with a Verified badge.
-                  </span>
-                </label>
-              )}
+              <FormField
+                label="Crops / products"
+                name="products"
+                as="textarea"
+                placeholder="Maize, tomato, beans"
+              />
             </>
           ) : null}
 

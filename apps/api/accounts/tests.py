@@ -16,7 +16,6 @@ from accounts.models import AgencyProduct, AgencyProfile, LendingAPIKey, Lending
 from accounts.serializers import issue_tokens
 from accounts.session_activity import invalidate_session, session_id_for_token
 from main_app.models import (
-    BuyerProfile,
     FarmerProfile,
     FarmHealthProfile,
     PartnerAPIKey,
@@ -178,8 +177,7 @@ class RoleAuthorizationTests(TestCase):
         self.other_farmer = User.objects.create_user("farmer2", password="pass12345")
         FarmerProfile.objects.create(user=self.other_farmer, county="Kiambu")
 
-        self.buyer_user = User.objects.create_user("buyer", password="pass12345")
-        BuyerProfile.objects.create(user=self.buyer_user)
+        self.plain_user = User.objects.create_user("plain", password="pass12345")
 
         self.agency_user = User.objects.create_user("agency", password="pass12345")
         self.agency = AgencyProfile.objects.create(
@@ -222,13 +220,19 @@ class RoleAuthorizationTests(TestCase):
             "/api/v1/wallet/",
             "/api/v1/inputs/agencies/",
             "/api/v1/inputs/products/",
-            "/api/v1/market/buyers/",
+            "/api/v1/market/kamis-prices/?crop=maize",
         ]
         for path in farmer_paths:
             with self.subTest(path=path):
-                self.assertEqual(self.get_as(self.farmer_user, path).status_code, 200)
+                farmer_status = self.get_as(self.farmer_user, path).status_code
+                # KAMIS may return 503 when the local cache is empty/stale;
+                # that still means the farmer is authorized.
+                if "kamis-prices" in path:
+                    self.assertIn(farmer_status, (200, 503))
+                else:
+                    self.assertEqual(farmer_status, 200)
                 for denied_user in (
-                    self.buyer_user,
+                    self.plain_user,
                     self.agency_user,
                     self.lender_user,
                 ):
@@ -237,15 +241,14 @@ class RoleAuthorizationTests(TestCase):
                         403,
                     )
 
-    def test_buyer_directory_rejects_other_roles(self):
-        path = "/api/v1/market/farmers/"
-        self.assertEqual(self.get_as(self.buyer_user, path).status_code, 200)
-        for denied_user in (
-            self.farmer_user,
-            self.agency_user,
-            self.lender_user,
+    def test_buyer_register_and_directories_are_gone(self):
+        for path in (
+            "/api/v1/auth/register/buyer/",
+            "/api/v1/market/buyers/",
+            "/api/v1/market/farmers/",
         ):
-            self.assertEqual(self.get_as(denied_user, path).status_code, 403)
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(path).status_code, 404)
 
     def test_agency_cannot_delete_another_agencys_product(self):
         product = AgencyProduct.objects.create(
@@ -274,7 +277,7 @@ class RoleAuthorizationTests(TestCase):
         self.assertEqual(self.get_as(self.admin_user, path).status_code, 200)
         for denied_user in (
             self.farmer_user,
-            self.buyer_user,
+            self.plain_user,
             self.agency_user,
             self.lender_user,
         ):
@@ -282,7 +285,7 @@ class RoleAuthorizationTests(TestCase):
 
     def test_cross_role_mutations_and_costly_actions_are_denied(self):
         cases = [
-            (self.buyer_user, "/api/v1/chat/messages/", {"message": "help"}),
+            (self.plain_user, "/api/v1/chat/messages/", {"message": "help"}),
             (
                 self.agency_user,
                 "/api/v1/mpesa/topup/",
@@ -309,7 +312,7 @@ class RoleAuthorizationTests(TestCase):
         for path in (
             "/api/v1/me/",
             "/api/v1/scans/",
-            "/api/v1/market/farmers/",
+            "/api/v1/market/kamis-prices/?crop=maize",
             "/api/v1/inputs/my-products/",
             "/api/v1/lender/api-keys/",
             "/api/v1/admin/revenue/",

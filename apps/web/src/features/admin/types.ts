@@ -65,7 +65,7 @@ export type AdminUsersResponse = {
   count: number;
   page: number;
   pages: number;
-  role_totals: Record<"farmer" | "buyer" | "agency" | "lender" | "admin", number>;
+  role_totals: Record<"farmer" | "agency" | "lender" | "admin", number>;
 };
 
 export type AdminProductRow = {

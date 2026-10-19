@@ -29,18 +29,11 @@
                 {% if user.farmer_profile %}
                     <li><a href="{% url 'page' %}">Scanner</a></li>
                     <li><a href="{% url 'fertiliser' %}">Inputs & Agrovets</a></li>
-                    <li><a href="{% url 'market_buyers' %}">Market</a></li>
-                    <li><a href="{% url 'farmers' %}">Farmers</a></li>
                     <li><a href="{% url 'farmer_profile' %}">Profile</a></li>
-                {% elif user.buyer_profile %}
-                    <li><a href="{% url 'buyer_dashboard_view' %}">My Profile</a></li>
-                    <li><a href="{% url 'farmers' %}">Farmers List</a></li>
                 {% else %}
                     <!-- Fallback -->
                     <li><a href="{% url 'page' %}">Scanner</a></li>
                     <li><a href="{% url 'fertiliser' %}">Inputs & Agrovets</a></li>
-                    <li><a href="{% url 'market_buyers' %}">Market</a></li>
-                    <li><a href="{% url 'farmers' %}">Farmers</a></li>
                 {% endif %}
                 <li><a href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
@@ -113,7 +106,7 @@
         <div class="footer-grid">
             <div class="footer-column about">
                 <h3>Ukulima<span> Bora</span></h3>
-                <p>Empowering small-scale farmers with AI-driven diagnostics and seamless market connectivity. Revolutionizing agriculture, one harvest at a time.</p>
+                <p>Empowering small-scale farmers with AI-driven diagnostics and accurate market prices. Revolutionizing agriculture, one harvest at a time.</p>
             </div>
             <div class="footer-column links">
                 <h4>Quick Links</h4>
@@ -122,7 +115,6 @@
                     <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
                     {% if user.is_authenticated %}
                     <li><a href="{% url 'page' %}">Scanner</a></li>
-                    <li><a href="{% url 'market_buyers' %}">Market</a></li>
                     {% else %}
                     <li><a href="{% url 'login' %}">Login</a></li>
                     {% endif %}

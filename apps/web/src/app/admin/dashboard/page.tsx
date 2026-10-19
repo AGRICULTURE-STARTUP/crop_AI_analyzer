@@ -19,14 +19,12 @@ import { formatCompact, formatKsh, initialsOf, statusTone, timeAgo } from "@/lib
 
 const ROLE_COLORS: Record<string, string> = {
   farmer: "#2e7d32",
-  buyer: "#f59e0b",
   agency: "#1e88e5",
   lender: "#8e24aa",
   admin: "#546e7a",
 };
 const ROLE_LABELS: Record<string, string> = {
   farmer: "Farmers",
-  buyer: "Buyers",
   agency: "Input agencies",
   lender: "Lenders",
   admin: "Admins",

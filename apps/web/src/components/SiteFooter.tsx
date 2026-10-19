@@ -21,7 +21,6 @@ const TOOLS = [
 
 const JOIN = [
   { href: "/signup?role=farmer", label: "Farmers" },
-  { href: "/signup?role=buyer", label: "Buyers" },
   { href: "/signup?role=agency", label: "Input shops" },
   { href: "/signup?role=lender", label: "Lenders" },
   { href: "/privacy", label: "Privacy policy" },
@@ -37,7 +36,7 @@ export function SiteFooter() {
           </div>
           <p className="site-footer__tagline">
             Crop advice from a photo, help in English and Kiswahili, market
-            links, and Farm Health Scores — on the app, on the web, and by
+            prices, and Farm Health Scores — on the app, on the web, and by
             dialling USSD.
           </p>
         </div>

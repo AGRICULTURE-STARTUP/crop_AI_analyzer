@@ -6,7 +6,6 @@ from accounts.views import (
     AdminLenderSuspendView,
     AdminRevenueView,
     AgencyRegisterView,
-    BuyerRegisterView,
     FarmerRegisterView,
     LenderAPIKeyListCreateView,
     LenderAPIKeyRevokeView,
@@ -39,16 +38,11 @@ from accounts.input_views import (
 )
 from accounts.store_views import StoreProductDetailView, StoreProductListView
 from accounts.ussd_views import UssdGatewayView, UssdSimulateView
-from main_app.kamis_views import (
-    BuyersDirectoryView,
-    FarmersDirectoryView,
-    KamisMarketPricesView,
-)
+from main_app.kamis_views import KamisMarketPricesView
 
 urlpatterns = [
     # Auth
     path("auth/register/farmer/", FarmerRegisterView.as_view(), name="auth_register_farmer"),
-    path("auth/register/buyer/", BuyerRegisterView.as_view(), name="auth_register_buyer"),
     path("auth/register/agency/", AgencyRegisterView.as_view(), name="auth_register_agency"),
     path("auth/register/lender/", LenderRegisterView.as_view(), name="auth_register_lender"),
     path("auth/logout/", LogoutView.as_view(), name="auth_logout"),
@@ -61,16 +55,6 @@ urlpatterns = [
         "market/kamis-prices/",
         KamisMarketPricesView.as_view(),
         name="kamis_market_prices",
-    ),
-    path(
-        "market/farmers/",
-        FarmersDirectoryView.as_view(),
-        name="market_farmers_directory",
-    ),
-    path(
-        "market/buyers/",
-        BuyersDirectoryView.as_view(),
-        name="market_buyers_directory",
     ),
     # AgriBot
     path("chat/messages/", ChatMessageView.as_view(), name="chat_messages"),

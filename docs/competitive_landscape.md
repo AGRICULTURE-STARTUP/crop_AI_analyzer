@@ -16,11 +16,11 @@ The real fight is whether one Kenyan farmer identity can close the loop:
 2. Watch the plot with sensors
 3. Diagnose a leaf
 4. Get Kiswahili advice
-5. Buy inputs or sell produce
+5. Buy inputs and check crop market prices (KAMIS) — not produce-buyer matching
 6. Pay with M-Pesa
 7. Share a consent-based Farm Health Score
 
-That loop is the differentiator. It is also mostly unfinished.
+That loop is the differentiator. It is also mostly unfinished. Produce offtake / buyer matching is explicitly out of product scope.
 
 
 | Signal                                    | Finding                                                           |
@@ -46,7 +46,7 @@ Crop recommendation, live USSD, and sensors are not production yet.
 | ------------------------------------------------------- | -------------------------------- | ---------------------------------------------------- | -------------------------------------------------------- |
 | Leaf diagnosis (11 crop models + gatekeeper)            | **Live**                         | Photo a leaf; pay KSh 20 after 2 free scans          | PlantVillage Nuru, Plantix, Agrio, Tumaini               |
 | AgriBot EN / Kiswahili RAG                              | **Live, unvalidated**            | Chat advice; KSh 10 after 5 free questions           | Virtual Agronomist, Plantix, Apollo genAI plans          |
-| Farmer / buyer / agrovet portals + KAMIS prices         | **Partial**                      | List produce, browse inputs, see market prices       | DigiFarm Soko, iProcure, Twiga (now in administration)   |
+| Farmer / agrovet portals + KAMIS prices                 | **Partial**                      | Browse inputs, see market prices (no produce-buyer matching) | DigiFarm Soko, iProcure, Twiga (now in administration)   |
 | M-Pesa wallet                                           | **Code ready, not live cutover** | STK top-up for scans and chat                        | DigiFarm, Apollo, AgriWallet, every Safaricom product    |
 | Farm Health Score + lender API                          | **Infrastructure only**          | 300–850 score from scans, health ratio, market links | Apollo satellite scoring, DigiFarm credit, FarmDrive     |
 | USSD / SMS                                              | **Simulator only**               | Feature-phone wallet, advice, market, score          | DigiFarm `*944#`, iShamba SMS, UjuziKilimo SMS results   |
@@ -208,7 +208,7 @@ KSh 10–20 M-Pesa micro-charges, Kiswahili, KAMIS, county profiles, USSD design
 | “USSD inclusion.”               | DigiFarm `*944#` is live on Safaricom. Ukulima Bora has a homepage keypad.                                            |
 | “Lending API.”                  | Engagement points are not agronomy. Lenders will ask for repayment data, satellite NDVI, or M-Pesa history first. |
 | “22-crop recommender.”          | Virtual Agronomist already gives plot-level fertilizer plans from soil maps Kenyan farmers are using.             |
-| “We connect farmers to buyers.” | Twiga raised ~$185M and still went into administration. Logistics is not a software feature.                      |
+| “We connect farmers to buyers.” | **Out of product scope.** Ukulima Bora provides KAMIS prices only; Twiga raised ~$185M and still went into administration. Logistics is not a software feature. |
 
 
 ---

@@ -13,10 +13,11 @@ This document describes the **Ukulima Bora** platform in `crop_AI_analyzer`, inc
 
 **In scope**
 
-- Web application for role-based users: **Farmers**, **Buyers**, and **Agro-agencies** (fertiliser, pesticide, seed).
+- Web application for role-based users: **Farmers**, **Agro-agencies** (fertiliser, pesticide, seed), **Lenders**, and **Admin**.
 - **AI crop diagnosis**: upload leaf images, validate as plant imagery (gatekeeper), classify disease/health per selected crop using TensorFlow models.
 - **AgriBot chat**: LLM-backed agricultural Q&A with optional RAG (ChromaDB + embeddings) and location-aware context.
-- **Marketplace discovery**: farmers list produce; buyers and agencies browse listings (dashboard-driven).
+- **Market prices**: farmers look up latest KAMIS wholesale/retail prices by crop. Produce buyer matching is **out of scope**.
+- **Inputs marketplace**: agencies list products; farmers browse and contact sellers.
 - **Farm Health Score** (300–850) and **partner REST API** for consenting farmers, keyed by phone number.
 - **Monetisation**: wallet balances, per-scan and per-chat charges, M-Pesa STK callbacks, optional agency subscriptions for product listings.
 - **Authentication**: Django auth, django-allauth (including Google OAuth), password reset via email (SendGrid).
@@ -37,12 +38,12 @@ This document describes the **Ukulima Bora** platform in `crop_AI_analyzer`, inc
 
 | ID | Requirement |
 |----|-------------|
-| FR-01 | Users can register and sign in as farmer, buyer, or agency. |
+| FR-01 | Users can register and sign in as farmer, agency, or lender. |
 | FR-02 | Authenticated farmers can submit crop images for diagnosis subject to rate limits and wallet rules. |
 | FR-03 | Non-plant images are rejected before crop classification (gatekeeper). |
 | FR-04 | Successful farmer scans are logged (`CropScanLog`) for scoring. |
 | FR-05 | Authenticated users can use the chat endpoint with RAG when configured; responses are JSON. |
-| FR-06 | Farm Health Score is derived from scans, health ratio, and completed market connections; profile view triggers recalculation. |
+| FR-06 | Farm Health Score is derived from scans and health ratio; profile view triggers recalculation. |
 | FR-07 | Partners with a valid `PartnerAPIKey` can `GET` score data for farmers who opted in, by phone query parameter. |
 | FR-08 | M-Pesa callbacks update transaction records and either wallet balance or agency subscription. |
 | FR-09 | Farmers can request a crop recommendation from validated seven-feature input; each result records input source and model version. *(Planned integration)* |
@@ -76,8 +77,8 @@ External actors and systems interact with the Django application as follows.
 flowchart LR
     subgraph users [Users]
         F[Farmers]
-        B[Buyers]
         A[Agencies]
+        L[Lenders]
         AD[Site admin]
         D[IoT devices and gateways]
     end
@@ -95,7 +96,7 @@ flowchart LR
         AT[Africas Talking SMS and USSD]
     end
     F --> WEB
-    B --> WEB
+    L --> WEB
     A --> WEB
     AD --> WEB
     D --> WEB
@@ -179,11 +180,9 @@ Core entities (see `main_app/models.py`):
 | Model | Role |
 |-------|------|
 | `FarmerProfile` | 1:1 with `User`; county, products, phone. |
-| `BuyerProfile` | 1:1 with `User`; contact fields. |
 | `AgencyProfile` | 1:1 with `User`; agency type, listings context. |
 | `AgencyProduct` | FK to agency; catalog items with optional image. |
 | `CropScanLog` | Per-scan audit: crop, result string, confidence, timestamp. |
-| `MarketConnection` | Farmer–buyer linkage with status (`Pending` / `Completed` / etc.). |
 | `FarmHealthProfile` | 1:1 with farmer; score, risk tier, `opt_in_for_lending`, `last_calculated`. |
 | `PartnerAPIKey` | Partner name, API key, `is_active`. |
 | `Wallet` | Balance, `scan_count`, `chat_count` (1:1 with `User`; created by signal). |
@@ -250,9 +249,8 @@ Implemented in `calculate_farm_health_score()` (`utils_scoring.py`):
 - **Base**: 300 points.
 - **Engagement** (max +200): +10 per scan in last 180 days, capped at 200.
 - **Crop health** (max +200): fraction of recent scans whose `result` contains `"healthy"` (case-insensitive), scaled × 200.
-- **Market** (max +150): +50 per `MarketConnection` with `status='Completed'`, capped at 150.
 
-**Risk tiers**: ≥700 Low; ≥500 Medium; else High.
+**Risk tiers**: ≥700 Low; ≥500 Medium; else High. (Market-connection points were removed with produce-buyer linkage.)
 
 Recalculation is invoked from the farmer profile view (`views.py`), so scores refresh when the farmer visits that page after activity.
 
@@ -266,7 +264,7 @@ Recalculation is invoked from the farmer profile view (`views.py`), so scores re
 | **Method** | `GET` |
 | **Auth** | Header `Authorization: Bearer <PartnerAPIKey.api_key>` |
 | **Query** | `phone` — must match `FarmerProfile.phone_number` |
-| **Success 200** | JSON: `farmer_name`, `county`, `health_score`, `risk_tier`, `active_connections`, `total_scans` |
+| **Success 200** | JSON: `farmer_name`, `county`, `health_score`, `risk_tier`, `total_scans` |
 | **403** | Farmer has not opted in (`opt_in_for_lending` false) |
 | **404** | Farmer not found |
 
@@ -308,10 +306,10 @@ Provisional contract; the route is not implemented until merged.
 |------|---------|
 | `/` | Homepage |
 | `/login`, `/logout`, `/signup/*` | Auth |
-| `/page` | Farmer scan entry (redirects buyers/agencies to dashboards) |
+| `/page` | Farmer scan entry |
 | `/process` | Image upload / prediction |
 | `/chat/` | AgriBot |
-| `/profile/farmer/`, `/dashboard/buyer/`, `/dashboard/agency/` | Role dashboards |
+| `/profile/farmer/` | Farmer profile |
 | `/api/v1/lending/score/` | Partner score API |
 | `/mpesa/topup/`, `/mpesa/callback/` | Payments |
 | `/accounts/` | allauth (social login) |

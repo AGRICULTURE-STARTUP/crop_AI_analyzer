@@ -31,7 +31,7 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"] as con
 const CAN_DO = [
   "Check your wallet balance",
   "Ask for farming advice",
-  "Find buyers and input shops",
+  "Check market prices and input shops",
   "See your Farm Health Score and manage who can view it",
 ];
 
@@ -151,7 +151,7 @@ export function UssdSimulator() {
               <h2 className="section-title">Use Ukulima Bora from any phone</h2>
               <p className="section-lead section-lead--left">
                 Dial a short code to check your wallet, ask for advice, find
-                buyers, and more — even on a basic handset.
+                prices, and more — even on a basic handset.
               </p>
 
               <div className="ussd-code">

@@ -96,11 +96,11 @@ Initial backlog from a review of the current web app.
 | # | Area | Change | Needs from others |
 |---|---|---|---|
 | 1 | Scan results | Low-confidence handling and an "advisory only" note; readable disease names (raw labels such as `Corn___Northern_Leaf_Blight` can appear today); clearer progress, timeout and retry; friendlier errors | Job: wording and confidence thresholds |
-| 2 | Trust and claims copy | Make every on-screen claim match what is live: disease count, support hours, the buyer "Verified" badge, USSD dial instructions, free-versus-paid wording. Feeds the roadmap's public-claims audit | Job, Emilio |
+| 2 | Trust and claims copy | Make every on-screen claim match what is live: disease count, support hours, USSD dial instructions, free-versus-paid wording. No farmer–buyer matching claims. Feeds the roadmap's public-claims audit | Job, Emilio |
 | 3 | USSD demo | Make clear it is a demo that uses a sample number | Wilson: backend support for a demo-only mode |
 | 4 | Search and lists | Debounced search, loading and empty states, pagination in inputs, market and directories | Wilson: paginated API responses |
 | 5 | Consent and privacy | Clearer sign-up consent, a plain-language lending-consent explanation, a fuller privacy page | Brian, Job; Wilson: store consent |
-| 6 | Design system | Shared tokens and components; split the 1,075-line `globals.css`; one shared KAMIS price component (the price search is duplicated on the farmer market and buyer dashboard pages); `next/image` in place of `<img>` where it helps | — |
+| 6 | Design system | Shared tokens and components; split the 1,075-line `globals.css`; keep the shared KAMIS `PriceFinder` on the farmer market page; `next/image` in place of `<img>` where it helps | — |
 | 7 | Accessibility and mobile | WCAG 2.1 AA audit; a pass at 360 px width | — |
 | 8 | Kiswahili UI | UI labels are English-only today (AgriBot replies are bilingual) and there is no i18n setup; add a Kiswahili string set | Emilio, Job: translation review |
 | 9 | Android app | Launcher and splash assets, camera flow, poor-connection message | Wilson: manifest and security settings |
@@ -131,7 +131,7 @@ Initial backlog from a review of the current web app.
 
 1. Who builds the Farm Records backend, and when? (Wilson)
 2. What goes into the Farm Records MVP? Validate in farmer conversations (Emilio); the field specialist, once hired, reviews activity categories.
-3. What consent and retention rules apply to records shared with lenders or buyers? (Brian, Job)
+3. What consent and retention rules apply to records shared with lenders? (Brian, Job)
 
 ## 9. Built on `feat/ui-ux-farm-records`
 

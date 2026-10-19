@@ -312,7 +312,7 @@ export default function FarmerDashboardPage() {
                 </div>
               </div>
               <p className="mt-3 text-sm text-ink/70">
-                Regular scans, healthy results and completed market links raise your score. Lenders only see it if you choose to share it on your profile.
+                Regular scans and healthy results raise your score. Lenders only see it if you choose to share it on your profile.
               </p>
             </Card>
           ) : null}

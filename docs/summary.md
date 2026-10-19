@@ -1,6 +1,6 @@
 # Ukulima Bora — Executive Summary
 
-**Ukulima Bora** is a universal digital agricultural platform built for East Africa, beginning in Kenya. It helps farmers select suitable crops, monitor soil conditions through IoT sensors, diagnose crop problems from phone photographs, receive contextual English/Kiswahili advice, connect with buyers and suppliers, and build a consent-based digital farm record.
+**Ukulima Bora** is a universal digital agricultural platform built for East Africa, beginning in Kenya. It helps farmers select suitable crops, monitor soil conditions through IoT sensors, diagnose crop problems from phone photographs, receive contextual English/Kiswahili advice, check latest market prices, find trusted input suppliers, and build a consent-based digital farm record. It does **not** match farmers to produce buyers.
 
 The core platform is deployed on a Contabo VPS at **[ukulimabora.co.ke](https://ukulimabora.co.ke)**. Crop-recommendation integration, production M-Pesa, SMS/USSD, SEO, and the IoT field layer are the current priorities.
 
@@ -17,7 +17,7 @@ Agriculture employs much of East Africa's rural workforce, yet many farmers make
 | **Accessibility** | Expert agronomists and extension officers cannot be everywhere. Diseases often spread beyond control before anyone diagnoses them. |
 | **Crop-selection gap** | Farmers may choose crops without converting NPK, pH, rainfall, temperature, and humidity data into a practical recommendation. |
 | **Field-data gap** | Most small farms lack affordable, continuous measurements of soil nutrients and moisture. |
-| **Market disconnect** | Even when farmers know what their crop needs—or have a good harvest—they lack a direct, transparent way to find buyers or trusted agrovets for the right inputs. |
+| **Market disconnect** | Even when farmers know what their crop needs—or have a good harvest—they often lack timely price information and trusted agrovets for the right inputs. |
 | **Technology** | Precision agriculture tools exist but are priced for large commercial farms. Generic AI tools rarely offer localized treatment advice or tie into local supply chains and mobile money. |
 
 **Consequences:** delayed treatment, pesticide misuse, reduced yields, post-harvest losses, and limited access to credit because banks lack verifiable farm-level data for smallholders.
@@ -26,7 +26,7 @@ Agriculture employs much of East Africa's rural workforce, yet many farmers make
 
 ## 2. Solution
 
-Ukulima Bora provides an **AI-assisted agronomist, field monitor, and market connector** through a mobile-first web platform. It supports farmer decisions but does not replace qualified agronomists or extension officers.
+Ukulima Bora provides an **AI-assisted agronomist, field monitor, and market-price assistant** through a mobile-first web platform. It supports farmer decisions but does not replace qualified agronomists or extension officers.
 
 The platform combines six capabilities:
 
@@ -34,7 +34,7 @@ The platform combines six capabilities:
 2. **IoT field monitoring (planned prototype)** — NPK and soil-moisture sensors will provide measured field context, with additional pH and environmental sensors added after validation.
 3. **AI crop diagnosis** — Farmers photograph affected leaves; crop-specific computer-vision models classify health and disease, with a gatekeeper that rejects obvious non-plant images.
 4. **AgriBot assistant** — A multilingual LLM and RAG assistant combines trusted content with crop, scan, weather, sensor, and farm-history context.
-5. **Role-based marketplace and payments** — Farmer, buyer, and agency portals link diagnosis and production to products, markets, and M-Pesa.
+5. **Market prices, inputs marketplace, and payments** — Farmers see KAMIS crop prices; agency portals list inputs; M-Pesa powers wallet top-ups. No produce-buyer matching.
 6. **Farm Health Score and lending API** — A consent-based score derived from platform activity provides a potential signal for approved financial partners.
 
 Ukulima Bora is designed to **support** good judgement—not replace extension officers, veterinarians, or emergency pest response.
@@ -48,7 +48,7 @@ Ukulima Bora is designed to **support** good judgement—not replace extension o
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Users (Browser / Mobile)                     │
-│ Farmers • Buyers • Agencies • Admin • Sensors/Field Gateways    │
+│ Farmers • Agencies • Lenders • Admin • Sensors/Field Gateways   │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
@@ -66,13 +66,12 @@ Ukulima Bora is designed to **support** good judgement—not replace extension o
 
 | Role | Primary actions |
 |------|-----------------|
-| **Farmer** | Register → scan crops → chat with AgriBot → view Farm Health Score → list produce → opt in to lending data sharing → top up wallet via M-Pesa |
-| **Buyer** | Register → browse farmer listings → initiate market connections |
+| **Farmer** | Register → scan crops → chat with AgriBot → check KAMIS prices → view Farm Health Score → opt in to lending data sharing → top up wallet via M-Pesa |
 | **Agency** | Register → manage product catalog (fertilisers, seeds, pesticides) → reach farmers post-diagnosis |
 | **Partner (bank/fintech)** | Authenticate with API key → query Farm Health Score for consenting farmers by phone number |
 | **Admin** | Monitor revenue, transactions, and platform metrics |
 
-The target farmer journey is: **register farm → capture or receive soil readings → receive crop recommendation → monitor field → diagnose symptoms → receive advice → obtain inputs or find buyers → retain an auditable season history**.
+The target farmer journey is: **register farm → capture or receive soil readings → receive crop recommendation → monitor field → diagnose symptoms → receive advice → obtain inputs and check market prices → retain an auditable season history**.
 
 ### 3.3 Crop recommendation pipeline (integration target)
 
@@ -126,11 +125,10 @@ The score is recalculated when a farmer visits their profile. Algorithm (`utils_
 | **Base** | 300 | Starting score |
 | **Engagement** | up to +200 | +10 per scan in last 180 days (max 200) |
 | **Crop health** | up to +200 | Proportion of recent scans classified as healthy × 200 |
-| **Market activity** | up to +150 | +50 per completed `MarketConnection` (max 150) |
 
 **Risk tiers:** ≥700 Low Risk · ≥500 Medium Risk · below 500 High Risk
 
-**Partner API:** `GET /api/v1/lending/score/?phone=<number>` with `Authorization: Bearer <api_key>`. Returns score, risk tier, scan count, and connections only if the farmer has explicitly opted in.
+**Partner API:** `GET /api/v1/lending/score/?phone=<number>` with `Authorization: Bearer <api_key>`. Returns score, risk tier, and scan count only if the farmer has explicitly opted in.
 
 ### 3.8 Payments (M-Pesa)
 
@@ -142,7 +140,7 @@ The score is recalculated when a farmer visits their profile. Algorithm (`utils_
 ### 3.9 Security and access control
 
 - Django authentication with django-allauth (including Google OAuth).
-- Role-based routing: farmers go to scan/profile; buyers and agencies to dashboards.
+- Role-based routing: farmers go to scan/profile; agencies and lenders to dashboards.
 - CSRF protection on web forms; bearer-token auth on partner API.
 - Session lifetime 30 minutes; HTTPS-enforced cookies in production.
 - Farmer consent required before any lending data is shared.
@@ -161,7 +159,7 @@ Ukulima Bora uses a **freemium + micro-transaction + B2B API** model suited to m
 |--------|-------|-----------|-------------|
 | **AI crop scans** | **KSh 20 / scan** | Wallet debit after 2 free trial scans per farmer | Farmers |
 | **AgriBot chat** | **KSh 10 / question** | Wallet debit after 5 free trial chats | All authenticated users |
-| **M-Pesa wallet top-ups** | Variable (min KSh 10) | STK Push → wallet credit → consumed by scans and chat | Farmers, buyers |
+| **M-Pesa wallet top-ups** | Variable (min KSh 10) | STK Push → wallet credit → consumed by scans and chat | Farmers |
 
 Revenue is tracked in the admin dashboard (`/admin/revenue/`) via successful `MpesaTransaction` records.
 
@@ -178,7 +176,7 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 | Stream | Indicative pricing | Status |
 |--------|-------------------|--------|
 | **Agency storefront subscriptions** | Basic KSh 1,500/mo · Premium KSh 3,500/mo | UI and product design in place; subscription backend being finalized |
-| **Marketplace transaction fees** | Commission on farmer–buyer connections | Marketplace infrastructure (`MarketConnection`) exists; fee layer planned |
+| **Agency listing / marketplace fees** | Input-storefront subscriptions and listing fees | Agency product catalog live; subscription fee layer planned |
 | **Cooperative / drone scanning** | Per-hectare or subscription for multispectral field analysis | Roadmap Phase 3 (DJI Mavic 3M drones for large-scale NDVI mapping) |
 
 ### 4.4 Revenue model summary
@@ -220,7 +218,7 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 |------|------------------|
 | **Faster diagnosis** | Diseases identified in minutes from a phone photo instead of waiting for extension visits |
 | **Better input decisions** | Targeted treatment recommendations reduce wasted spend on wrong pesticides |
-| **Market access** | Direct farmer–buyer connections shorten supply chains and improve price transparency |
+| **Price transparency** | Latest KAMIS prices help farmers negotiate and decide where and when to sell |
 | **Financial inclusion** | Farm Health Score gives banks a verifiable, activity-based risk signal for farmers without land titles or credit history |
 | **Language inclusion** | Kiswahili support lowers the barrier for farmers uncomfortable with English-only tools |
 
@@ -229,7 +227,6 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 | Stakeholder | Benefit |
 |-------------|---------|
 | **Agrovets & input suppliers** | Reach farmers at the moment of diagnosis with relevant products |
-| **Buyers** | Discover produce directly from source with farmer profiles and county data |
 | **Extension services & policymakers** | Aggregated scan patterns (with privacy controls) can inform regional disease surveillance and training |
 | **Financial institutions** | Lower cost of farmer onboarding and risk assessment via consent-based API |
 
@@ -240,7 +237,6 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 | Active farmers onboarded | 10,000 |
 | AI-assisted crop scans | 50,000 |
 | Registered agrovets | 500 |
-| Verified buyers | 1,000 |
 | Counties deployed (Kenya) | 5 |
 | Diagnostic accuracy validation | Continuous benchmarking against partner agronomists |
 | Economic impact | Bi-annual SMS surveys on yield improvement and reduced pesticide misuse |
@@ -278,7 +274,7 @@ Partners authenticate with `PartnerAPIKey` tokens. Farmers must opt in via profi
 | **Phase 1: Integration** | Complete the connected core | Crop recommender, M-Pesa production, SMS/USSD, SEO, tests and security |
 | **Phase 2: IoT prototype** | Measured field intelligence | Sensor procurement, calibration, telemetry API, dashboards and alerts |
 | **Phase 3: Field validation** | Agronomic evidence | Monitored plots, agronomist comparison, farmer feedback and model improvement |
-| **Phase 4: Scale** | Markets and partnerships | Cooperative, agrovet, buyer and finance services based on validated outcomes |
+| **Phase 4: Scale** | Partnerships | Cooperative, agrovet, and finance services based on validated outcomes |
 
 ---
 

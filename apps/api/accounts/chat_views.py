@@ -18,6 +18,99 @@ from accounts.permissions import IsFarmer
 logger = logging.getLogger(__name__)
 
 
+_DEFINITIONAL_PREFIXES = (
+    "what is ",
+    "what's ",
+    "whats ",
+    "what are ",
+    "define ",
+    "definition of ",
+    "meaning of ",
+    "ni nini ",
+    "eleza ",
+    "maana ya ",
+)
+
+# If these appear, keep structured advisory sections even for "what is …" questions.
+_ADVISORY_HINTS = (
+    "blight",
+    "disease",
+    "pest",
+    "fungus",
+    "wilt",
+    "yellow",
+    "treat",
+    "fertiliz",
+    "irrigat",
+    "how to",
+    "ugonjwa",
+    "wadudu",
+    "tiba",
+    "mbolea",
+)
+
+
+def _is_definitional_question(message: str) -> bool:
+    """True for short 'what is X' style questions that need a direct answer only."""
+    text = " ".join(message.lower().split())
+    if len(text) > 100:
+        return False
+    if any(h in text for h in _ADVISORY_HINTS):
+        return False
+    return any(text.startswith(p) for p in _DEFINITIONAL_PREFIXES)
+
+
+def _normalize_chat_payload(payload: dict, *, message: str = "") -> dict:
+    """Keep only useful fields; blank unused template sections."""
+    if not isinstance(payload, dict):
+        return {
+            "overview": str(payload)[:2000],
+            "diagnosis": "",
+            "recommendations": [],
+            "prevention": "",
+            "weather_note": "",
+            "local_tip": "",
+        }
+
+    overview = str(payload.get("overview") or payload.get("answer") or "").strip()
+    diagnosis = str(payload.get("diagnosis") or "").strip()
+    prevention = str(payload.get("prevention") or "").strip()
+    weather_note = str(payload.get("weather_note") or "").strip()
+    local_tip = str(payload.get("local_tip") or "").strip()
+
+    raw_recs = payload.get("recommendations") or []
+    if isinstance(raw_recs, str):
+        recommendations = [raw_recs.strip()] if raw_recs.strip() else []
+    elif isinstance(raw_recs, list):
+        recommendations = [str(r).strip() for r in raw_recs if str(r).strip()]
+    else:
+        recommendations = []
+
+    if not overview:
+        # Prefer a single prose answer over empty overview + filled extras.
+        parts = [p for p in (diagnosis, prevention, weather_note, local_tip) if p]
+        if recommendations:
+            parts.extend(recommendations)
+        overview = " ".join(parts)[:2000] if parts else "Please rephrase your question."
+
+    # Definitional questions: keep the main answer; drop padded template sections.
+    if message and _is_definitional_question(message):
+        diagnosis = ""
+        recommendations = []
+        prevention = ""
+        weather_note = ""
+        local_tip = ""
+
+    return {
+        "overview": overview[:2000],
+        "diagnosis": diagnosis[:1500],
+        "recommendations": recommendations[:12],
+        "prevention": prevention[:1500],
+        "weather_note": weather_note[:800],
+        "local_tip": local_tip[:500],
+    }
+
+
 def _farmer_context(user) -> tuple[str, str, str, dict | None]:
     """Return (display_name, county, country, weather_dict_or_None)."""
     name = (getattr(user, "first_name", "") or "").strip() or user.username
@@ -100,17 +193,28 @@ class ChatMessageView(APIView):
 
         system_prompt = f"""You are AgriBot, a warm expert agricultural advisor for East African farmers.
 Respond in the same language as the user (English or Kiswahili).
-Personalize every reply: thank the farmer by first name ({name}) and mention their location ({location_label}) when giving advice — e.g. "Thank you so much {name} for this question. In {county or location_label}, maize plants often…".
+
+CORE RULE — answer only what was asked:
+- Read the farmer's question carefully. Give a direct, proportionate reply.
+- Do NOT force a fixed template (diagnosis / steps / prevention / weather / tip) onto every message.
+- Simple or definitional questions (e.g. "what is agriculture?") get a short clear answer in overview only; leave other fields empty ("" or []).
+- Diagnostic / pest / disease questions: fill diagnosis and recommendations as needed; prevention only if useful.
+- How-to / planning questions: use overview plus recommendations; skip diagnosis unless symptoms were described.
+- Weather: fill weather_note ONLY if the question is about weather OR weather clearly changes the advice. Otherwise leave "".
+- local_tip: optional one-line tip ONLY when it adds value for this specific question; otherwise "".
+- Do NOT invent problems, crop plans, or irrigation advice the farmer did not ask about.
+
+Tone: friendly and practical. You may briefly use the farmer's name ({name}) or location ({location_label}) when it helps, but do NOT open every reply with a thank-you script.
 
 Ground advice in RAG CONTEXT and WEATHER DATA. Do NOT invent chemical rates, brands, or facts missing from the context. If context is thin, say so and give cautious general practice.
 
 Return ONLY valid JSON with keys:
-overview (string — start with a personalized greeting/thanks using the farmer's name and location),
-diagnosis (string),
-recommendations (array of strings),
-prevention (string),
-weather_note (string — how current weather in their area affects the advice; empty if no weather),
-local_tip (string — one tip for their county).
+overview (string — the main answer to the question; required),
+diagnosis (string — empty unless diagnosing a plant/pest/disease problem),
+recommendations (array of strings — empty unless actionable steps are warranted),
+prevention (string — empty unless prevention is relevant to the question),
+weather_note (string — empty unless weather is relevant),
+local_tip (string — empty unless a genuine local tip helps this answer).
 
 FARMER: name={name}; location={location_label}
 WEATHER DATA: {weather_block}
@@ -132,25 +236,22 @@ RAG CONTEXT:
                 text = text.split("```")[1]
                 if text.startswith("json"):
                     text = text[4:]
-            payload = json.loads(text)
+            payload = _normalize_chat_payload(json.loads(text), message=message)
         except Exception as exc:  # noqa: BLE001
             raw = ""
             try:
                 raw = content  # type: ignore[name-defined]
             except Exception:
-                raw = "Unable to parse model output."
-            payload = {
-                "overview": (
-                    f"Thank you so much {name} for this question. "
-                    f"In {location_label}, here is what I can share right now: "
-                    f"{raw if isinstance(raw, str) else 'please try again shortly.'}"
-                ),
-                "diagnosis": "",
-                "recommendations": [],
-                "prevention": "",
-                "weather_note": "",
-                "local_tip": str(exc)[:200],
-            }
+                raw = ""
+            fallback_text = (
+                raw.strip()
+                if isinstance(raw, str) and raw.strip()
+                else "I could not format a reply just now. Please ask again in a moment."
+            )
+            payload = _normalize_chat_payload(
+                {"overview": fallback_text}, message=message
+            )
+            logger.warning("AgriBot JSON parse failed: %s", exc)
 
         if not is_free:
             wallet.balance -= 10

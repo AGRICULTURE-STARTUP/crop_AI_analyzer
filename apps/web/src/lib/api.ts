@@ -172,8 +172,6 @@ export function roleHome(role: string): string {
   switch (role) {
     case "farmer":
       return "/farmer/dashboard";
-    case "buyer":
-      return "/buyer/dashboard";
     case "agency":
       return "/agency/dashboard";
     case "lender":
@@ -187,7 +185,6 @@ export function roleHome(role: string): string {
 
 const ROLE_PREFIX: Record<string, string> = {
   farmer: "/farmer",
-  buyer: "/buyer",
   agency: "/agency",
   lender: "/lender",
   admin: "/admin",

@@ -20,7 +20,6 @@ from accounts.models import LendingAPIKey, LendingAPIUsageLog, LendingPartnerPro
 from accounts.permissions import (
     IsApprovedLendingPartner,
     IsFarmer,
-    IsFarmerOrBuyer,
     IsLendingPartner,
     IsStaffUser,
 )
@@ -31,7 +30,6 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from accounts.serializers import (
     AdminLenderSerializer,
     AgencyRegisterSerializer,
-    BuyerRegisterSerializer,
     FarmerProfileSerializer,
     FarmerRegisterSerializer,
     LendingAPIKeyCreateSerializer,
@@ -86,25 +84,6 @@ def _get_role_profile(user: User, request=None):
             }
         )
         return data
-    if role == "buyer" and hasattr(user, "buyer_profile"):
-        p = user.buyer_profile
-        photo_url = None
-        if p.photo:
-            url = p.photo.url
-            if request is not None:
-                photo_url = request.build_absolute_uri(url)
-            else:
-                photo_url = url
-        return {
-            "phone_number": p.phone_number,
-            "county": p.county,
-            "country": p.country,
-            "first_name": p.first_name,
-            "email": p.email,
-            "photo": photo_url,
-            "verified": True,
-            "verification_badge": "Verified",
-        }
     if role == "agency" and hasattr(user, "agency_profile"):
         p = user.agency_profile
         return {
@@ -207,9 +186,6 @@ def _farmer_score_payload(phone: str) -> tuple[dict | None, int, str | None]:
             "crops": crops,
             "health_score": health_profile.health_score,
             "risk_tier": health_profile.risk_tier,
-            "active_connections": farmer.market_connections.filter(
-                status="Completed"
-            ).count(),
             "total_scans": farmer.scan_logs.count(),
         },
         200,
@@ -224,19 +200,6 @@ class FarmerRegisterView(APIView):
 
     def post(self, request):
         serializer = FarmerRegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return _registration_response(user)
-
-
-class BuyerRegisterView(APIView):
-    permission_classes = [AllowAny]
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "auth"
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
-
-    def post(self, request):
-        serializer = BuyerRegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return _registration_response(user)
@@ -317,7 +280,7 @@ class MeView(APIView):
 
         # Org accounts (agency / lender) have no personal name fields.
         user_fields = ("email",)
-        if role in ("farmer", "buyer", "admin", "user"):
+        if role in ("farmer", "admin", "user"):
             user_fields = ("first_name", "last_name", "email")
         for field in user_fields:
             if field in data:
@@ -368,25 +331,6 @@ class MeView(APIView):
                 health.opt_in_for_lending = bool(data["opt_in_for_lending"])
                 health.save(update_fields=["opt_in_for_lending"])
                 calculate_farm_health_score(profile)
-        elif role == "buyer" and hasattr(user, "buyer_profile"):
-            profile = user.buyer_profile
-            for field in ("phone_number", "county", "country"):
-                if field in data:
-                    setattr(profile, field, data[field])
-            if "first_name" in data:
-                profile.first_name = data["first_name"]
-            if "email" in data:
-                profile.email = data["email"]
-            photo = request.FILES.get("photo") or request.FILES.get("profile_photo")
-            if photo is not None:
-                if profile.photo:
-                    profile.photo.delete(save=False)
-                profile.photo = photo
-            elif data.get("clear_photo") or data.get("clear_profile_photo"):
-                if profile.photo:
-                    profile.photo.delete(save=False)
-                profile.photo = None
-            profile.save()
         elif role == "agency" and hasattr(user, "agency_profile"):
             profile = user.agency_profile
             for field in ("agency_name", "agency_type", "phone", "county"):
@@ -413,25 +357,19 @@ class MeView(APIView):
 class WeatherView(APIView):
     """Current weather for the authenticated farmer's county (OpenWeather)."""
 
-    permission_classes = [IsAuthenticated, IsFarmerOrBuyer]
+    permission_classes = [IsAuthenticated, IsFarmer]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "weather"
 
     def get(self, request):
-        role = resolve_user_role(request.user)
-        if role == "farmer" and hasattr(request.user, "farmer_profile"):
-            profile = request.user.farmer_profile
-            county = (profile.county or "").strip()
-            country = (profile.country or "Kenya").strip() or "Kenya"
-        elif role == "buyer" and hasattr(request.user, "buyer_profile"):
-            profile = request.user.buyer_profile
-            county = (profile.county or "").strip()
-            country = (profile.country or "Kenya").strip() or "Kenya"
-        else:
+        if not hasattr(request.user, "farmer_profile"):
             return Response(
-                {"detail": "Weather is available for farmer and buyer accounts."},
+                {"detail": "Weather is available for farmer accounts."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        profile = request.user.farmer_profile
+        county = (profile.county or "").strip()
+        country = (profile.country or "Kenya").strip() or "Kenya"
 
         if not county:
             return Response(

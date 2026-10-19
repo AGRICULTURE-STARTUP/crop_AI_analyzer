@@ -43,7 +43,7 @@ Ukulima Bora supports the farming lifecycle through:
 - **IoT monitoring:** Collects NPK and soil-moisture readings from field sensors, with room for temperature, humidity, pH, and other devices.
 - **AI crop diagnosis:** Analyses leaf photographs and combines results with field context.
 - **AgriBot advice:** Delivers practical English/Kiswahili guidance grounded in trusted agricultural content, weather, sensor readings, and farm history.
-- **Marketplace:** Connects farmers, produce buyers, and agricultural input suppliers.
+- **Market prices and inputs:** Shows latest KAMIS crop prices and connects farmers to agricultural input suppliers. Does not match farmers to produce buyers.
 - **Payments and inclusion:** Uses M-Pesa and planned SMS/USSD channels.
 - **Farm intelligence:** Builds a farmer-controlled history and Farm Health Score for support and responsible partner services.
 
@@ -68,7 +68,7 @@ The platform supports, but does not replace, qualified agronomists or extension 
 | **1. Integration and stabilisation** | Months 1–3 | Merge crop recommendation into Django; finish production payments; implement SEO; improve tests, monitoring, and security | Job, Stephen, Ziro |
 | **2. Inclusive access and IoT prototype** | Months 3–6 | Deliver SMS/USSD; procure sensors; define device identity and telemetry API; calibrate NPK/moisture devices | Ziro, Stephen, Lynn |
 | **3. Field validation** | Months 6–12 | Deploy monitored plots; compare AI advice with agronomist assessments; improve models and Kiswahili content | Lynn, Job, Stephen |
-| **4. Scale and partnerships** | Months 12–18 | Expand farmer, buyer, agency, cooperative, and finance partnerships based on validated evidence | All |
+| **4. Scale and partnerships** | Months 12–18 | Expand farmer, agency, cooperative, and finance partnerships based on validated evidence | All |
 
 ## Budget and Justification
 

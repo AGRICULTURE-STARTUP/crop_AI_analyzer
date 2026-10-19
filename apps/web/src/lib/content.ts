@@ -17,7 +17,7 @@ import { PHOTOS } from "@/lib/photos";
 export const CONTACT_EMAIL = "jobnyaribari808@gmail.com";
 
 export const STORY =
-  "Ukulima Bora started in 2025 because crop disease often arrives too late, and markets feel far away. We help farmers stop losses early, feed their communities, and show lenders they are building a healthier farm.";
+  "Ukulima Bora started in 2025 because crop disease often arrives too late, and fair prices are hard to know. We help farmers stop losses early, see current market prices, feed their communities, and show lenders they are building a healthier farm.";
 
 export const TRUST = [
   { num: "100+", label: "Diseases Detected", Icon: ScanIcon },
@@ -65,10 +65,10 @@ export const FEATURES = [
     photo: PHOTOS.phoneInHand,
   },
   {
-    slug: "buyers",
-    title: "Find buyers nearby",
-    copy: "Connect with people looking to buy your harvest and with shops that sell seed, fertiliser, and crop protection.",
-    Icon: StoreIcon,
+    slug: "prices",
+    title: "Know what your crop is worth",
+    copy: "Check the latest KAMIS wholesale and retail prices for your crop across Kenyan markets, and find agrovets for seed, fertiliser, and crop protection.",
+    Icon: BasketIcon,
     photo: PHOTOS.moneyPhone,
   },
   {
@@ -97,7 +97,7 @@ export const FEATURES = [
 export const JOURNEY = [
   {
     title: "Choose your role and sign up",
-    copy: "Open Create account, pick Farmer, Buyer, Input agency, or Lending partner. The form asks only for the details that role needs — then you land in the matching portal.",
+    copy: "Open Create account, pick Farmer, Input agency, or Lending partner. The form asks only for the details that role needs — then you land in the matching portal.",
   },
   {
     title: "Scan a leaf (farmers)",
@@ -105,11 +105,11 @@ export const JOURNEY = [
   },
   {
     title: "Act on the result",
-    copy: "Read the diagnosis, then ask AgriBot in English or Kiswahili for treatment steps. Top up your wallet when free scans are used up, and find inputs or buyers nearby.",
+    copy: "Read the diagnosis, then ask AgriBot in English or Kiswahili for treatment steps. Top up your wallet when free scans are used up, check market prices, and find inputs nearby.",
   },
   {
     title: "Grow beyond the phone app",
-    copy: "Build your Farm Health Score over time and share it with lenders only if you consent. No smartphone? Use the USSD short-code demo for wallet, advice, market, and score checks.",
+    copy: "Build your Farm Health Score over time and share it with lenders only if you consent. No smartphone? Use the USSD short-code demo for wallet, advice, prices, and score checks.",
   },
 ];
 
@@ -117,16 +117,9 @@ export const ROLES = [
   {
     href: "/signup?role=farmer",
     title: "Farmers",
-    copy: "Scan leaves, get advice, and build a Farm Health Score.",
+    copy: "Scan leaves, get advice, check prices, and build a Farm Health Score.",
     Icon: SproutIcon,
     photo: PHOTOS.bananaFarmer,
-  },
-  {
-    href: "/signup?role=buyer",
-    title: "Buyers",
-    copy: "Find produce listings and connect with growers near you.",
-    Icon: BasketIcon,
-    photo: PHOTOS.marketPhone,
   },
   {
     href: "/signup?role=agency",
@@ -147,8 +140,8 @@ export const ROLES = [
 export const HELP_ROWS = [
   {
     photo: PHOTOS.produceMarket,
-    title: "Sell what you grow",
-    copy: "When your crops are healthy, Ukulima Bora helps you reach buyers who need fresh produce. List what you have, find fair connections, and turn a good harvest into income.",
+    title: "Know what your harvest is worth",
+    copy: "When your crops are healthy, check the latest KAMIS prices for your crop so you can negotiate and sell with better information.",
   },
   {
     photo: PHOTOS.sustainableFarm,

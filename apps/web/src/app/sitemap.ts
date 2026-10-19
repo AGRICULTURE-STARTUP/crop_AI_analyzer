@@ -55,12 +55,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${base}/signup/buyer`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
       url: `${base}/signup/agency`,
       lastModified: now,
       changeFrequency: "monthly",

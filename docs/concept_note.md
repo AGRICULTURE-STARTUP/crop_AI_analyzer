@@ -1,8 +1,8 @@
 
 # Concept Note: Ukulima Bora
 
-**Document version:** 2.0
-**Updated:** 30 July 2026
+**Document version:** 2.1
+**Updated:** 19 October 2026
 
 ## 1. Project Title
 
@@ -22,7 +22,7 @@ Ukulima Bora is a mobile-first digital agricultural platform that connects the f
 2. **Monitor:** Collect field data from IoT sensors, beginning with NPK and soil-moisture measurements.
 3. **Diagnose:** Analyse crop images and field conditions to identify disease, stress, and likely contributing factors.
 4. **Advise:** Provide practical English/Kiswahili recommendations through AgriBot, informed by crop, sensor, weather, and scan history.
-5. **Act and transact:** Connect farmers to buyers and trusted input suppliers and support low-cost payments through M-Pesa.
+5. **Act and transact:** Show accurate latest market prices (KAMIS) for crops farmers want to sell, connect them to trusted input suppliers, and support low-cost payments through M-Pesa. The platform does **not** match farmers to produce buyers.
 6. **Build a farm record:** Maintain a consent-based digital farm profile and Farm Health Score for farmer support and responsible financial services.
 
 The web platform is deployed on a Contabo VPS and accessible at **[ukulimabora.co.ke](https://ukulimabora.co.ke)**. SMS and USSD access, production payment completion, crop-recommendation integration, SEO, and the IoT layer are the next implementation priorities.
@@ -37,7 +37,6 @@ The web platform is deployed on a Contabo VPS and accessible at **[ukulimabora.c
 ### Secondary users and customers
 
 - Agricultural extension officers and agronomists.
-- Produce buyers.
 - Agrovets and input suppliers.
 - Banks, MFIs, SACCOs, and insurers using consent-based farm data.
 - Research, county, and development partners using privacy-preserving aggregate insights.
@@ -50,7 +49,7 @@ Ukulima Bora combines capabilities normally delivered by separate systems:
 - IoT-supported field monitoring.
 - Image-based crop diagnosis.
 - Context-aware multilingual agronomic advice.
-- Role-based agricultural marketplace.
+- KAMIS market-price intelligence and agrovet inputs marketplace.
 - Mobile money, SMS, and USSD access.
 - Consent-based farm performance and health records.
 
@@ -77,7 +76,7 @@ Ukulima Bora is expected to:
 - Detect crop health problems earlier through images and field measurements.
 - Reduce inappropriate fertiliser, pesticide, and irrigation use.
 - Improve yields and resilience through timely, context-aware advice.
-- Expand access to buyers, suppliers, payments, and responsible finance.
+- Expand access to market-price information, input suppliers, payments, and responsible finance.
 - Create useful farm records while keeping farmers in control of their data.
 
 ## 8. Implementation Outlook
@@ -85,7 +84,7 @@ Ukulima Bora is expected to:
 1. **Integration and access:** Merge crop recommendation, finish M-Pesa, deliver SMS/USSD, improve SEO, and stabilise the deployed platform.
 2. **IoT prototype:** Procure and calibrate sensors, implement telemetry ingestion, and test a small number of monitored plots.
 3. **Field validation:** Compare recommendations with agronomist assessments and farmer outcomes; improve models and content.
-4. **Scale:** Expand marketplace participation, partner services, counties, crops, and sensor deployments.
+4. **Scale:** Expand agrovet marketplace participation, partner services, counties, crops, and sensor deployments.
 
 ## 9. Team
 
@@ -96,4 +95,4 @@ Ukulima Bora is expected to:
 
 ## 10. Conclusion
 
-Ukulima Bora is evolving from an AI crop-diagnosis application into a universal digital agricultural system. By combining crop planning, IoT field monitoring, diagnosis, advice, markets, payments, and consent-based farm records, it can support farmers from pre-planting decisions through production and sale.
+Ukulima Bora is evolving from an AI crop-diagnosis application into a universal digital agricultural system. By combining crop planning, IoT field monitoring, diagnosis, advice, market prices, input access, payments, and consent-based farm records, it can support farmers from pre-planting decisions through production and sale.

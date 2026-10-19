@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 /**
- * Capacitor wrap for the Next.js farmer/buyer/lender portals.
+ * Capacitor wrap for the Next.js farmer/agency/lender portals.
  *
  * Dev: point `server.url` at the Next.js dev server (and set DEV_ENV=True on API).
  * Prod: set server.url to the Vercel deployment, or switch to a static export later.

@@ -19,7 +19,7 @@ Ukulima Bora leads with Problem 1. Diagnosis is live, it is the reason farmers o
 | # | Problem | When it hits | Ukulima Bora answer | Status |
 | - | ------- | ------------ | --------------- | ------ |
 | 1 | Sick crop, no trusted fix in time | During the growing season | Leaf diagnosis, Kiswahili/English advice, matching product at a nearby agrovet, M-Pesa payment | Diagnosis and AgriBot live; agrovet and M-Pesa partial |
-| 2 | Forced quick sale at a low price | At harvest | More buyers, trust from scan history, grouped selling with neighbours | Portals and KAMIS prices partial |
+| 2 | Forced quick sale at a low price | At harvest | Better price information (KAMIS); sell via existing channels | KAMIS prices live; no produce-buyer matching |
 | 3 | No farm record, no credit | Between seasons | Consent-based farm record and Farm Health Score for lenders | Infrastructure only |
 
 ---
@@ -217,98 +217,33 @@ At harvest, perishable produce must sell within days. Smallholders usually have 
 - **Farmers:** low prices, spoiled produce.
 - **Buyers, cooperatives, exporters:** inconsistent supply and unknown quality.
 
-### What Ukulima Bora does
+### What Ukulima Bora does (current product)
 
-- Farmers list produce; buyers post what they need; both sides browse each other.
-- Scan history acts as a quality signal ("this plot was checked healthy three times this season").
-- Later: neighbours group their produce to reach bulk buyers.
+- **KAMIS market prices:** farmers look up latest wholesale/retail prices by crop so they can negotiate with clearer information.
+- **Agrovet inputs marketplace:** registered agencies list seed, fertiliser, and crop protection; farmers browse and contact sellers.
+- Scan and farm-record history remain available for the farmer’s own records and (with consent) lenders — not as a produce-buyer matching signal.
 
 ### What Ukulima Bora will not do
 
-Own trucks, warehouses, or cold rooms; buy and resell produce; guarantee prices. Twiga Foods raised about $157–185M building that logistics layer and entered administration in August 2026. Market access is a software feature connected to diagnosis and the farm record, not a logistics business.
+Connect farmers to produce buyers; own trucks, warehouses, or cold rooms; buy and resell produce; guarantee prices. Twiga Foods raised about $157–185M building a logistics/offtake layer and entered administration in August 2026. Market support on Ukulima Bora is **price intelligence + inputs**, not offtake matching.
 
-### Solution, pricing, and payment
+### Solution, pricing, and payment (shipped / near-term)
 
 | Solution | Offered to | Price | How they pay |
 | -------- | ---------- | ----- | ------------ |
-| **Produce listings** (with photos, KAMIS price, scan badge) | Farmers | **Free** | — |
-| **Browse buyers and buyer requests** | Farmers | **Free** | — |
-| **Post buyer requests and browse farmers** | Buyers | **Free during the pilot** | — |
-| **Buyer subscription** (early access to listings, quality information, unlimited contacts) | Small traders | e.g. **KSh 500 per month** (to test) | M-Pesa STK prompt or Paybill, monthly |
-| **Buyer subscription** | Bulk buyers: hotels, schools, hospitals, processors | e.g. **KSh 2,000–5,000 per month** (to test) | M-Pesa Paybill or invoice and bank transfer, monthly or quarterly |
-| **Unlock farmer contact** (alternative to subscription) | Occasional buyers | e.g. **KSh 50–100 per contact** (Uza Zao charges KSh 100 per lead) | Deducted from the buyer's Ukulima Bora wallet, topped up by M-Pesa |
-| **Commission on deals** (later, once M-Pesa deposits exist) | Buyers | **2–5% of deal value** | Buyer pays the full amount by M-Pesa; the farmer is paid via M-Pesa on confirmed collection, minus the commission |
+| **KAMIS crop price lookup** | Farmers | **Included with farmer account** | — |
+| **Browse agrovet products** | Farmers / public | **Free** | Contact seller directly |
+| **List agrovet products** | Input agencies | Storefront; subscription fees planned | Agency account |
 
-**Notes**
+**Out of scope:** produce listings, buyer directories, buyer subscriptions, contact unlock fees, and deal commissions. Historical drafts that described those features are retired.
 
-- Farmers do not pay on the marketplace. They are the side Ukulima Bora is protecting, and buyers get the most value from reliable supply.
-- Start with free access for both sides, then introduce subscriptions or contact unlocks once buyers are finding real supply.
-- **Holding buyer money before releasing it to farmers may require Central Bank of Kenya authorisation** under payment rules. Before launching deposits, get legal advice, or use a licensed payment provider's escrow instead of holding funds directly.
+### Lean market support (current)
 
-### Lean marketplace model
+Farmers check KAMIS prices for the crop they want to sell, then sell through their existing channels (brokers, markets, coops). Ukulima Bora does not intermediate the sale.
 
-Buyers post what they need, farmers post what they have, and both sides browse each other. They agree the deal and payment directly. No bidding, deposits, or pooled lots in the first version; these are added only when real usage shows they are needed.
+#### Why not produce-buyer matching
 
-#### Already built
-
-`apps/api/main_app/models.py` has `FarmerProfile` and `BuyerProfile` (with county) and `MarketConnection`, which records a farmer–buyer link with status Pending, Completed, or Cancelled. Missing: structured produce listings and buyer requests. Farmer crops are currently a single free-text field, and buyers cannot post what they need.
-
-#### Must have (build now)
-
-1. **Buyer requests:** crop, quantity, target price, county, date needed. Example: "50 crates of tomatoes, Nakuru, by Friday, about KSh 2,500 per crate."
-2. **Farmer listings:** crop, quantity, price (fixed or negotiable), county, harvest date, photos.
-3. **Browse and filter both ways** by crop, county, and date. Farmers browse buyers and their requests; buyers browse farmers and their listings.
-4. **"I'm interested" button:** creates a `MarketConnection` and shares phone numbers (in-app chat later). The deal and payment happen directly between the two parties.
-5. **Mark as sold:** either side marks the connection Completed, with final quantity and price.
-
-#### Small additions that matter
-
-- **Verify buyers,** at minimum by phone number. Fake buyers and payment scams are common in produce trading; one scam story will drive farmers away.
-- **Show the KAMIS price** beside each listing and request so farmers can spot a low offer.
-- **Scan badge on farmer listings** (e.g. "plot scanned 3 times this season"). This is the edge over Uza Zao and E-azy Agro at almost no build cost.
-- **Simple ratings** after a completed deal.
-
-#### Why "Mark as sold" matters
-
-Even with no money passing through Ukulima Bora, recorded deals provide:
-
-- **Proof** for investors and funders: "X deals worth KSh Y completed in 3 months."
-- **Farm Health Score data:** the score already counts market connections.
-- **Pricing evidence:** real deal sizes to price a commission or buyer subscription later.
-
-To get deals recorded, make it one tap or one SMS: "Did you sell to [buyer]? Reply 1 = Yes, 2 = No."
-
-#### Deferred to later
-
-| Feature | Add when |
-| ------- | -------- |
-| Bidding (with farmer minimum price, short 2–24 hour auctions, "Buy now") | An area has enough active buyers per crop for real competition |
-| M-Pesa deposit held by Ukulima Bora, released on collection | Buyer no-shows or farm-gate price cuts become a reported problem, or commission charging starts |
-| Pooled lots from neighbouring farmers | Bulk buyers ask for volumes single farmers cannot supply |
-| Partner transporters (never owned trucks) | Collection becomes the main reason deals fail |
-| Listing and accepting deals by SMS / USSD | USSD goes live |
-
-#### Revenue
-
-Free for now so both sides join. Later options, in the order to try them:
-
-1. **Buyer subscription** for bulk buyers (hotels, schools, processors): early access to listings and quality information.
-2. **Pay to unlock contact:** buyers pay a small fee to see a farmer's number.
-3. **Commission (2–5%)** once M-Pesa deposits exist, charged to the buyer where possible.
-
-Benchmark: [Uza Zao](https://www.uzazao.com/) charges 5% per sale, KSh 100 per lead, or KSh 100 per day to boost a listing.
-
-#### Competitors and lessons
-
-- **Uza Zao** and **E-azy Agro** already run produce listing and bidding marketplaces in Kenya. Listing alone is not a differentiator; Ukulima Bora's edge is that farmers are already in the app for diagnosis, and scan history proves quality.
-- **India's e-NAM** online produce auctions showed what breaks bidding: too few bidders, trader collusion (about 81% of surveyed farmers named cartels as their top problem), buyers refusing to bid on produce they cannot see, lower bids after rejection, and slow payment. ([Sage journal study](https://journals.sagepub.com/doi/10.1177/2277975218807277); [Extension Journal](https://www.extensionjournal.com/article/view/632/7-5-33); [MicroSave report](https://www.microsave.net/wp-content/uploads/2019/06/190624_eNAM-report.pdf)) This is why bidding is deferred.
-
-#### Open questions
-
-- Which buyer types to recruit first in the pilot counties (hotels, schools, processors, traders).
-- How many active buyers per crop and county are needed before farmers see value.
-- Whether buyers will pay to unlock contacts or prefer a subscription.
-- How often deals are actually recorded as sold without a payment in the system.
+Players such as [Uza Zao](https://www.uzazao.com/), E-azy Agro, and Twiga already compete on listing/offtake. Logistics and trust failures are hard; Ukulima Bora’s edge is diagnosis → advice → inputs → prices → farm record, not becoming another offtake marketplace.
 
 ---
 
@@ -362,15 +297,14 @@ With the farmer's permission, Ukulima Bora shares a farm report and score with a
 
 - `FarmHealthProfile`: score (300–850), risk tier, and an `opt_in_for_lending` flag.
 - `LendingPartnerProfile`, `LendingAPIKey`, `LendingAPIUsageLog`: lenders query the score through an API; each query is logged.
-- `apps/api/main_app/utils_scoring.py`: calculates the score from scan count (max +200), share of healthy scans (max +200), and completed market connections (max +150).
+- `apps/api/main_app/utils_scoring.py`: calculates the score from scan count (max +200) and share of healthy scans (max +200). Market-connection points were removed with produce-buyer linkage.
 
 #### Problems with the current score
 
 1. **Easy to game.** Scanning the same healthy leaf 20 times gives 300 + 200 + 200 = 700, "Low Risk", with no sales at all.
 2. **Punishes good farmers.** Rewarding the share of "healthy" results lowers the score of farmers who scan because they spotted disease, which is exactly the behaviour Ukulima Bora wants.
-3. **Market connections can be faked.** Three completed connections give full points, and a friend with a buyer account can mark them completed.
-4. **Measures app use, not ability to repay.** Lenders care about income, farm size, sales, and repayment history.
-5. **Not tested against real loans.** Nobody has checked whether high scores repay more often.
+3. **Measures app use, not ability to repay.** Lenders care about income, farm size, sales, and repayment history.
+4. **Not tested against real loans.** Nobody has checked whether high scores repay more often.
 
 #### What lenders actually want
 
@@ -379,11 +313,11 @@ With the farmer's permission, Ukulima Bora shares a farm report and score with a
 | Does the farm exist, and is it the size claimed? | GPS location from scans, farm size, crops grown, seasons active |
 | Do they manage the crop well? | Disease caught **and treated**, with a follow-up scan showing recovery |
 | Do they invest in inputs? | Agrovet purchases through Ukulima Bora (Problem 1) |
-| Do they earn money? | Marketplace sales marked sold, with value (Problem 2) |
+| Do they earn money? | Optional farm-record sales notes (free-text buyer name); not a produce marketplace |
 | Are they consistent? | Activity across more than one season |
 | Later | Soil and moisture sensor data, M-Pesa wallet history |
 
-The agrovet purchases and marketplace sales are what make the score believable. Scan counts alone never will.
+Agrovet purchases and verified farm activity are what make the score believable. Scan counts alone never will.
 
 #### Legal: consent and regulation
 
@@ -457,7 +391,7 @@ Ukulima Bora's different signal is crop management, input purchases, and sales f
 Sick crop fixed early  ──►  more and better produce to sell
         │                              │
         ▼                              ▼
-Scan and treatment history ──► buyer trust at harvest
+Scan and treatment history ──► clearer prices + better farm record
         │                              │
         └──────────►  Farm record  ◄───┘
                           │
@@ -468,7 +402,7 @@ Scan and treatment history ──► buyer trust at harvest
               Better inputs → healthier crop
 ```
 
-Each problem feeds the next. Other players solve one point: PlantVillage Nuru diagnoses, DigiFarm finances and links to markets, Apollo lends. Ukulima Bora's claim is one farmer identity across all three.
+Each problem feeds the next. Other players solve one point: PlantVillage Nuru diagnoses, DigiFarm finances and links to markets, Apollo lends. Ukulima Bora's claim is one farmer identity across diagnosis, inputs, prices, and credit — not produce-buyer matching.
 
 ---
 
@@ -476,9 +410,9 @@ Each problem feeds the next. Other players solve one point: PlantVillage Nuru di
 
 | Audience | Problem framing |
 | -------- | --------------- |
-| **Investors** | Kenyan smallholders lose a large share of each harvest because diagnosis comes too late and is not linked to buying the right fix. Ukulima Bora turns each sick-leaf photo into an agrovet sale, then into better market access and a farm record lenders can use: three points where Ukulima Bora can earn. |
-| **Grant funders** | With about one extension officer per 1,380 farmers, most smallholders get no timely help when crops get sick, lose produce after harvest, and cannot borrow. Ukulima Bora gives them Kiswahili diagnosis and advice, links to genuine inputs and buyers, and a farm record they own. |
-| **Internal** | The job to win first is "my crop is sick — what do I buy, where, today?" Every feature should shorten that path. Market access and credit build on the users it creates. |
+| **Investors** | Kenyan smallholders lose a large share of each harvest because diagnosis comes too late and is not linked to buying the right fix. Ukulima Bora turns each sick-leaf photo into an agrovet sale, clearer market-price information, and a farm record lenders can use. |
+| **Grant funders** | With about one extension officer per 1,380 farmers, most smallholders get no timely help when crops get sick, lose produce after harvest, and cannot borrow. Ukulima Bora gives them Kiswahili diagnosis and advice, links to genuine inputs, KAMIS prices, and a farm record they own. |
+| **Internal** | The job to win first is "my crop is sick — what do I buy, where, today?" Every feature should shorten that path. Price intelligence and credit build on the users it creates. |
 
 ---
 

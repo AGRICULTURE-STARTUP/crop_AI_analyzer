@@ -22,7 +22,7 @@ from accounts.models import AgencyProduct, AgencyProfile, LendingPartnerProfile
 from accounts.permissions import IsStaffUser
 from accounts.serializers import resolve_user_role
 from accounts.store_views import CATEGORY_LABELS, product_card
-from main_app.models import BuyerProfile, FarmerProfile, MpesaTransaction, Wallet
+from main_app.models import FarmerProfile, MpesaTransaction, Wallet
 from recommend.crops import crop_meta
 from recommend.models import CropRecommendation
 from scanner.models import ScanJob
@@ -30,7 +30,7 @@ from scanner.models import ScanJob
 SERIES_DAYS = 30
 USER_PAGE_SIZE = 20
 PRODUCT_PAGE_SIZE = 20
-ROLES = ("farmer", "buyer", "agency", "lender", "admin")
+ROLES = ("farmer", "agency", "lender", "admin")
 
 
 def _daily(queryset, field: str, since, value: str | None = None) -> list[dict]:
@@ -55,7 +55,6 @@ def _user_detail(user: User) -> str:
         ("lending_partner_profile", "organization_name"),
         ("agency_profile", "agency_name"),
         ("farmer_profile", "county"),
-        ("buyer_profile", "county"),
     ):
         profile = getattr(user, attr, None)
         if profile is not None:
@@ -83,7 +82,6 @@ def _role_filter(role: str) -> Q | None:
         "admin": Q(is_staff=True),
         "lender": Q(lending_partner_profile__isnull=False, is_staff=False),
         "agency": Q(agency_profile__isnull=False, is_staff=False),
-        "buyer": Q(buyer_profile__isnull=False, is_staff=False),
         "farmer": Q(farmer_profile__isnull=False, is_staff=False),
     }.get(role)
 
@@ -103,7 +101,6 @@ class AdminOverviewView(APIView):
 
         role_counts = {
             "farmer": FarmerProfile.objects.count(),
-            "buyer": BuyerProfile.objects.count(),
             "agency": AgencyProfile.objects.count(),
             "lender": LendingPartnerProfile.objects.count(),
             "admin": User.objects.filter(is_staff=True).count(),
@@ -174,7 +171,6 @@ class AdminOverviewView(APIView):
                         _user_row(u)
                         for u in User.objects.select_related(
                             "farmer_profile",
-                            "buyer_profile",
                             "agency_profile",
                             "lending_partner_profile",
                         ).order_by("-date_joined")[:8]
@@ -215,7 +211,7 @@ class AdminUserListView(APIView):
     def get(self, request):
         params = request.query_params
         qs = User.objects.select_related(
-            "farmer_profile", "buyer_profile", "agency_profile", "lending_partner_profile"
+            "farmer_profile", "agency_profile", "lending_partner_profile"
         ).order_by("-date_joined")
 
         role_q = _role_filter(params.get("role", "").strip().lower())

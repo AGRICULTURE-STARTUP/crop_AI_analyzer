@@ -85,7 +85,7 @@ Work through these in order. Details for each step are in §3–§5 and §7.
 | **CI/CD Vercel**  | Platform-native  | Connect GitHub repo; auto-deploys `apps/web` on push                                          |
 | **Custom domain** | Optional day-one | Not required; use Contabo IP + `*.vercel.app` until HTTPS / pilot                             |
 | **Media**         | Code-ready       | Cloudinary when `CLOUDINARY_URL` is set; else ephemeral `media_tmp` volume                    |
-| **KAMIS prices**  | Partial          | File in image/repo, or cron ingest on Contabo                                                 |
+| **KAMIS prices**  | Contabo cron     | `kamis_data` volume + host cron every 6h (`ingest_kamis_prices`); API serves ≤7-day rows only |
 | **TLS**           | Manual           | HTTP on Contabo IP first; HTTPS after domain + Let’s Encrypt                                  |
 
 
@@ -481,20 +481,56 @@ docker compose -f docker-compose.yml up -d --build nginx
 0 3 1 * * cd /opt/ukulimabora/infra && docker compose -f docker-compose.yml --profile certs run --rm certbot renew && docker compose -f docker-compose.yml exec nginx nginx -s reload
 ```
 
-### Step 11 — KAMIS price DB on the VPS
+### Step 11 — KAMIS price DB on the VPS (required)
 
-The market API reads offline SQLite (`apps/api/data/kamis_prices.db`). Options:
+The market API reads offline SQLite only (`KAMIS_DB_PATH=/app/data/kamis_prices.db` in the `api` container). It does **not** call KAMIS on each request. Rows older than **7 days** are never returned (fail closed). Freshness depends on Contabo host cron writing into the `kamis_data` volume.
 
-**A (simple):** Ensure the file is in the image/repo when you build. Redeploy periodically so Contabo picks up fresh data.
+#### One-time setup after deploy
 
-**B (better):** Cron on Contabo:
+1. Confirm Compose mounts the volume (already in `infra/docker-compose.yml`):
+
+   - `kamis_data` → `/app/data` on `api`
+   - env `KAMIS_DB_PATH=/app/data/kamis_prices.db`
+
+2. Recreate the API so the volume is attached:
 
 ```bash
-# crontab -e
+cd /opt/ukulimabora/infra
+docker compose -f docker-compose.yml up -d api
+```
+
+3. Seed the cache (first ingest; takes several minutes):
+
+```bash
+docker compose -f docker-compose.yml exec -T api python manage.py ingest_kamis_prices
+```
+
+4. Install Contabo **host** cron (not inside the image):
+
+```bash
+# crontab -e  (as the user that can run docker compose)
 0 */6 * * * cd /opt/ukulimabora/infra && docker compose -f docker-compose.yml exec -T api python manage.py ingest_kamis_prices >> /var/log/kamis-ingest.log 2>&1
 ```
 
-(May need a writable mount for `data/` if the image filesystem is read-only — if ingest fails, bind-mount `../apps/api/data` into the api service.)
+Ensure `/var/log/kamis-ingest.log` is writable by that user, or point the redirect at e.g. `$HOME/kamis-ingest.log`.
+
+5. Verify:
+
+```bash
+# Log line should show status=ok and inserted/skipped counts
+tail -n 20 /var/log/kamis-ingest.log
+
+# Inside the container — latest price_date / ingest_runs should be recent
+docker compose -f docker-compose.yml exec -T api python -c "
+from main_app.kamis.db import connect, get_db_path
+c = connect()
+print('db', get_db_path())
+print(c.execute('select max(price_date), max(scraped_at) from market_prices').fetchone())
+print(c.execute('select id, started_at, status, rows_written, detail from ingest_runs order by id desc limit 3').fetchall())
+"
+```
+
+Without cron, the API correctly returns **503** / “cache is stale” instead of serving old prices.
 
 ### Step 12 — Backups
 
@@ -567,7 +603,7 @@ docker compose up -d api worker_scanner
 
 Django already switches to `MediaCloudinaryStorage` when `CLOUDINARY_URL` is set (`AgriProject/settings.py`).
 
-**Check:** Upload a farmer/buyer profile photo from the Vercel UI; confirm the returned URL is `res.cloudinary.com/...`.
+**Check:** Upload a farmer or agency profile photo from the Vercel UI; confirm the returned URL is `res.cloudinary.com/...`.
 
 ### 6.2 Redis — stay on Contabo (Upstash only if needed)
 
@@ -643,7 +679,7 @@ Run through this on a real phone/browser after Contabo + Vercel are live. Use `h
 | 3   | Farmer profile photo upload                                      | Cloudinary URL stored                                                 |
 | 4   | Crop scan                                                        | Job leaves `queued` → `completed`; scanner worker logs show inference |
 | 5   | AgriBot chat                                                     | Groq response returns                                                 |
-| 6   | Market / KAMIS prices                                            | Non-empty prices from SQLite                                          |
+| 6   | Market / KAMIS prices                                            | Recent (≤7 day) prices after cron ingest; stale cache → 503, not old rows |
 | 7   | `docker stats` on Contabo                                        | No thrashing near 8 GB; scanner < 2.5 GB                              |
 | 8   | Backup                                                           | `./scripts/backup-volumes.sh` produces SQL dump                       |
 | 9   | Push a small API change to `main` (if §10 workflow is installed) | GitHub Action **Deploy Contabo** succeeds; health still OK            |
@@ -723,7 +759,7 @@ If OOM or slow scans become common:
 3. **M-Pesa env name mismatch** — set `CONSUMER_KEY` / `CONSUMER_SECRET`.
 4. **Domain / TLS** — optional for private IP testing; required before public pilot, OAuth production redirects, and M-Pesa callbacks. Uncomment nginx SSL after certbot.
 5. **Models volume** — empty `/models` → scans never finish. On a new server, `deploy.sh` must complete `sync_models` successfully (`HF_MODEL_REPO_ID` + `HF_TOKEN` if private).
-6. **KAMIS** — refresh SQLite on VPS (cron or redeploy).
+6. **KAMIS** — `kamis_data` volume + Contabo host cron every 6h (§11); API refuses rows older than 7 days.
 7. **CI/CD secrets** — if you use GitHub Actions, `CONTABO_HOST` / `CONTABO_USER` / `CONTABO_SSH_KEY` must point at the **new** IP.
 8. **Change default** `ADMIN_PASSWORD` if used.
 9. **Do not commit** real `.env` or OAuth client secret JSON under `docs/`.

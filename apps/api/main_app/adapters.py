@@ -1,6 +1,5 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from django.shortcuts import redirect
-from .models import FarmerProfile, BuyerProfile
+from .models import FarmerProfile
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def save_user(self, request, sociallogin, form=None):
@@ -16,8 +15,6 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         
         if user_type == 'farmer':
             FarmerProfile.objects.get_or_create(user=user)
-        elif user_type == 'buyer':
-            BuyerProfile.objects.get_or_create(user=user)
             
         return user
 
@@ -28,6 +25,4 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         user = sociallogin.user
         if hasattr(user, 'farmer_profile'):
             return '/page/'
-        elif hasattr(user, 'buyer_profile'):
-            return '/dashboard/buyer/'
         return super().get_signup_redirect_url(sociallogin)

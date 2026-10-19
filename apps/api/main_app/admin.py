@@ -1,19 +1,13 @@
 from django.contrib import admin
-from .models import FarmerProfile, BuyerProfile, CropScanLog, MarketConnection, FarmHealthProfile, PartnerAPIKey
+from .models import FarmerProfile, CropScanLog, FarmHealthProfile, PartnerAPIKey
 
 admin.site.register(FarmerProfile)
-admin.site.register(BuyerProfile)
 
 @admin.register(CropScanLog)
 class CropScanLogAdmin(admin.ModelAdmin):
     list_display = ('farmer', 'crop_type', 'result', 'timestamp')
     list_filter = ('result', 'crop_type')
     search_fields = ('farmer__user__username', 'crop_type')
-
-@admin.register(MarketConnection)
-class MarketConnectionAdmin(admin.ModelAdmin):
-    list_display = ('farmer', 'buyer', 'status', 'created_at')
-    list_filter = ('status',)
 
 @admin.register(FarmHealthProfile)
 class FarmHealthProfileAdmin(admin.ModelAdmin):

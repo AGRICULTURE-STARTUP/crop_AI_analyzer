@@ -1,11 +1,12 @@
 # main_app/utils_scoring.py
 from datetime import timedelta
 from django.utils import timezone
-from .models import CropScanLog, MarketConnection, FarmHealthProfile
+from .models import CropScanLog, FarmHealthProfile
 
 def calculate_farm_health_score(farmer_profile):
     """
-    Calculates the Farm Health Score for a given farmer (max ~850).
+    Calculates the Farm Health Score for a given farmer (max ~700 from
+    engagement + crop health; market-connection points were removed).
     Updates and saves the farmer's FarmHealthProfile.
     """
     base_score = 300
@@ -28,12 +29,6 @@ def calculate_farm_health_score(farmer_profile):
         # Full 200 points if 100% healthy, scaling down
         health_points = int(health_ratio * 200)
         score += health_points
-    
-    # 3. Market Connection Verifiability (Max +150)
-    # Active connections mean guaranteed income
-    completed_connections = MarketConnection.objects.filter(farmer=farmer_profile, status='Completed').count()
-    market_points = min(completed_connections * 50, 150)
-    score += market_points
 
     # Determine Risk Tier based on final score
     if score >= 700:

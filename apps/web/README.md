@@ -19,8 +19,7 @@ Set **`DEV_ENV=True`** on the Django API (see repo-root `.env` / `docs/LOCAL_TES
 |------|------|
 | `/` | Marketing + **USSD simulator** (`#ussd-demo`) |
 | `/login`, `/signup/*` | Auth |
-| `/farmer/*` | Scan, AgriBot, inputs, market, profile |
-| `/buyer/dashboard` | Buyers |
+| `/farmer/*` | Scan, AgriBot, inputs, market prices, profile |
 | `/agency/dashboard` | Input agencies |
 | `/lender/*` | Partner portal + API keys |
 | `/admin/*` | Staff |

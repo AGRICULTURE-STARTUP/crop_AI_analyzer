@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Create account",
   description:
-    "Join Ukulima Bora as a farmer, buyer, input shop, or lending partner. Sign up free and get started in minutes.",
+    "Join Ukulima Bora as a farmer, input shop, or lending partner. Sign up free and get started in minutes.",
   alternates: { canonical: "/signup" },
 };
 

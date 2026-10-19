@@ -13,7 +13,7 @@ import { PHOTOS } from "@/lib/photos";
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "Scan crop diseases from a photo, get advice in English or Kiswahili, find buyers, plan with the weather, and build a Farm Health Score.",
+    "Scan crop diseases from a photo, get advice in English or Kiswahili, check market prices, plan with the weather, and build a Farm Health Score.",
   alternates: { canonical: "/features" },
 };
 
@@ -26,7 +26,7 @@ export default function FeaturesPage() {
         crumb="Features"
         eyebrow="How Ukulima Bora helps"
         title="Tools made for farmers"
-        lead="Simple ways to keep crops healthy, get advice, and find the right people to buy or supply what you need."
+        lead="Simple ways to keep crops healthy, get advice, check market prices, and find inputs nearby."
         photo={PHOTOS.tomatoCheck}
       >
         <div className="flex flex-wrap gap-3">
@@ -100,7 +100,7 @@ export default function FeaturesPage() {
           </h2>
           <p className="section-lead !text-white/85">
             Snap a sick plant, get treatment advice in English or Kiswahili, and
-            connect with buyers when your harvest is ready.
+            check market prices when your harvest is ready.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href="/signup?role=farmer" className="btn-hero-primary">

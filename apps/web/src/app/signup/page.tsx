@@ -8,7 +8,7 @@ function SignupWithQuery() {
   const params = useSearchParams();
   const raw = params.get("role") || "farmer";
   const initialRole = (
-    ["farmer", "buyer", "agency", "lender"].includes(raw) ? raw : "farmer"
+    ["farmer", "agency", "lender"].includes(raw) ? raw : "farmer"
   ) as SignupRole;
 
   return <SignupForm initialRole={initialRole} />;

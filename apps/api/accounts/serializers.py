@@ -23,7 +23,7 @@ from accounts.models import (
     LendingAPIUsageLog,
     LendingPartnerProfile,
 )
-from main_app.models import BuyerProfile, FarmerProfile, Wallet
+from main_app.models import FarmerProfile, Wallet
 
 
 class EmailOrUsernameTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -70,8 +70,6 @@ def resolve_user_role(user: User) -> str:
         return "lender"
     if hasattr(user, "agency_profile"):
         return "agency"
-    if hasattr(user, "buyer_profile"):
-        return "buyer"
     if hasattr(user, "farmer_profile"):
         return "farmer"
     return "user"
@@ -236,27 +234,6 @@ class FarmerRegisterSerializer(BaseRegisterSerializer):
         return user
 
 
-class BuyerRegisterSerializer(BaseRegisterSerializer):
-    phone_number = serializers.CharField(max_length=20)
-    county = serializers.CharField(max_length=100)
-    country = serializers.CharField(max_length=100, required=False, default="Kenya")
-    photo = serializers.ImageField(required=True)
-
-    def create(self, validated_data):
-        photo = validated_data.pop("photo")
-        user = self._create_user(validated_data)
-        BuyerProfile.objects.create(
-            user=user,
-            phone_number=validated_data["phone_number"],
-            county=validated_data["county"],
-            country=validated_data.get("country") or "Kenya",
-            first_name=validated_data.get("first_name") or "",
-            email=validated_data["email"],
-            photo=photo,
-        )
-        return user
-
-
 class AgencyRegisterSerializer(OrganizationRegisterSerializer):
     agency_name = serializers.CharField(max_length=150)
     agency_type = serializers.ChoiceField(
@@ -303,7 +280,7 @@ class LenderRegisterSerializer(OrganizationRegisterSerializer):
 
 
 class MeUpdateSerializer(serializers.Serializer):
-    # Personal names apply to farmer/buyer only; org roles use profile org fields.
+    # Personal names apply to farmers; org roles use profile org fields.
     first_name = serializers.CharField(required=False, allow_blank=True, max_length=30)
     last_name = serializers.CharField(required=False, allow_blank=True, max_length=30)
     email = serializers.EmailField(required=False)

@@ -135,9 +135,7 @@ class CropWeatherView(APIView):
         location = (request.query_params.get("location") or "").strip()[:120]
         country = "Kenya"
         if not location:
-            profile = getattr(request.user, "farmer_profile", None) or getattr(
-                request.user, "buyer_profile", None
-            )
+            profile = getattr(request.user, "farmer_profile", None)
             location = (getattr(profile, "county", "") or "").strip()
             country = (getattr(profile, "country", "") or "").strip() or "Kenya"
         if not location:

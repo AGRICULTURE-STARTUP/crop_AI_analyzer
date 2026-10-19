@@ -13,7 +13,6 @@ type ScoreResult = {
   crops?: string | null;
   health_score?: number;
   risk_tier?: string;
-  active_connections?: number;
   total_scans?: number;
 };
 
@@ -89,7 +88,6 @@ export default function LenderScoreLookupPage() {
                 ["County", result.county || "—"],
                 ["Farm size", result.farm_size_acres != null ? `${result.farm_size_acres} acres` : "Not set"],
                 ["Crops", result.crops || "Not set"],
-                ["Completed market links", String(result.active_connections ?? 0)],
                 ["Leaf scans", String(result.total_scans ?? 0)],
               ].map(([k, v]) => (
                 <div key={k}>

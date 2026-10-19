@@ -71,8 +71,8 @@ Will own field protocols, agronomic review of labels and advice, sensor calibrat
 
 Live / in-repo today:
 
-- Next.js farmer, buyer, agency, lender, and admin portals (`apps/web`)
-- Django API with JWT auth, wallets, scans, AgriBot, marketplace, KAMIS prices (`apps/api`)
+- Next.js farmer, agency, lender, and admin portals (`apps/web`)
+- Django API with JWT auth, wallets, scans, AgriBot, agrovet marketplace, KAMIS prices (`apps/api`) — no produce-buyer role or matching
 - Crop-scan pipeline (gatekeeper + crop models) and scan jobs
 - AgriBot chat (Groq / RAG)
 - M-Pesa top-up code and callback path (production cutover still open)
@@ -103,13 +103,13 @@ Not done:
 | **AgriBot / RAG**                   | Built, unvalidated in field         | Chat works; advice not field-reviewed                                                          | Job                                             |
 | **ML support / eval**               | Early                               | Shared eval notes; no weekly model review yet                                                  | Emilio (support), Job (accountable)             |
 | **Crop recommendation**             | Not integrated                      | Farmer can submit N, P, K, pH, temp, humidity, rainfall and see a versioned result in Ukulima Bora | Stephen                                         |
-| **Farmer / buyer / agency product** | Partial                             | Core journeys work; crop rec and IoT screens missing                                           | Stephen                                         |
+| **Farmer / agency product** | Partial                             | Core journeys work; crop rec and IoT screens missing; produce-buyer matching removed (prices only) | Stephen                                         |
 | **IoT field layer**                 | Not started                         | Device identity, telemetry API, one calibrated plot                                            | Stephen                                         |
 | **Payments / M-Pesa**               | Code ready, not production-complete | Live STK, callback, wallet credit, Brian can reconcile                                         | Brian                                           |
 | **Finance / ops / compliance**      | Not started as a company system     | Monthly cash view, receipts, consent register                                                  | Brian                                           |
 | **USSD / SMS**                      | Simulator only                      | Provider webhook live; 10 farmers complete a real session                                      | Brian (provider + billing), Stephen (menu / UX) |
 | **Growth / farmer discovery**       | Not started                         | 30 farmer conversations logged; 10 using the product twice                                     | Emilio/stephen                                  |
-| **Marketplace / KAMIS**             | Partial                             | Prices and directories exist; paid connections not proven                                      | Emilio (demand), Stephen (product)              |
+| **KAMIS prices / inputs market**    | Partial                             | KAMIS prices live for farmers; agrovet storefront live; produce-buyer matching removed         | Emilio (demand), Stephen (product)              |
 | **Lender / Farm Health Score**      | Infrastructure only                 | Do not sell until farmer usage and consent are real                                            | Job (partner talks), Wilson (API)               |
 | **Field validation / agronomy**     | Parked                              | Specialist hired or advisor contracted                                                         | Field specialist *(later)*                      |
 

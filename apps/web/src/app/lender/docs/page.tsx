@@ -24,7 +24,7 @@ export default function LenderDocsPage() {
           <ul className="list-disc space-y-2 pl-5 text-sm text-ink/70">
             <li>Only farmers who opted in to lending return score data.</li>
             <li>
-              Responses include name, county, health score, risk tier, completed market links and total scans, plus{" "}
+              Responses include name, county, health score, risk tier and total scans, plus{" "}
               <code>farm_size_acres</code> and <code>crops</code> when the farmer has set them (otherwise{" "}
               <code>null</code>).
             </li>

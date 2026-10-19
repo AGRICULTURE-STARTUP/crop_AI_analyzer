@@ -254,19 +254,16 @@ def _wallet_reply(farmer: FarmerProfile | None, demo: bool) -> UssdReply:
 def _market_reply(farmer: FarmerProfile | None, demo: bool) -> UssdReply:
     if demo or farmer is None:
         return UssdReply(
-            "DEMO market\n"
-            "Maize — Nakuru buyers active\n"
-            "Tomatoes — Kiambu demand high\n"
-            "Open /farmer/market in the app for connections.",
+            "DEMO market prices\n"
+            "Check KAMIS crop prices in the app:\n"
+            "Open /farmer/market for latest prices.",
             end=True,
         )
     products = (farmer.products or "Not listed").strip()
-    connections = farmer.market_connections.filter(status="Completed").count()
     return UssdReply(
         f"Your produce: {products[:80]}\n"
         f"County: {farmer.county or '—'}\n"
-        f"Completed buyer links: {connections}\n"
-        "Manage listings in the Ukulima Bora app.",
+        "Open /farmer/market in the app for latest KAMIS prices.",
         end=True,
     )
 

@@ -31,15 +31,9 @@ urlpatterns = [
     path('chat/', views.chat, name='chat'),
     path('logout/', views.signout_view, name='logout'),
     path('signup/farmer/', views.signup_farmer, name='signup_farmer'),
-    path('signup/buyer/', views.signup_buyer, name='signup_buyer'),
     path('fertiliser',views.fertiliser_view,name='fertiliser'),
     path('fertiliser_firms/',views.fertiliser_display,name="fertiliser_firms"),
-    path('market/', views.market_view, name='market_buyers'),
-    path('market_firms/', views.market_display, name='market_firms'),
-    path('farmers', views.farmer_view, name='farmers'),
-    path('farmer_data/', views.farmer_display, name='farmer_data'),
     path('profile/farmer/', views.farmer_profile_view, name='farmer_profile'),
-    path('dashboard/buyer/', views.buyer_dashboard_view, name='buyer_dashboard_view'),
     
     # --- Micro-Lending API ---
     path('api/v1/lending/score/', views.farm_health_score_api, name='farm_health_score_api'),
