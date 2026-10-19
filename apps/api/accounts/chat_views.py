@@ -158,7 +158,7 @@ class ChatMessageView(APIView):
             )
 
         wallet = request.user.wallet
-        is_free = wallet.chat_count < 5
+        is_free = wallet.chat_count < 10
         if not is_free and wallet.balance < 10:
             return Response(
                 {

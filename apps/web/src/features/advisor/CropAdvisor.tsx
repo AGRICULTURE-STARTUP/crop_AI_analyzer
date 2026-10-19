@@ -122,7 +122,7 @@ export function CropAdvisor({ mode }: { mode: "public" | "portal" }) {
   });
 
   const weather = useMutation({
-    mutationFn: (where: string) => fetchAdvisorWeather(where),
+    mutationFn: (input: string | { lat: number; lon: number }) => fetchAdvisorWeather(input),
     onSuccess: (data) => {
       if (!data.weather) {
         setWeatherPlace(null);
@@ -144,6 +144,27 @@ export function CropAdvisor({ mode }: { mode: "public" | "portal" }) {
     mutationFn: deleteHistory,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["advisor-history"] }),
   });
+
+  const [geoLocating, setGeoLocating] = useState(false);
+  function useMyLocation() {
+    if (typeof window === "undefined" || !("geolocation" in navigator)) {
+      setWeatherError("Geolocation is not supported on this device.");
+      return;
+    }
+    setGeoLocating(true);
+    setWeatherError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        weather.mutate({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setGeoLocating(false);
+      },
+      () => {
+        setWeatherError("Could not get your location. Allow location access, or type a town.");
+        setGeoLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+  }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -257,6 +278,15 @@ export function CropAdvisor({ mode }: { mode: "public" | "portal" }) {
                 >
                   <CloudIcon size={16} />
                   {weather.isPending ? t("loadingWeather") : t("useWeather")}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost shrink-0"
+                  disabled={weather.isPending || geoLocating}
+                  onClick={useMyLocation}
+                >
+                  <CloudIcon size={16} />
+                  {geoLocating ? t("loadingWeather") : t("useMyLocation")}
                 </button>
               </div>
             ) : !loading ? (

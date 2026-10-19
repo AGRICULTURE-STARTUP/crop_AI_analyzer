@@ -298,7 +298,7 @@ def chat(request):
         
         # --- MONETIZATION: Gating ---
         wallet = request.user.wallet
-        is_free_trial = wallet.chat_count < 5
+        is_free_trial = wallet.chat_count < 10
         if not is_free_trial and wallet.balance < 10:
             return JsonResponse({
                 "response": "Insufficient balance (KSh 10 required). Please top up your wallet to continue chatting.",

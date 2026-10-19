@@ -104,7 +104,7 @@ class FarmerOverviewTests(TestCase):
         self.assertEqual(body["farm"]["crops"], ["Maize", "Beans"])
         self.assertEqual(body["scans"]["total"], 0)
         self.assertIsNone(body["advisor"]["last"])
-        self.assertEqual(body["wallet"]["free_scans_left"], 2)
+        self.assertEqual(body["wallet"]["free_scans_left"], 10)
 
 
 @override_settings(DEV_ENV=True)

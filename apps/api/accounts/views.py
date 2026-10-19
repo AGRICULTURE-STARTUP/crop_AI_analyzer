@@ -47,7 +47,7 @@ from accounts.serializers import (
 from main_app.models import FarmerProfile, FarmHealthProfile, MpesaTransaction, Wallet
 from main_app.mpesa_utils import MpesaGateway
 from main_app.utils_scoring import calculate_farm_health_score
-from main_app.utils_weather import get_weather_data
+from main_app.utils_weather import get_weather_by_coords, get_weather_data
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +111,22 @@ def _me_payload(user: User, request=None) -> dict:
     }
 
 
-def _weather_for_location(location: str, country: str = "Kenya") -> dict | None:
+def _weather_for_location(location: str, country: str = "Kenya", lat=None, lon=None) -> dict | None:
+    if lat is not None and lon is not None:
+        try:
+            raw = get_weather_by_coords(lat, lon)
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            if isinstance(data, dict) and not data.get("error"):
+                return {
+                    "location": data.get("location") or location or f"{lat},{lon}",
+                    "temperature_celsius": data.get("temperature_celsius"),
+                    "humidity_percent": data.get("humidity_percent"),
+                    "wind_speed_m_s": data.get("wind_speed_m_s"),
+                    "rainfall_1h_mm": data.get("rainfall_1h_mm", 0),
+                }
+        except Exception as exc:
+            logger.warning("Weather fetch (coords) error: %s", exc)
+        return None
     if not (location or "").strip():
         return None
     try:
@@ -379,7 +394,15 @@ class WeatherView(APIView):
                 }
             )
 
-        weather = _weather_for_location(county, country)
+        lat = request.query_params.get("lat")
+        lon = request.query_params.get("lon")
+        if lat and lon:
+            try:
+                weather = _weather_for_location(county, country, lat=float(lat), lon=float(lon))
+            except (TypeError, ValueError):
+                weather = _weather_for_location(county, country)
+        else:
+            weather = _weather_for_location(county, country)
         if weather is None:
             return Response(
                 {

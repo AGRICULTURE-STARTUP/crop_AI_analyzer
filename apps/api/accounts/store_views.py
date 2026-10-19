@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
-from accounts.models import AgencyProduct, AgencyProfile
+from accounts.models import AgencyProduct, AgencyProfile, FarmerProduct
 
 CATEGORY_LABELS = dict(AgencyProduct.CATEGORY_CHOICES)
 AGENCY_TYPE_LABELS = dict(AgencyProfile.AGENCY_TYPE_CHOICES)
@@ -91,6 +91,31 @@ def product_card(request, product: AgencyProduct, show_contact: bool) -> dict:
     }
 
 
+def farmer_product_card(request, product, show_contact):
+    farmer = product.farmer
+    seller_name = (farmer.farm_name or farmer.user.username) if farmer else "Farmer"
+    return {
+        "id": product.id,
+        "name": product.name,
+        "category": product.category,
+        "category_label": dict(FarmerProduct.CATEGORY_CHOICES).get(product.category, product.category),
+        "description": product.description,
+        "price": str(product.price) if product.price is not None else None,
+        "unit": product.unit,
+        "image": _image_url(request, product),
+        "created_at": product.created_at,
+        "updated_at": product.updated_at,
+        "seller": {
+            "id": farmer.user_id if farmer else None,
+            "name": seller_name,
+            "type": "farmer",
+            "type_label": "Farmer",
+            "county": (farmer.county or "") if farmer else "",
+            "phone": (farmer.phone_number or "") if (show_contact and farmer) else None,
+        },
+    }
+
+
 def _signed_in(request) -> bool:
     return bool(request.user and request.user.is_authenticated)
 
@@ -129,8 +154,16 @@ class StoreProductListView(APIView):
             row["category"]: row["n"]
             for row in base.values("category").annotate(n=Count("id"))
         }
+        category_counts["produce"] = FarmerProduct.objects.filter(
+            is_available=True, is_hidden=False
+        ).count()
         category = params.get("category", "").strip().lower()
-        qs = base.filter(category=category) if category in CATEGORY_LABELS else base
+        if category == "produce":
+            qs = base.none()
+        elif category in CATEGORY_LABELS:
+            qs = base.filter(category=category)
+        else:
+            qs = base
 
         sort = params.get("sort", "newest")
         if sort not in SORTS:
@@ -153,10 +186,30 @@ class StoreProductListView(APIView):
             .distinct()
         )
         show_contact = _signed_in(request)
+        results = [product_card(request, p, show_contact) for p in items]
+
+        # Merge farmer produce listings into the same results feed.
+        farmer_qs = FarmerProduct.objects.filter(
+            is_available=True, is_hidden=False
+        ).select_related("farmer__user")
+        if q:
+            farmer_qs = farmer_qs.filter(
+                Q(name__icontains=q) | Q(description__icontains=q)
+            )
+        if county:
+            farmer_qs = farmer_qs.filter(farmer__county__icontains=county)
+        if min_price is not None:
+            farmer_qs = farmer_qs.filter(price__gte=min_price)
+        if max_price is not None:
+            farmer_qs = farmer_qs.filter(price__lte=max_price)
+        if category in ("produce", "seed", "other"):
+            farmer_qs = farmer_qs.filter(category=category)
+        results += [farmer_product_card(request, p, show_contact) for p in farmer_qs]
+
         return Response(
             {
-                "results": [product_card(request, p, show_contact) for p in items],
-                "count": count,
+                "results": results,
+                "count": count + farmer_qs.count(),
                 "page": page,
                 "pages": pages,
                 "page_size": page_size,
@@ -164,7 +217,7 @@ class StoreProductListView(APIView):
                 "facets": {
                     "categories": [
                         {"value": value, "label": label, "count": category_counts.get(value, 0)}
-                        for value, label in AgencyProduct.CATEGORY_CHOICES
+                        for value, label in list(AgencyProduct.CATEGORY_CHOICES) + [("produce", "Produce")]
                     ],
                     "counties": [c for c in list(counties)[:60] if c],
                     "price": {

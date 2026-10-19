@@ -161,3 +161,54 @@ class MyAgencyProductDetailView(APIView):
             )
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def _haversine_km(lat1, lon1, lat2, lon2):
+    from math import asin, cos, radians, sin, sqrt
+
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    return 2 * 6371.0 * asin(sqrt(a))
+
+
+class NearestAgencyListView(APIView):
+    """Agencies ordered by distance from the farmer's lat/lon."""
+
+    permission_classes = [IsAuthenticated, IsFarmer]
+
+    def get(self, request):
+        try:
+            lat = float(request.query_params.get("lat", ""))
+            lon = float(request.query_params.get("lon", ""))
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "lat and lon query parameters are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        agencies = list(
+            AgencyProfile.objects.filter(latitude__isnull=False, longitude__isnull=False)
+        )
+        for a in agencies:
+            a.distance_km = round(
+                _haversine_km(lat, lon, float(a.latitude), float(a.longitude)), 1
+            )
+        agencies.sort(key=lambda a: a.distance_km)
+
+        data = [
+            {
+                "id": a.id,
+                "agency_name": a.agency_name,
+                "agency_type": a.agency_type,
+                "phone": a.phone,
+                "county": a.county,
+                "latitude": float(a.latitude),
+                "longitude": float(a.longitude),
+                "distance_km": a.distance_km,
+                "created_at": a.created_at,
+            }
+            for a in agencies[:30]
+        ]
+        return Response({"agencies": data})
+
