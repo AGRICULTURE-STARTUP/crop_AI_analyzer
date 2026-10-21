@@ -1,0 +1,659 @@
+% =====================================================================
+% AgriScan API Feature Reference
+% Compile with: pdflatex API_REFERENCE.tex  (twice, for TOC)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.1cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{amssymb}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!60!black,
+  pdftitle={AgriScan API Feature Reference},
+  pdfauthor={AgriScan team}
+}
+
+\definecolor{statusdone}{RGB}{24,130,62}
+\definecolor{statuspart}{RGB}{190,120,0}
+\definecolor{statusplan}{RGB}{150,150,150}
+
+\newcommand{\done}{\textcolor{statusdone}{\textbf{Implemented}}}
+\newcommand{\partialstatus}{\textcolor{statuspart}{\textbf{Partial}}}
+\newcommand{\planned}{\textcolor{statusplan}{\textbf{Planned}}}
+\newcommand{\legacy}{\textcolor{statusplan}{\textbf{Legacy}}}
+\newcommand{\code}[1]{\texttt{\allowbreak #1\allowbreak}}
+
+\captionsetup{font=small,labelfont=bf}
+\setlist[itemize]{leftmargin=1.2em,topsep=2pt,itemsep=1pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.6em,topsep=2pt,itemsep=1pt,parsep=0pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{14pt}
+\lhead{AgriScan API Feature Reference}
+\rhead{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\emergencystretch}{2em}
+\sloppy
+
+\title{\textbf{AgriScan API Feature Reference}\\[4pt]
+\large Endpoints, contracts and implementation status}
+\author{AgriScan monorepo --- \texttt{apps/api}}
+\date{Version 1.0 --- October 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------------------
+\section{How to read this document}
+
+Every API feature in the AgriScan monorepo (\code{apps/api} --- Django~5 +
+DRF + SimpleJWT), with its endpoints, request/response contracts, business
+rules and current implementation status.
+
+\subsection*{Status legend}
+\begin{itemize}
+  \item \done\ --- endpoint exists, is wired to the frontend, and works
+        end-to-end in the current build.
+  \item \partialstatus\ --- code exists but has a known gap (no live
+        credentials, duplicate logic, unvalidated, or dead route).
+  \item \planned\ --- described in the roadmap/docs, not built.
+  \item \legacy\ --- old server-rendered Django view kept for backward
+        compatibility; superseded by a JSON endpoint.
+\end{itemize}
+
+\subsection*{Base URLs}
+\begin{itemize}
+  \item API base (JSON): \code{http://localhost:8000/api/v1/} in dev,
+        \code{https://api.agriscan.co.ke/api/v1/} in production (behind nginx).
+  \item Web app: \code{http://localhost:3000} (Next.js), reads the base from
+        \code{NEXT\_PUBLIC\_API\_URL}.
+  \item A few non-prefixed routes live at the site root (M-Pesa callback,
+        legacy HTML views, allauth) --- flagged inline below.
+\end{itemize}
+
+% =====================================================================
+\section{System shape at a glance}
+% =====================================================================
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X @{}}
+\toprule
+\textbf{Layer} & \textbf{What it is} \\
+\midrule
+Frontend & Next.js 15 App Router + TanStack Query, wrapped by Capacitor
+           (Android). The browser calls Django directly (CORS); there is no
+           Next API layer. \\
+API & Django 5 + DRF, Gunicorn (2 workers), JWT auth, scoped throttles. \\
+Async work & Celery with a \emph{single} task: \code{inference.run\_scan\_job}
+              on queue \code{scan}. Chat/RAG run inline in the request. \\
+ML & TensorFlow: EfficientNet gatekeeper + per-crop MobileNetV2
+     (\code{.h5}), loaded in the \emph{worker}, never in the API container. \\
+Data & PostgreSQL (source of truth), Redis (cache + Celery broker),
+        SQLite cache for KAMIS prices, Chroma/BM25 for RAG. \\
+Payments & Safaricom Daraja STK Push; wallet ledger on \code{Wallet}. \\
+Channels & Web portal, Android wrap, USSD (simulator live, provider
+            webhook ready). \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection*{Authentication model}
+\begin{itemize}
+  \item \textbf{SPA (browser/app):} Bearer JWT. Access token
+        \code{agriscan\_access} + refresh \code{agriscan\_refresh} in
+        \code{localStorage}; 30-minute idle timeout enforced both client
+        and server (\code{IdleTimeoutJWTAuthentication}).
+  \item \textbf{Machine-to-machine (lenders):} \code{Authorization: Bearer
+        <LendingAPIKey raw secret>}, hashed at rest; a legacy plaintext
+        \code{PartnerAPIKey} is still accepted while
+        \code{ALLOW\_LEGACY\_PARTNER\_KEYS} or \code{DEV\_ENV} is on.
+  \item \textbf{Role resolution} is implicit: the profile relation a user
+        owns (\code{farmer\_profile}, \code{buyer\_profile},
+        \code{agency\_profile}, \code{lending\_partner\_profile}) decides the
+        role; \code{is\_staff} maps to admin. Custom permissions:
+        \code{IsFarmer}, \code{IsBuyer}, \code{IsAgency},
+        \code{IsLendingPartner}, \code{IsApprovedLendingPartner},
+        \code{IsStaffUser} --- all in \code{accounts/permissions.py}.
+\end{itemize}
+
+\subsection*{Throttle scopes (production rates)}
+
+All scopes are relaxed while \code{DEV\_ENV=True} (that flag also disables
+throttling entirely and allows all CORS origins).
+
+\begin{center}
+\small
+\begin{tabular}{@{} l r l @{}}
+\toprule
+\textbf{Scope} & \textbf{Prod rate} & \textbf{Used by} \\
+\midrule
+\code{auth}        & 10/min   & login, refresh, register \\
+\code{scans}       & 5/min    & \code{POST /scans/} \\
+\code{chat}        & 5/min    & AgriBot \\
+\code{payments}    & 3/min    & M-Pesa top-up \\
+\code{weather}     & 10/min   & weather lookup \\
+\code{ussd}        & 30/min   & gateway + simulator \\
+\code{lending\_score} & 30/min & score lookups \\
+\code{anon} / \code{user} & 60 / 120 per min & global DRF defaults \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Feature catalogue}
+% =====================================================================
+
+Tables use: \textbf{Method} $\cdot$ \textbf{Path} $\cdot$ \textbf{Access}.
+All paths are relative to \code{/api/v1/} unless marked ``root''.
+
+% ---------------------------------------------------------------------
+\subsection{F1 --- Health check}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{GET /health/} & Postgres + Redis liveness probe & Anonymous \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \done
+
+Response:
+\begin{verbatim}
+{"status": "ok" | "degraded",
+ "postgres": true, "redis": true, "dev_env": false}
+\end{verbatim}
+Returns \code{503} when Postgres is unreachable, \code{200} otherwise (a
+Redis-only outage reports \code{"degraded"} with HTTP 200).
+
+% ---------------------------------------------------------------------
+\subsection{F2 --- Registration \& session (auth)}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{POST /auth/register/farmer/}    & farmer signup  & anon, \code{auth} throttle \\
+\code{POST /auth/register/buyer/}     & buyer signup (multipart: photo) & anon \\
+\code{POST /auth/register/agency/}    & input-agency signup & anon \\
+\code{POST /auth/register/lender/}    & lender signup  & anon \\
+\code{POST /auth/login/}              & JWT pair; email \emph{or} username & anon \\
+\code{POST /auth/refresh/}            & rotate access token (idle-aware) & anon \\
+\code{POST /auth/logout/}             & blacklist refresh token & authed \\
+\code{GET  /me/}                      & current user + role + profile + wallet & authed \\
+\code{PATCH /me/}                     & update profile fields & authed \\
+\code{GET  /weather/}                 & OpenWeather for farmer/buyer location & farmer/buyer \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \done\ (Google OAuth also available via django-allauth at
+root \code{/accounts/}).
+
+Registration contract: common fields \code{email} (required),
+\code{password} (min 8), optional \code{username}/\code{first\_name}/\code{last\_name};
+role extras --- farmer: \code{phone\_number}, \code{county};
+buyer: \code{phone\_number}, \code{county}, \code{photo} (image, required);
+agency: \code{agency\_name}, \code{agency\_type}, \code{phone}, \code{county};
+lender: \code{organization\_name}, \code{organization\_type},
+\code{registration\_number}, \code{contact\_phone}, \code{county}.
+
+Returns \code{201} with \code{\{access, refresh, role, user\}}; the client
+then calls \code{GET /me/} for the full profile.
+
+\code{GET /me/} payload shape:
+\begin{verbatim}
+{"user":  {...}, "role": "farmer",
+ "profile": {..., "health_score", "risk_tier",
+             "opt_in_for_lending"},
+ "wallet": {"balance": "0.00",
+            "scan_count": 0, "chat_count": 0}}
+\end{verbatim}
+(\code{wallet} only present for farmers; \code{null} otherwise.)
+
+Profile updates via \code{PATCH /me/}: names, email, phone, county,
+country, products, farm fields, profile photo (or
+\code{clear\_profile\_photo}), agency/lender organisation fields, and the
+\code{opt\_in\_for\_lending} consent flag.
+
+% ---------------------------------------------------------------------
+\subsection{F3 --- Crop scan pipeline (core product)}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{GET  /crops/}        & crop catalogue + disease classes & farmer \\
+\code{POST /scans/}        & upload image, enqueue Celery job & farmer, \code{scans} throttle \\
+\code{GET  /scans/}        & last 50 jobs for the user & farmer \\
+\code{GET  /scans/<job\_id>/} & poll job status/result + wallet balance & farmer \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \done\ (async, queue-guarded).
+
+\textbf{Business rules:}
+\begin{itemize}
+  \item Image must be an image, $\leq$\,5\,MB.
+  \item \textbf{2 free scans} (\code{wallet.scan\_count < 2}); after that each
+        scan costs \textbf{KSh 20} --- \code{402 Payment Required} with
+        \code{\{required, balance\}} when the wallet is short.
+  \item Global queue cap \code{MAX\_QUEUED\_SCAN\_JOBS=20} $\rightarrow$
+        \code{503} + \code{Retry-After: 30}.
+  \item Per-user cap \code{MAX\_QUEUED\_SCANS\_PER\_USER=3} $\rightarrow$
+        \code{429} + \code{Retry-After}.
+  \item Enqueue failure $\rightarrow$ job marked \code{failed}, image cleaned
+        up, \code{503} returned.
+  \item Job statuses: \code{queued $\rightarrow$ processing $\rightarrow$
+        completed | rejected | failed}.
+\end{itemize}
+
+Result payload (on \code{GET /scans/<id>/}): \code{result\_label},
+\code{confidence}, \code{report} (JSON: overview, recommendations,
+prevention, severity, etc.), \code{gatekeeper\_passed},
+\code{error\_message}, timestamps, plus live \code{wallet\_balance}.
+
+\code{GET /crops/} returns every known crop with its disease class list and
+a \code{supported} flag (membership in \code{SUPPORTED\_SCAN\_CROPS} --- 18
+crops listed; only 11 \code{.h5} weights are committed, the rest require
+\code{manage.py sync\_models}).
+
+% ---------------------------------------------------------------------
+\subsection{F4 --- AgriBot chat (RAG + LLM)}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{POST /chat/messages/} & ask AgriBot, get structured advice & farmer, \code{chat} throttle \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \done\ (English + Kiswahili). RAG, weather and LLM calls
+all run \emph{inside} the request (no Celery), so latency and failures are
+user-visible.
+
+Flow: strip HTML from \code{message} $\rightarrow$ check wallet
+(\textbf{5 free chats}, then \textbf{KSh 10} each; \code{402} with
+\code{needs\_topup:true} if short) $\rightarrow$ build context (farmer name,
+county, live weather, RAG snippets capped at 4500 chars) $\rightarrow$
+\code{ChatGroq} at temperature 0.3 $\rightarrow$ parse JSON.
+
+Response shape:
+\begin{verbatim}
+{"response": {"overview", "diagnosis",
+              "recommendations": [...],
+              "prevention", "weather_note", "local_tip"},
+ "wallet_balance": "90.00", "chat_count": 6,
+ "farmer": {"name": "...", "location": "Nakuru, Kenya"}}
+\end{verbatim}
+On LLM/JSON-parse failure the API still returns \code{200} with a degraded
+\code{response} object (empty \code{diagnosis}, error text folded into
+\code{local\_tip}).
+
+% ---------------------------------------------------------------------
+\subsection{F5 --- Market intelligence (KAMIS + directories)}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{GET /market/kamis-prices/?crop=} & price lookup from local SQLite cache & farmer/buyer/staff \\
+\code{GET /market/buyers/?county=}     & buyer directory (phone/email masked) & farmer/staff \\
+\code{GET /market/farmers/?county=\&crop=} & farmer directory for buyers & buyer/staff \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \done\ (offline KAMIS cache; no live scrape). Prices come
+from \code{apps/api/data/kamis\_prices.db} refreshed by a manual/cron
+ingest.
+
+Contract notes:
+\begin{itemize}
+  \item \code{crop} is required; missing $\rightarrow$ \code{400}.
+  \item Empty cache $\rightarrow$ \code{503} with a \code{detail} explaining
+        the cache is empty.
+  \item Directories return masked contact details
+        (\code{\_mask\_phone}, \code{\_mask\_email}) plus a \code{verified} /
+        \code{verification\_badge} flag.
+  \item Legacy HTML twins (\code{/market\_firms/}, \code{/farmer\_data/})
+        still serve \emph{unmasked} contact data --- see F11.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{F6 --- Inputs marketplace (agencies)}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{GET /inputs/agencies/}          & list agencies (\code{county}, \code{type}, \code{q}) & farmer \\
+\code{GET /inputs/products/}          & available products (\code{county}, \code{category}, \code{agency\_id}, \code{q}) & farmer \\
+\code{GET  /inputs/my-products/}      & own catalogue & agency \\
+\code{POST /inputs/my-products/}      & create item (multipart or JSON) & agency \\
+\code{PATCH  /inputs/my-products/<id>/} & partial update & agency \\
+\code{DELETE /inputs/my-products/<id>/} & remove item & agency \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \done. Ownership is enforced server-side
+(\code{\_get\_owned} $\rightarrow$ \code{404} for someone else's product, so
+cross-tenant edits return \code{404}, not \code{403}). Only
+\code{is\_available=true} products appear in public listings.
+
+% ---------------------------------------------------------------------
+\subsection{F7 --- Wallet \& M-Pesa top-up}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{GET /wallet/}                 & balance, \code{scan\_count}, \code{chat\_count} & farmer \\
+\code{POST /mpesa/topup/}           & initiate Daraja STK push & farmer, \code{payments} throttle \\
+\code{POST /mpesa/callback/} \textit{(root)} & Safaricom result callback & IP allowlist \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \partialstatus\ --- sandbox credentials work; production
+cutover is an open roadmap item.
+
+Top-up request: \code{\{amount, phone\_number\}} (decimal, serializer-bounded).
+Response: \code{200} with
+\code{\{status:"Success", message, checkout\_request\_id\}} or \code{502}
+when Daraja rejects the push.
+
+Callback semantics: look up \code{MpesaTransaction} by
+\code{CheckoutRequestID}; \code{ResultCode == 0} $\rightarrow$
+\code{status='Success'} and \code{wallet.balance += amount}; otherwise
+\code{status='Failed'}. Always answers \code{200 \{ResultCode: 0\}}.
+
+\textbf{Known gaps:}
+\begin{itemize}
+  \item The callback credits \code{mpesa\_txn.amount} (the value set at
+        initiation) without confirming against Safaricom, and the IP
+        allowlist is inert when \code{MPESA\_CALLBACK\_ALLOWLIST} is empty
+        (default) or \code{DEV\_ENV=True} --- a forged callback can credit
+        the wallet.
+  \item Code reads \code{CONSUMER\_KEY}/\code{CONSUMER\_SECRET} while
+        \code{infra/.env.example} ships \code{MPESA\_CONSUMER\_*}; sandbox
+        shortcode/passkey are hardcoded as fallbacks
+        (\code{mpesa\_utils.py:13-17}).
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{F8 --- Farm Health Score \& lending API}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{GET /lender/me/}     & own organisation profile & lender \\
+\code{PATCH /lender/me/}   & update profile & lender \\
+\code{GET  /lender/api-keys/}      & list keys (secret shown once) & lender \\
+\code{POST /lender/api-keys/}      & create key & lender \\
+\code{POST /lender/api-keys/<id>/rotate/} & rotate secret & approved lender \\
+\code{POST /lender/api-keys/<id>/revoke/}  & revoke key & lender \\
+\code{GET  /lender/usage/}         & usage log & lender \\
+\code{GET  /lender/score/?phone=}  & score via session JWT & approved lender \\
+\code{GET  /lending/score/?phone=} & score via API key (M2M) & Bearer key \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \partialstatus\ --- infrastructure complete; the roadmap
+marks it \emph{"do not sell"}. The score is gameable (repeat healthy scans
+inflate it) and penalises farmers who scan sick crops --- documented in
+\code{docs/business\_plan\_identification.md}.
+
+Score payload: \code{farmer\_name}, \code{county}, \code{farm\_size\_acres},
+\code{crops}, \code{health\_score}, \code{risk\_tier},
+\code{active\_connections}, \code{total\_scans}.
+
+Gate conditions:
+\begin{itemize}
+  \item Farmer must have \code{opt\_in\_for\_lending = true} $\rightarrow$
+        otherwise \code{403 "User has not consented to data sharing"}.
+  \item Unknown phone $\rightarrow$ \code{404 "Farmer not found"}
+        (phone normalisation tries \code{07xx} $\leftrightarrow$ \code{2547xx}).
+  \item Missing/invalid API key $\rightarrow$ \code{401}.
+  \item Every M2M call is written to \code{LendingAPIUsageLog} regardless
+        of outcome.
+  \item Key rotation requires \code{verification\_status == "approved"};
+        creation/reads do not.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{F9 --- Admin (moderation \& revenue)}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{GET /admin/revenue/}            & revenue KPIs + transactions & staff \\
+\code{GET /admin/lenders/}            & list lending partners & staff \\
+\code{POST /admin/lenders/<id>/approve/}  & approve partner & staff \\
+\code{POST /admin/lenders/<id>/suspend/}  & suspend partner & staff \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \done\ (API). The Django \code{/admin/} site is
+\emph{commented out} in \code{AgriProject/urls.py}, so moderation happens
+only through these endpoints (surfaced at \code{/admin/*} in the web app).
+
+% ---------------------------------------------------------------------
+\subsection{F10 --- USSD channel}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{} l X l @{}}
+\toprule
+\textbf{Method \& path} & \textbf{Purpose} & \textbf{Access} \\
+\midrule
+\code{POST /ussd/}          & production webhook (Africa's Talking text) & provider secret header \\
+\code{POST /ussd/simulate/} & JSON simulator for the homepage demo & anon, \code{ussd} throttle \\
+\code{GET  /ussd/simulate/} & simulator menu metadata & anon \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Status:} \partialstatus\ --- simulator live; real provider
+credentials pending (\code{USSD\_PROVIDER=simulate} default).
+
+Both endpoints run the same menu engine (\code{accounts/ussd\_engine.py}),
+session state in cache with a 180\,s TTL, Africa's Talking-style
+\code{text} of \code{''} $\rightarrow$ \code{1} $\rightarrow$ \code{1*2}...
+
+Menus: \textbf{1} wallet, \textbf{2} AgriBot (free text),
+\textbf{3} market, \textbf{4} inputs (fertiliser/seeds/pesticides),
+\textbf{5} Farm Health Score, \textbf{6} lending consent,
+\textbf{7} profile, \textbf{8} top-up help, \textbf{0} exit.
+Scanning is deliberately excluded (camera).
+
+Gateway security: \code{X-AgriScan-USSD-Secret} compared with
+\code{hmac.compare\_digest}; fails closed when no secret is configured
+(outside \code{DEV\_ENV}). \code{GET /ussd/simulate/} returns the menu
+feature list plus the documented exclusion
+(\code{"crop\_scan"}: ``Scanning needs a camera --- use the AgriScan app'').
+
+% ---------------------------------------------------------------------
+\subsection{F11 --- Legacy server-rendered routes}
+
+\small
+\begin{longtable}{@{} p{0.38\textwidth} p{0.40\textwidth} l @{}}
+\toprule
+\textbf{Path (root)} & \textbf{Purpose} & \textbf{Status} \\
+\midrule
+\endhead
+\code{/}                     & marketing homepage & \legacy \\
+\code{/privacy-policy}       & privacy policy & \legacy \\
+\code{/login}, \code{/logout/} & session login/logout (HTML) & \legacy \\
+\code{/password-reset/...}   & 4-step Django password reset & \done \\
+\code{/process}, \code{/chat/}, \code{/fertiliser} & old HTML scan/chat/forms & \legacy \\
+\code{/market/}, \code{/market\_firms/}, \code{/farmers}, \code{/farmer\_data/} & old directories (\textbf{unmasked PII}) & \legacy \\
+\code{/profile/farmer/}, \code{/dashboard/buyer/} & old portals & \legacy \\
+\code{/mpesa/topup/}, \code{/mpesa/callback/} & HTML-side top-up + callback & \partialstatus \\
+\code{/admin/revenue/}, \code{/site-admin/login/} & HTML admin & \legacy \\
+\code{/accounts/...}         & django-allauth (Google OAuth) & \done \\
+\code{/media/...}            & media files (dev only) & \done \\
+\code{/admin/} (Django admin) & \textbf{commented out} & \planned \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\vspace{6pt}
+\textbf{Note:} the JSON API and the legacy HTML views duplicate several
+features (score, top-up, directories) with \emph{different} auth and
+masking behaviour; new work should target the JSON API.
+
+% =====================================================================
+\section{Access matrix}
+% =====================================================================
+
+\begin{center}
+\small
+\begin{tabular}{@{} l c c c c c @{}}
+\toprule
+\textbf{Endpoint group} & \textbf{Anon} & \textbf{Farmer} & \textbf{Buyer} & \textbf{Agency} & \textbf{Lender} \\
+\midrule
+Scans            & --- & \checkmark & --- & --- & --- \\
+Chat             & --- & \checkmark & --- & --- & --- \\
+Wallet / top-up  & --- & \checkmark & --- & --- & --- \\
+Market prices    & --- & \checkmark & \checkmark & --- & --- \\
+Buyers dir       & --- & \checkmark & --- & --- & --- \\
+Farmers dir      & --- & --- & \checkmark & --- & --- \\
+Inputs browse    & --- & \checkmark & --- & --- & --- \\
+Inputs CRUD      & --- & --- & --- & \checkmark & --- \\
+Lender self-serve& --- & --- & --- & --- & \checkmark \\
+Admin            & --- & --- & --- & --- & staff only \\
+Health / USSD sim& \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{center}
+(\code{---} = \code{401}/\code{403}; \checkmark = allowed)
+
+\subsection*{Environment matrix}
+\begin{enumerate}
+  \item \textbf{Laptop dev:} \code{DEV\_ENV=True} (throttles off, CORS open,
+        LocMem cache) --- the README quick path.
+  \item \textbf{Production-like:} \code{DEV\_ENV=False} behind
+        \code{docker compose -f docker-compose.yml} + nginx (Redis cache,
+        throttles on, HTTPS). The README's plain \code{docker compose up}
+        also loads \code{docker-compose.override.yml}, which re-exposes
+        5432/6379/8000 and forces \code{DEBUG=True} --- not a production run.
+\end{enumerate}
+
+\subsection*{Error-contract conventions}
+\begin{itemize}
+  \item DRF field errors $\rightarrow$ \code{400} with field-keyed dict.
+  \item Domain errors $\rightarrow$ \code{400/401/403/404} with
+        \code{\{"detail": "...\}} or \code{\{"error": "...\}} --- two
+        different keys are in use.
+  \item Payment required $\rightarrow$ \code{402}.
+  \item Backpressure $\rightarrow$ \code{429}/\code{503} with \code{Retry-After}.
+\end{itemize}
+
+% =====================================================================
+\section{Appendix --- Endpoint index}
+% =====================================================================
+
+\clearpage
+\small
+\begin{longtable}{@{} l p{0.52\textwidth} l @{}}
+\toprule
+\textbf{Method} & \textbf{Path} & \textbf{Feature} \\
+\midrule
+\endhead
+GET  & /health/                      & F1 \\
+GET  & /crops/                       & F3 \\
+POST & /scans/                       & F3 \\
+GET  & /scans/                       & F3 \\
+GET  & /scans/\{job\_id\}/             & F3 \\
+POST & /auth/register/farmer/        & F2 \\
+POST & /auth/register/buyer/         & F2 \\
+POST & /auth/register/agency/        & F2 \\
+POST & /auth/register/lender/        & F2 \\
+POST & /auth/login/                  & F2 \\
+POST & /auth/refresh/                & F2 \\
+POST & /auth/logout/                 & F2 \\
+GET  & /me/                          & F2 \\
+PATCH& /me/                          & F2 \\
+GET  & /weather/                     & F2 \\
+POST & /chat/messages/               & F4 \\
+GET  & /market/kamis-prices/         & F5 \\
+GET  & /market/buyers/               & F5 \\
+GET  & /market/farmers/              & F5 \\
+GET  & /inputs/agencies/             & F6 \\
+GET  & /inputs/products/             & F6 \\
+GET  & /inputs/my-products/          & F6 \\
+POST & /inputs/my-products/          & F6 \\
+PATCH& /inputs/my-products/\{id\}/     & F6 \\
+DELETE& /inputs/my-products/\{id\}/    & F6 \\
+GET  & /wallet/                      & F7 \\
+POST & /mpesa/topup/                 & F7 \\
+POST & /mpesa/callback/ (root)       & F7 \\
+GET  & /lender/me/                   & F8 \\
+PATCH& /lender/me/                   & F8 \\
+GET  & /lender/api-keys/             & F8 \\
+POST & /lender/api-keys/             & F8 \\
+POST & /lender/api-keys/\{id\}/rotate/ & F8 \\
+POST & /lender/api-keys/\{id\}/revoke/  & F8 \\
+GET  & /lender/usage/                & F8 \\
+GET  & /lender/score/                & F8 \\
+GET  & /lending/score/               & F8 \\
+GET  & /admin/revenue/               & F9 \\
+GET  & /admin/lenders/               & F9 \\
+POST & /admin/lenders/\{id\}/approve/  & F9 \\
+POST & /admin/lenders/\{id\}/suspend/  & F9 \\
+POST & /ussd/                        & F10 \\
+POST & /ussd/simulate/               & F10 \\
+GET  & /ussd/simulate/               & F10 \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\vspace{2\baselineskip}
+\begin{center}
+\small\color{gray}
+Generated from the AgriScan monorepo source. Status markers reflect the
+codebase as of commit \texttt{23c9c5b}; re-verify after each merge.
+\end{center}
+
+\end{document}

@@ -903,3 +903,18 @@
     top: 6rem;
   }
 }
+
+/* Crop page actions: the main action on its own row, the others side by side below it. */
+.crop-profile .advisor-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.crop-profile .advisor-actions > :first-child {
+  grid-column: 1 / -1;
+}
+
+.crop-profile .advisor-actions .btn {
+  justify-content: center;
+  text-align: center;
+}

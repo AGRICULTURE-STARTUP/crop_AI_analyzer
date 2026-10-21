@@ -31,19 +31,31 @@ class CropManifestTests(unittest.TestCase):
 # HDF5 validation
 # ---------------------------------------------------------------------------
 class HDF5ValidationTests(unittest.TestCase):
+    @staticmethod
+    def _tmp_h5(payload: bytes) -> Path:
+        """Write a temp .h5 in a closed handle.
+
+        h5py keeps the file mapped, so unlinking inside the `with` block fails
+        on Windows; close the file before validating and cleaning up.
+        """
+        fd, name = tempfile.mkstemp(suffix=".h5")
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(payload)
+        return Path(name)
+
     def test_valid_h5_header(self):
-        with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:
-            f.write(HDF5_MAGIC + b"\x00" * 100)
-            f.flush()
-            self.assertTrue(_is_valid_h5(Path(f.name)))
-            os.unlink(f.name)
+        path = self._tmp_h5(HDF5_MAGIC + b"\x00" * 100)
+        try:
+            self.assertTrue(_is_valid_h5(path))
+        finally:
+            path.unlink(missing_ok=True)
 
     def test_invalid_h5_header(self):
-        with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:
-            f.write(b"version https://git-lfs.github.com/spec/v1\n")
-            f.flush()
-            self.assertFalse(_is_valid_h5(Path(f.name)))
-            os.unlink(f.name)
+        path = self._tmp_h5(b"version https://git-lfs.github.com/spec/v1\n")
+        try:
+            self.assertFalse(_is_valid_h5(path))
+        finally:
+            path.unlink(missing_ok=True)
 
     def test_missing_file(self):
         self.assertFalse(_is_valid_h5(Path("/nonexistent/model.h5")))

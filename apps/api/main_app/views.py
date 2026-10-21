@@ -4,6 +4,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Sum, Count
 from django.contrib.auth.forms import AuthenticationForm
+import logging
 from django.contrib.auth.views import PasswordResetView
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
@@ -28,6 +29,8 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import timedelta
 from django.db import transaction
+
+logger = logging.getLogger(__name__)
 
 mpesa_client = MpesaGateway()
 
@@ -325,9 +328,19 @@ def process(request):
                 pass # E.g., user is a Buyer, not Farmer
 
         if not is_free_trial:
-            wallet.balance -= 20
-            wallet.save()
-        
+            # Row lock + transaction so two concurrent scans cannot both pass
+            # the balance check and overdraw the wallet.
+            with transaction.atomic():
+                locked = Wallet.objects.select_for_update().get(user=request.user)
+                if locked.balance < 20:
+                    os.remove(temp_path)
+                    return render(request, 'index.html', {
+                        'error': 'Insufficient balance (KSh 20 required). Please top up your wallet to continue.',
+                        'needs_topup': True
+                    })
+                locked.balance -= 20
+                locked.save(update_fields=['balance', 'last_updated'])
+
         os.remove(temp_path)
 
     # Render back to the same page with results
@@ -614,11 +627,15 @@ JSON Output:"""
         request.session.modified = True
 
         # --- MONETIZATION: Deduct and Increment ---
-        wallet.chat_count += 1
-        if not is_free_trial:
-            wallet.balance -= 10
-        wallet.save()
-        
+        # Only a real reply counts: a failed agent run must not charge the farmer.
+        if reply:
+            with transaction.atomic():
+                locked = Wallet.objects.select_for_update().get(user=request.user)
+                locked.chat_count += 1
+                if not is_free_trial:
+                    locked.balance -= 10
+                locked.save(update_fields=['balance', 'chat_count', 'last_updated'])
+
         return JsonResponse({"response": reply})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
@@ -1071,6 +1088,7 @@ def mpesa_callback(request):
                 {"ResultCode": 1, "ResultDesc": "Forbidden"}, status=403
             )
 
+    checkout_request_id = None
     try:
         data = json.loads(request.body)
         stk_callback = data['Body']['stkCallback']
@@ -1079,30 +1097,42 @@ def mpesa_callback(request):
 
         with transaction.atomic():
             try:
-                mpesa_txn = MpesaTransaction.objects.get(checkout_request_id=checkout_request_id)
-                if result_code == 0:
-                    # Success
-                    mpesa_txn.status = 'Success'
-                    # Extract receipt number (usually at index 1 of Item list)
-                    meta = stk_callback['CallbackMetadata']['Item']
-                    receipt = next((item['Value'] for item in meta if item['Name'] == 'MpesaReceiptNumber'), None)
-                    mpesa_txn.receipt_number = receipt
-                    mpesa_txn.save()
+                # select_for_update so two concurrent retries for the same
+                # CheckoutRequestID cannot both credit the wallet.
+                mpesa_txn = (
+                    MpesaTransaction.objects.select_for_update()
+                    .filter(checkout_request_id=checkout_request_id)
+                    .first()
+                )
+                if mpesa_txn is None:
+                    pass
+                elif result_code == 0:
+                    if mpesa_txn.status == 'Success':
+                        # Safaricom retries callbacks. Already settled — acknowledge
+                        # without crediting the wallet a second time.
+                        pass
+                    else:
+                        mpesa_txn.status = 'Success'
+                        # Extract receipt number (usually at index 1 of Item list)
+                        meta = stk_callback['CallbackMetadata']['Item']
+                        receipt = next((item['Value'] for item in meta if item['Name'] == 'MpesaReceiptNumber'), None)
+                        mpesa_txn.receipt_number = receipt
+                        mpesa_txn.save()
 
-                    # Update Wallet or Subscription
-                    user = mpesa_txn.user
-                    # Update Wallet (Farmer/Buyer)
-                    wallet = user.wallet
-                    wallet.balance += mpesa_txn.amount
-                    wallet.save()
+                        wallet = Wallet.objects.select_for_update().get(user=mpesa_txn.user)
+                        wallet.balance += mpesa_txn.amount
+                        wallet.save(update_fields=['balance', 'last_updated'])
                 else:
-                    mpesa_txn.status = 'Failed'
-                    mpesa_txn.result_desc = stk_callback['ResultDesc']
-                    mpesa_txn.save()
-            except MpesaTransaction.DoesNotExist:
-                pass
-    except Exception as e:
-        print("M-Pesa Callback Error:", e)
+                    if mpesa_txn.status != 'Success':
+                        mpesa_txn.status = 'Failed'
+                        mpesa_txn.result_desc = stk_callback['ResultDesc']
+                        mpesa_txn.save()
+            except Wallet.DoesNotExist:
+                logger.warning(
+                    "No wallet for the M-Pesa transaction user; not credited."
+                )
+    except Exception:
+        logger.exception("M-Pesa callback failed for %s", checkout_request_id or "<unparsed>")
 
     return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
 

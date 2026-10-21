@@ -53,7 +53,7 @@ export function ContactCard({
         <div className="flex flex-wrap gap-1.5">
           {tags.slice(0, 6).map((t) => (
             <span key={t} className="chip">
-              {t}
+              {t.charAt(0).toUpperCase() + t.slice(1)}
             </span>
           ))}
         </div>
@@ -61,21 +61,21 @@ export function ContactCard({
       <div className="contact-card__actions">
         {intl ? (
           <>
-            <a href={`tel:+${intl}`} className="btn btn-secondary !py-1.5 text-xs">
+            <a href={`tel:+${intl}`} className="btn btn-secondary btn-sm">
               <CallIcon size={14} /> Call
             </a>
             <a
               href={`https://wa.me/${intl}${whatsappText ? `?text=${encodeURIComponent(whatsappText)}` : ""}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-ghost !py-1.5 text-xs"
+              className="btn btn-ghost btn-sm"
             >
               <MessageIcon size={14} /> WhatsApp
             </a>
           </>
         ) : null}
         {email ? (
-          <a href={`mailto:${email}`} className="btn btn-ghost !py-1.5 text-xs">
+          <a href={`mailto:${email}`} className="btn btn-ghost btn-sm">
             Email
           </a>
         ) : null}

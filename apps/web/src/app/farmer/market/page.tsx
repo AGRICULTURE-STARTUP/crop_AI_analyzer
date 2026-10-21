@@ -8,6 +8,7 @@ import { fetchBuyers } from "@/features/market/api";
 import { ContactCard } from "@/features/market/ContactCard";
 import { PriceFinder } from "@/features/market/PriceFinder";
 import { ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 export default function FarmerMarketPage() {
   return (
@@ -21,6 +22,11 @@ export default function FarmerMarketPage() {
 
 function MarketContent() {
   const params = useSearchParams();
+  const { user } = useAuth();
+  // Start on the farmer's main crop so the page opens with prices instead of an empty search box.
+  const mainCrop = String((user?.profile as { products?: string | null } | null)?.products ?? "")
+    .split(/[,;/|]+/)[0]
+    .trim();
   const buyers = useQuery({ queryKey: ["market-buyers"], queryFn: fetchBuyers });
   const list = buyers.data ?? [];
 
@@ -36,7 +42,7 @@ function MarketContent() {
             </p>
           </div>
         </div>
-        <PriceFinder audience="seller" initialCrop={params.get("crop") || ""} />
+        <PriceFinder audience="seller" initialCrop={params.get("crop") || mainCrop} />
       </section>
 
       <section className="space-y-4">

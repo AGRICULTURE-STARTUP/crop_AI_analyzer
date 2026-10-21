@@ -6,7 +6,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { fetchOverview, fetchRevenue } from "@/features/admin/api";
 import { BarChart } from "@/components/ui/charts";
 import { PageHeader, Card, StatCard } from "@/components/ui/Page";
-import { formatCompact, formatKsh, statusTone } from "@/lib/format";
+import { formatCompact, formatDateTime, formatKsh, statusTone } from "@/lib/format";
 
 export default function AdminRevenuePage() {
   const revenue = useQuery({ queryKey: ["admin-revenue"], queryFn: fetchRevenue });
@@ -71,6 +71,8 @@ export default function AdminRevenuePage() {
                 points={overview.data.series.revenue}
                 color="#f59e0b"
                 format={(n) => formatCompact(n)}
+                tipFormat={(n) => formatKsh(n) ?? "KSh 0"}
+                height={190}
               />
             ) : (
               <div className="skeleton h-52 rounded-xl" />
@@ -81,8 +83,8 @@ export default function AdminRevenuePage() {
             {data.recent_transactions.length === 0 ? (
               <p className="text-sm text-[var(--muted)]">No transactions yet.</p>
             ) : (
-              <div className="table-wrap !border-0">
-                <table className="data-table min-w-xl">
+              <div className="table-wrap table-wrap--stack !border-0">
+                <table className="data-table data-table--stack min-w-xl">
                   <thead>
                     <tr>
                       <th>User</th>
@@ -95,13 +97,17 @@ export default function AdminRevenuePage() {
                   <tbody>
                     {data.recent_transactions.map((txn) => (
                       <tr key={txn.id}>
-                        <td className="font-medium text-[var(--ink)]">{txn.username}</td>
-                        <td>{formatKsh(txn.amount)}</td>
-                        <td>
+                        <td className="cell-title font-medium text-[var(--ink)]">{txn.username}</td>
+                        <td data-label="Amount">{formatKsh(txn.amount)}</td>
+                        <td data-label="Status">
                           <span className={`badge ${statusTone(txn.status)}`}>{txn.status}</span>
                         </td>
-                        <td className="font-mono text-xs">{txn.receipt_number || "—"}</td>
-                        <td className="whitespace-nowrap">{new Date(txn.created_at).toLocaleString("en-KE")}</td>
+                        <td data-label="Receipt" className="font-mono text-xs">
+                          {txn.receipt_number || "—"}
+                        </td>
+                        <td data-label="Date" className="whitespace-nowrap">
+                          {formatDateTime(txn.created_at)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

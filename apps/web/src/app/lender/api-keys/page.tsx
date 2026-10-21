@@ -5,6 +5,8 @@ import { useState, type FormEvent } from "react";
 import { KeyIcon } from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
 import { Card, PageHeader } from "@/components/ui/Page";
+import { useToast } from "@/components/ui/Toast";
+import { useConfirm } from "@/components/ui/useConfirm";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatDate, timeAgo } from "@/lib/format";
 import type { LendingAPIKeyMeta } from "@/lib/types";
@@ -13,6 +15,8 @@ type CreatedKey = LendingAPIKeyMeta & { api_key?: string };
 
 export default function LenderApiKeysPage() {
   const qc = useQueryClient();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [rawKey, setRawKey] = useState("");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
@@ -23,10 +27,11 @@ export default function LenderApiKeysPage() {
   });
   const list: LendingAPIKeyMeta[] = Array.isArray(keys.data) ? keys.data : keys.data?.results || [];
 
-  const onSecret = (res: { api_key?: string }) => {
+  const onSecret = (message: string) => (res: { api_key?: string }) => {
     setRawKey(res.api_key || "");
     setCopied(false);
     setError("");
+    toast.success(message);
     qc.invalidateQueries({ queryKey: ["lender-keys"] });
   };
   const onFail = (fallback: string) => (err: unknown) =>
@@ -35,18 +40,21 @@ export default function LenderApiKeysPage() {
   const create = useMutation({
     mutationFn: (name: string) =>
       apiRequest<CreatedKey>("/api/v1/lender/api-keys/", { method: "POST", body: { name } }),
-    onSuccess: onSecret,
+    onSuccess: onSecret("Key created. Copy the secret now."),
     onError: onFail("Could not create the key."),
   });
   const rotate = useMutation({
     mutationFn: (id: number) =>
       apiRequest<{ api_key?: string }>(`/api/v1/lender/api-keys/${id}/rotate/`, { method: "POST" }),
-    onSuccess: onSecret,
+    onSuccess: onSecret("Key rotated. Copy the new secret now."),
     onError: onFail("Could not rotate the key."),
   });
   const revoke = useMutation({
     mutationFn: (id: number) => apiRequest(`/api/v1/lender/api-keys/${id}/revoke/`, { method: "POST" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["lender-keys"] }),
+    onSuccess: () => {
+      toast.success("Key revoked");
+      qc.invalidateQueries({ queryKey: ["lender-keys"] });
+    },
     onError: onFail("Could not revoke the key."),
   });
 
@@ -61,8 +69,9 @@ export default function LenderApiKeysPage() {
     try {
       await navigator.clipboard.writeText(rawKey);
       setCopied(true);
+      toast.success("Secret copied");
     } catch {
-      /* select manually */
+      toast.error("Could not copy. Select the secret and copy it by hand.");
     }
   }
 
@@ -73,10 +82,10 @@ export default function LenderApiKeysPage() {
         lead="Keys let your systems call the Farm Health Score API. A secret is shown only once, when you create or rotate a key."
       />
 
-      <div className="grid items-start gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
         <Card title="Create a key">
           <form onSubmit={onCreate} className="space-y-3">
-            <label className="block space-y-1.5 text-sm">
+            <label className="form-field">
               <span className="font-medium text-ink/80">Key name</span>
               <input className="field" name="name" defaultValue="Production" required maxLength={100} />
             </label>
@@ -96,15 +105,15 @@ export default function LenderApiKeysPage() {
                 <code className="block break-all rounded-md bg-white px-3 py-2 font-mono text-xs text-[var(--ink)]">
                   {rawKey}
                 </code>
-                <button type="button" className="btn btn-secondary !py-1 text-xs" onClick={copy}>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={copy}>
                   {copied ? "Copied" : "Copy secret"}
                 </button>
               </div>
             </div>
           ) : null}
 
-          <div className="table-wrap">
-            <table className="data-table min-w-[36rem]">
+          <div className="table-wrap table-wrap--stack">
+            <table className="data-table data-table--stack min-w-[36rem]">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -131,38 +140,51 @@ export default function LenderApiKeysPage() {
                 ) : (
                   list.map((k) => (
                     <tr key={k.id}>
-                      <td className="font-medium text-[var(--ink)]">{k.name}</td>
-                      <td className="font-mono text-xs">{k.key_prefix}…</td>
-                      <td>
+                      <td className="cell-title font-medium text-[var(--ink)]">{k.name}</td>
+                      <td data-label="Prefix" className="font-mono text-xs">
+                        {k.key_prefix}…
+                      </td>
+                      <td data-label="Status">
                         <span className={`badge ${k.is_active ? "badge-ok" : "badge-danger"}`}>
                           {k.is_active ? "Active" : "Revoked"}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap">{formatDate(k.created_at)}</td>
-                      <td className="whitespace-nowrap">{k.last_used_at ? timeAgo(k.last_used_at) : "Never"}</td>
-                      <td>
+                      <td data-label="Created" className="whitespace-nowrap">
+                        {formatDate(k.created_at)}
+                      </td>
+                      <td data-label="Last used" className="whitespace-nowrap">
+                        {k.last_used_at ? timeAgo(k.last_used_at) : "Never"}
+                      </td>
+                      <td className="cell-actions">
                         {k.is_active ? (
                           <div className="flex justify-end gap-2">
                             <button
-                              className="btn btn-ghost !py-1 text-xs"
+                              className="btn btn-ghost btn-sm"
                               type="button"
                               disabled={rotate.isPending}
-                              onClick={() => {
-                                if (window.confirm(`Rotate “${k.name}”? The old secret stops working immediately.`)) {
-                                  rotate.mutate(k.id);
-                                }
+                              onClick={async () => {
+                                const ok = await confirm({
+                                  title: `Rotate “${k.name}”?`,
+                                  message: "A new secret is created. The old secret stops working immediately.",
+                                  confirmLabel: "Rotate key",
+                                });
+                                if (ok) rotate.mutate(k.id);
                               }}
                             >
                               Rotate
                             </button>
                             <button
-                              className="btn btn-ghost !py-1 text-xs"
+                              className="btn btn-ghost btn-sm"
                               type="button"
                               disabled={revoke.isPending}
-                              onClick={() => {
-                                if (window.confirm(`Revoke “${k.name}”? Calls with it will be refused.`)) {
-                                  revoke.mutate(k.id);
-                                }
+                              onClick={async () => {
+                                const ok = await confirm({
+                                  title: `Revoke “${k.name}”?`,
+                                  message: "Calls made with this key are refused from now on. This cannot be undone.",
+                                  confirmLabel: "Revoke key",
+                                  tone: "danger",
+                                });
+                                if (ok) revoke.mutate(k.id);
                               }}
                             >
                               Revoke

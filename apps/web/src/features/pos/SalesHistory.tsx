@@ -6,6 +6,7 @@ import { BasketIcon, CartIcon, CoinsIcon, DownloadIcon, ReceiptIcon, SearchIcon 
 import { BarChart, BarList, Donut } from "@/components/ui/charts";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Card, FilterTabs, StatCard } from "@/components/ui/Page";
+import { useToast } from "@/components/ui/Toast";
 import { downloadCsv } from "@/lib/csv";
 import { ApiError } from "@/lib/api";
 import { formatCompact, formatKsh } from "@/lib/format";
@@ -50,6 +51,7 @@ export function SalesHistory() {
   const range = rangeFor(period);
   const sales = usePosSales(range);
   const { voidSale } = usePosActions();
+  const toast = useToast();
   const [payment, setPayment] = useState<"all" | PaymentMethod>("all");
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(PAGE);
@@ -129,6 +131,7 @@ export function SalesHistory() {
     }
     try {
       await voidSale.mutateAsync({ id: voiding.id, reason });
+      toast.success(`Receipt ${voiding.receiptNo} voided`);
       setVoiding(null);
     } catch (err) {
       setVoidError(err instanceof ApiError ? err.message : "Could not void the sale. Try again.");
@@ -241,8 +244,8 @@ export function SalesHistory() {
         </div>
       ) : (
         <>
-          <div className="table-wrap">
-            <table className="data-table min-w-[46rem]">
+          <div className="table-wrap table-wrap--stack">
+            <table className="data-table data-table--stack min-w-[46rem]">
               <thead>
                 <tr>
                   <th>Receipt</th>
@@ -260,38 +263,36 @@ export function SalesHistory() {
                   const more = sale.lines.length - 1;
                   return (
                     <tr key={sale.id} className={voided ? "is-voided" : ""}>
-                      <td className="font-medium text-[var(--ink)]">
+                      <td className="cell-title font-medium text-[var(--ink)]">
                         {sale.receiptNo}
                         {voided ? <span className="badge badge-danger badge--plain ml-1.5">Voided</span> : null}
                       </td>
-                      <td className="whitespace-nowrap">{time(sale.createdAt)}</td>
-                      <td className="max-w-[16rem] truncate">
+                      <td data-label="Time" className="whitespace-nowrap">
+                        {time(sale.createdAt)}
+                      </td>
+                      <td data-label="Items" className="max-w-[16rem] truncate">
                         {sale.lines[0]?.name}
                         {more > 0 ? <span className="text-xs text-[var(--muted)]"> +{more} more</span> : null}
                       </td>
-                      <td>{sale.customerName || "—"}</td>
-                      <td>
+                      <td data-label="Customer">{sale.customerName || "—"}</td>
+                      <td data-label="Payment">
                         <span className="badge badge--plain">
                           {paymentLabel(sale.payment)}
                           {sale.mpesaCode ? ` · ${sale.mpesaCode}` : ""}
                         </span>
                       </td>
-                      <td className="text-right font-semibold text-[var(--ink)]">
+                      <td data-label="Total" className="text-right font-semibold text-[var(--ink)]">
                         <span className={voided ? "line-through opacity-60" : ""}>{ksh(sale.total)}</span>
                       </td>
-                      <td>
+                      <td className="cell-actions">
                         <div className="flex justify-end gap-1.5">
-                          <button
-                            type="button"
-                            className="btn btn-ghost !px-2.5 !py-1 text-xs"
-                            onClick={() => setViewing(sale)}
-                          >
+                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setViewing(sale)}>
                             Receipt
                           </button>
                           {!voided ? (
                             <button
                               type="button"
-                              className="btn btn-ghost !px-2.5 !py-1 text-xs"
+                              className="btn btn-ghost btn-sm"
                               onClick={() => {
                                 setReason("");
                                 setVoidError("");

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { AppsIcon } from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
+import { useToast } from "@/components/ui/Toast";
 import { FilterTabs, PageHeader, StatCard } from "@/components/ui/Page";
 import { pricingLabel } from "@/features/modules/registry";
 import { MODULES_API_ENABLED, modulesRepository } from "@/features/modules/repository";
@@ -80,6 +81,7 @@ export default function AdminModulesPage() {
 
 function ModuleRow({ module }: { module: AdminModuleRow }) {
   const qc = useQueryClient();
+  const toast = useToast();
   const [draft, setDraft] = useState<ModuleSettings>(module.settings);
   const [saved, setSaved] = useState(false);
   const dirty = JSON.stringify(draft) !== JSON.stringify(module.settings);
@@ -92,6 +94,7 @@ function ModuleRow({ module }: { module: AdminModuleRow }) {
       }),
     onSuccess: () => {
       setSaved(true);
+      toast.success(`${module.name} saved`);
       qc.invalidateQueries({ queryKey: ["admin-modules"] });
       qc.invalidateQueries({ queryKey: ["modules"] });
     },

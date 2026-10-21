@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PortalShell } from "@/components/PortalShell";
 import { PageHeader } from "@/components/ui/Page";
 import { apiRequest } from "@/lib/api";
-import { statusTone } from "@/lib/format";
+import { formatDateTime, statusTone } from "@/lib/format";
 
 type UsageRow = {
   id: number;
@@ -37,8 +37,8 @@ export default function LenderUsagePage() {
         ) : rows.length === 0 ? (
           <p className="text-sm text-ink/65">No lookups yet.</p>
         ) : (
-          <div className="table-wrap">
-            <table className="data-table min-w-xl">
+          <div className="table-wrap table-wrap--stack">
+            <table className="data-table data-table--stack min-w-xl">
               <thead>
                 <tr>
                   <th>When</th>
@@ -50,16 +50,16 @@ export default function LenderUsagePage() {
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id}>
-                    <td>{new Date(row.created_at).toLocaleString()}</td>
-                    <td>
+                    <td className="cell-title font-medium text-[var(--ink)]">{formatDateTime(row.created_at)}</td>
+                    <td data-label="Status">
                       <span className={`badge ${statusTone(row.http_status)}`}>
                         {row.http_status}
                       </span>
                     </td>
-                    <td className="font-mono text-xs">
+                    <td data-label="Phone hash" className="font-mono text-xs">
                       {(row.phone_queried_hash || "—").slice(0, 12)}…
                     </td>
-                    <td>{row.api_key ?? "dashboard"}</td>
+                    <td data-label="Key">{row.api_key ?? "dashboard"}</td>
                   </tr>
                 ))}
               </tbody>

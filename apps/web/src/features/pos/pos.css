@@ -654,6 +654,12 @@
   background: linear-gradient(90deg, #eef7f0 0%, #fff 70%);
 }
 
+/* The text takes the width it needs and the buttons wrap beneath it on phones. */
+.pos-highlight__body {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+
 .pos-highlight__icon {
   display: grid;
   place-items: center;

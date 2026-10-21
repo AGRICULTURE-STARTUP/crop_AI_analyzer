@@ -29,6 +29,11 @@ chroma_db/
 infra/backups/
 infra/.env
 
+# Build artefacts / binaries that must never be committed
+*.apk
+*.aab
+*.ipa
+
 # Node (apps/web)
 node_modules/
 .next/

@@ -6,6 +6,8 @@ import { useState, type FormEvent } from "react";
 import { EyeIcon, EyeOffIcon, SearchIcon } from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
 import { Pagination } from "@/components/ui/Pagination";
+import { useToast } from "@/components/ui/Toast";
+import { useConfirm } from "@/components/ui/useConfirm";
 import { fetchAdminProducts, setProductHidden } from "@/features/admin/api";
 import type { AdminProductRow } from "@/features/admin/types";
 import { PageHeader, FilterTabs } from "@/components/ui/Page";
@@ -32,6 +34,8 @@ function statusOf(p: AdminProductRow) {
 
 export default function AdminMarketplacePage() {
   const qc = useQueryClient();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [status, setStatus] = useState<StatusFilter>("");
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
@@ -46,9 +50,10 @@ export default function AdminMarketplacePage() {
   });
 
   const visibility = useMutation({
-    mutationFn: ({ id, hidden }: { id: number; hidden: boolean }) => setProductHidden(id, hidden),
-    onSuccess: () => {
+    mutationFn: ({ id, hidden }: { id: number; hidden: boolean; name: string }) => setProductHidden(id, hidden),
+    onSuccess: (_data, { hidden, name }) => {
       setError("");
+      toast.success(hidden ? `“${name}” hidden from the marketplace` : `“${name}” is live again`);
       qc.invalidateQueries({ queryKey: ["admin-products"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
     },
@@ -61,12 +66,17 @@ export default function AdminMarketplacePage() {
     setPage(1);
   }
 
-  function onToggle(p: AdminProductRow) {
+  async function onToggle(p: AdminProductRow) {
     const hide = !p.is_hidden;
-    const message = hide
-      ? `Hide “${p.name}” from the marketplace? ${p.seller.name} still sees it, marked as hidden.`
-      : `Show “${p.name}” in the marketplace again?`;
-    if (window.confirm(message)) visibility.mutate({ id: p.id, hidden: hide });
+    const ok = await confirm({
+      title: hide ? `Hide “${p.name}”?` : `Show “${p.name}” again?`,
+      message: hide
+        ? `It leaves the marketplace, the farmer portal and USSD. ${p.seller.name} still sees it, marked as hidden.`
+        : "It appears in the marketplace again straight away.",
+      confirmLabel: hide ? "Hide listing" : "Show listing",
+      tone: hide ? "danger" : "primary",
+    });
+    if (ok) visibility.mutate({ id: p.id, hidden: hide, name: p.name });
   }
 
   const totals = products.data?.totals;
@@ -135,8 +145,8 @@ export default function AdminMarketplacePage() {
 
       {error ? <p className="mb-3 text-sm text-[var(--danger)]">{error}</p> : null}
 
-      <div className="table-wrap">
-        <table className="data-table min-w-[54rem]">
+      <div className="table-wrap table-wrap--stack">
+        <table className="data-table data-table--stack min-w-[54rem]">
           <thead>
             <tr>
               <th>Product</th>
@@ -166,7 +176,7 @@ export default function AdminMarketplacePage() {
                 const live = !p.is_hidden && p.is_available;
                 return (
                   <tr key={p.id}>
-                    <td>
+                    <td className="cell-title">
                       <div className="flex items-center gap-3">
                         <span className="thumb">
                           <ProductImage src={p.image} alt="" category={p.category} />
@@ -179,28 +189,30 @@ export default function AdminMarketplacePage() {
                         </span>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Seller">
                       <span className="block font-medium text-[var(--ink)]">{p.seller.name}</span>
                       <span className="block text-xs">{p.seller.county}</span>
                     </td>
-                    <td className="whitespace-nowrap">
+                    <td data-label="Price" className="whitespace-nowrap">
                       {formatKsh(p.price) ?? "On request"}
                       {p.price && p.unit ? <span className="block text-xs">per {p.unit}</span> : null}
                     </td>
-                    <td className="whitespace-nowrap">{formatDate(p.created_at)}</td>
-                    <td>
+                    <td data-label="Listed" className="whitespace-nowrap">
+                      {formatDate(p.created_at)}
+                    </td>
+                    <td data-label="Status">
                       <span className={`badge ${s.tone}`}>{s.label}</span>
                     </td>
-                    <td>
+                    <td className="cell-actions">
                       <div className="flex justify-end gap-2">
                         {live ? (
-                          <Link href={`/marketplace/${p.id}`} className="btn btn-ghost !py-1.5 text-xs">
+                          <Link href={`/marketplace/${p.id}`} className="btn btn-ghost btn-sm">
                             View
                           </Link>
                         ) : null}
                         <button
                           type="button"
-                          className={`btn !py-1.5 text-xs ${p.is_hidden ? "btn-primary" : "btn-ghost"}`}
+                          className={`btn btn-sm ${p.is_hidden ? "btn-primary" : "btn-ghost"}`}
                           disabled={visibility.isPending}
                           onClick={() => onToggle(p)}
                         >

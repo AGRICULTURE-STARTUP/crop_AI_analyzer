@@ -728,8 +728,18 @@ class MpesaTopupView(APIView):
         amount = serializer.validated_data["amount"]
         phone = serializer.validated_data["phone_number"]
 
-        callback_url = request.build_absolute_uri("/mpesa/callback/")
         mpesa_client = MpesaGateway()
+        if not mpesa_client.is_configured():
+            logger.error(
+                "M-Pesa top-up refused: gateway not configured (%s)",
+                mpesa_client.config_error or "missing credentials",
+            )
+            return Response(
+                {"detail": "Payments are not available right now. Please try again later."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        callback_url = request.build_absolute_uri("/mpesa/callback/")
         response = mpesa_client.initiate_stk_push(phone, amount, callback_url)
 
         if "CheckoutRequestID" in response:

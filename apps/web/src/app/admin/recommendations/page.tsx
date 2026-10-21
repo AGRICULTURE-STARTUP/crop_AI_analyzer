@@ -42,7 +42,7 @@ export default function AdminRecommendationsPage() {
             <StatCard
               label="Model accuracy"
               value={`${(data.model.accuracy * 100).toFixed(1)}%`}
-              sub={`${data.model.algorithm} · ${data.model.dataset_rows.toLocaleString("en-KE")} records · ${data.model.crops} crops`}
+              sub={`${data.model.dataset_rows.toLocaleString("en-KE")} training records`}
               Icon={ChartIcon}
               tone="plum"
             />
@@ -53,6 +53,7 @@ export default function AdminRecommendationsPage() {
               {overview.data ? (
                 <AreaChart
                   series={[{ label: "Advisor runs", color: "#1e88e5", points: overview.data.series.recommendations }]}
+                  height={230}
                 />
               ) : (
                 <div className="skeleton h-52 rounded-xl" />
@@ -70,8 +71,8 @@ export default function AdminRecommendationsPage() {
             {data.recent.length === 0 ? (
               <p className="text-sm text-[var(--muted)]">No runs yet.</p>
             ) : (
-              <div className="table-wrap !border-0">
-                <table className="data-table min-w-[36rem]">
+              <div className="table-wrap table-wrap--stack !border-0">
+                <table className="data-table data-table--stack min-w-[36rem]">
                   <thead>
                     <tr>
                       <th>Farmer</th>
@@ -84,11 +85,13 @@ export default function AdminRecommendationsPage() {
                   <tbody>
                     {data.recent.map((r) => (
                       <tr key={r.id}>
-                        <td className="font-medium text-[var(--ink)]">{r.username}</td>
-                        <td>{r.top_crop}</td>
-                        <td>{formatConfidence(r.confidence)}</td>
-                        <td>{r.location || "—"}</td>
-                        <td className="whitespace-nowrap">{timeAgo(r.created_at)}</td>
+                        <td className="cell-title font-medium text-[var(--ink)]">{r.username}</td>
+                        <td data-label="Best match">{r.top_crop}</td>
+                        <td data-label="Confidence">{formatConfidence(r.confidence)}</td>
+                        <td data-label="Location">{r.location || "—"}</td>
+                        <td data-label="When" className="whitespace-nowrap">
+                          {timeAgo(r.created_at)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

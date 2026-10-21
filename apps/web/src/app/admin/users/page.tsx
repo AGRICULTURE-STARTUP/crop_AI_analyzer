@@ -5,6 +5,8 @@ import { useState, type FormEvent } from "react";
 import { SearchIcon } from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
 import { Pagination } from "@/components/ui/Pagination";
+import { useToast } from "@/components/ui/Toast";
+import { useConfirm } from "@/components/ui/useConfirm";
 import { fetchUsers, setUserActive } from "@/features/admin/api";
 import type { AdminUserRow } from "@/features/admin/types";
 import { PageHeader, FilterTabs } from "@/components/ui/Page";
@@ -23,6 +25,8 @@ const ROLE_LABELS: Record<Exclude<RoleFilter, "">, string> = {
 
 export default function AdminUsersPage() {
   const qc = useQueryClient();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [role, setRole] = useState<RoleFilter>("");
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
@@ -37,9 +41,10 @@ export default function AdminUsersPage() {
   });
 
   const toggle = useMutation({
-    mutationFn: ({ id, active }: { id: number; active: boolean }) => setUserActive(id, active),
-    onSuccess: () => {
+    mutationFn: ({ id, active }: { id: number; active: boolean; name: string }) => setUserActive(id, active),
+    onSuccess: (_data, { active, name }) => {
       setError("");
+      toast.success(active ? `${name} restored` : `${name} suspended`);
       qc.invalidateQueries({ queryKey: ["admin-users"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
     },
@@ -52,12 +57,18 @@ export default function AdminUsersPage() {
     setPage(1);
   }
 
-  function onToggle(u: AdminUserRow) {
+  async function onToggle(u: AdminUserRow) {
     const suspend = u.is_active;
-    const message = suspend
-      ? `Suspend ${u.name || u.username}? They are signed out and cannot log in until you restore them.`
-      : `Restore ${u.name || u.username}? They can log in again straight away.`;
-    if (window.confirm(message)) toggle.mutate({ id: u.id, active: !u.is_active });
+    const name = u.name || u.username;
+    const ok = await confirm({
+      title: suspend ? `Suspend ${name}?` : `Restore ${name}?`,
+      message: suspend
+        ? "They are signed out and cannot log in until you restore them."
+        : "They can log in again straight away.",
+      confirmLabel: suspend ? "Suspend" : "Restore",
+      tone: suspend ? "danger" : "primary",
+    });
+    if (ok) toggle.mutate({ id: u.id, active: !u.is_active, name });
   }
 
   const totals = users.data?.role_totals;
@@ -122,8 +133,8 @@ export default function AdminUsersPage() {
 
       {error ? <p className="mb-3 text-sm text-[var(--danger)]">{error}</p> : null}
 
-      <div className="table-wrap">
-        <table className="data-table min-w-[52rem]">
+      <div className="table-wrap table-wrap--stack">
+        <table className="data-table data-table--stack min-w-[52rem]">
           <thead>
             <tr>
               <th>User</th>
@@ -151,7 +162,7 @@ export default function AdminUsersPage() {
             ) : (
               users.data?.results.map((u) => (
                 <tr key={u.id}>
-                  <td>
+                  <td className="cell-title">
                     <div className="flex items-center gap-3">
                       <span className="avatar avatar--light">{initialsOf(u.name || u.username)}</span>
                       <span className="min-w-0">
@@ -162,24 +173,30 @@ export default function AdminUsersPage() {
                       </span>
                     </div>
                   </td>
-                  <td>
+                  <td data-label="Role">
                     <span className="badge">{u.role}</span>
                   </td>
-                  <td className="max-w-[12rem] truncate">{u.detail || "—"}</td>
-                  <td className="whitespace-nowrap">{formatDate(u.date_joined)}</td>
-                  <td className="whitespace-nowrap">{u.last_login ? timeAgo(u.last_login) : "Never"}</td>
-                  <td>
+                  <td data-label="Details" className="max-w-[12rem] truncate">
+                    {u.detail || "—"}
+                  </td>
+                  <td data-label="Joined" className="whitespace-nowrap">
+                    {formatDate(u.date_joined)}
+                  </td>
+                  <td data-label="Last login" className="whitespace-nowrap">
+                    {u.last_login ? timeAgo(u.last_login) : "Never"}
+                  </td>
+                  <td data-label="Status">
                     <span className={`badge ${u.is_active ? "badge-ok" : "badge-danger"}`}>
                       {u.is_active ? "Active" : "Suspended"}
                     </span>
                   </td>
-                  <td className="text-right">
+                  <td className="cell-actions text-right">
                     {u.is_staff ? (
                       <span className="text-xs">Staff</span>
                     ) : (
                       <button
                         type="button"
-                        className={`btn !py-1.5 text-xs ${u.is_active ? "btn-ghost" : "btn-primary"}`}
+                        className={`btn btn-sm ${u.is_active ? "btn-ghost" : "btn-primary"}`}
                         disabled={toggle.isPending}
                         onClick={() => onToggle(u)}
                       >

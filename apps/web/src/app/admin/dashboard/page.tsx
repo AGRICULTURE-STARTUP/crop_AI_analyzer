@@ -114,6 +114,7 @@ export default function AdminDashboardPage() {
                   { label: "Scans", color: "#f59e0b", points: data.series.scans },
                   { label: "Advisor runs", color: "#1e88e5", points: data.series.recommendations },
                 ]}
+                height={250}
               />
             </Card>
             <Card title="Users by role">
@@ -143,6 +144,8 @@ export default function AdminDashboardPage() {
                 points={data.series.revenue}
                 color="#f59e0b"
                 format={(n) => formatCompact(n)}
+                tipFormat={(n) => formatKsh(n) ?? "KSh 0"}
+                height={215}
               />
             </Card>
             <Card title="Needs attention">
@@ -190,7 +193,7 @@ export default function AdminDashboardPage() {
           <div className="dash-grid dash-grid--3">
             <Card title="Top recommended crops">
               <BarList
-                rows={data.breakdown.top_crops.map((c) => ({ key: c.slug, label: c.name, value: c.count }))}
+                rows={data.breakdown.top_crops.slice(0, 5).map((c) => ({ key: c.slug, label: c.name, value: c.count }))}
                 empty="No advisor runs yet."
               />
             </Card>

@@ -91,3 +91,29 @@
   background: #f8fbf9;
   font-size: 0.8125rem;
 }
+
+/* Heading above the list on wide screens (the sidebar dropdown is the page switcher there). */
+.records__heading {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+@media (min-width: 1024px) {
+  .records__heading {
+    display: flex;
+  }
+}
+
+.records__heading span {
+  min-width: 1.5rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: #e8efe9;
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--muted);
+}

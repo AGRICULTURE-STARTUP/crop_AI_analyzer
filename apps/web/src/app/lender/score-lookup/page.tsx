@@ -55,7 +55,7 @@ export default function LenderScoreLookupPage() {
       <div className="grid items-start gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
         <Card title="Look up a farmer">
           <form onSubmit={onSubmit} className="space-y-3">
-            <label className="block space-y-1.5 text-sm">
+            <label className="form-field">
               <span className="font-medium text-ink/80">Registered phone number</span>
               <input className="field" name="phone" placeholder="2547XXXXXXXX or 07XXXXXXXX" inputMode="tel" required />
             </label>

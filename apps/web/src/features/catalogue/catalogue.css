@@ -1,0 +1,116 @@
+/* My products (agency): product cards, stock switch, add / edit dialog. */
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  list-style: none;
+}
+
+@media (min-width: 768px) {
+  .cat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .cat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.cat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cat-card:hover {
+  border-color: var(--sprout);
+  box-shadow: var(--shadow-lift);
+}
+
+.cat-card__main {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.cat-card__thumb {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.cat-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.cat-card__meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.cat-card__price {
+  margin-top: 0.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--leaf-deep);
+}
+
+.cat-card__price span {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.cat-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+
+.cat-card__note {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.stock-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+.stock-toggle .switch {
+  margin: 0;
+}
+
+.photo-pick {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.photo-pick__img {
+  width: 100%;
+  max-height: 9rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  object-fit: contain;
+}

@@ -44,11 +44,11 @@ export function SellerDirectory({ basePath }: { basePath: string }) {
   return (
     <div className="space-y-5">
       <form onSubmit={onSubmit} className="panel flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
-        <label className="block flex-1 space-y-1.5 text-sm">
+        <label className="form-field flex-1">
           <span className="font-medium text-ink/80">County</span>
           <input className="field" value={county} onChange={(e) => setCounty(e.target.value)} placeholder="e.g. Nakuru" />
         </label>
-        <label className="block space-y-1.5 text-sm sm:w-56">
+        <label className="form-field sm:w-56">
           <span className="font-medium text-ink/80">Type</span>
           <select className="field" value={type} onChange={(e) => setType(e.target.value)}>
             {AGENCY_TYPES.map((t) => (
@@ -89,11 +89,11 @@ export function SellerDirectory({ basePath }: { basePath: string }) {
                   <PinIcon size={14} /> {a.county || "County not set"}
                 </p>
                 <div className="mt-auto flex flex-wrap gap-2">
-                  <Link href={`${basePath}?seller=${a.id}`} className="btn btn-secondary !py-1.5 text-xs">
+                  <Link href={`${basePath}?seller=${a.id}`} className="btn btn-secondary btn-sm">
                     {a.product_count} product{a.product_count === 1 ? "" : "s"}
                   </Link>
                   {phone ? (
-                    <a href={`tel:+${phone}`} className="btn btn-ghost !py-1.5 text-xs">
+                    <a href={`tel:+${phone}`} className="btn btn-ghost btn-sm">
                       <CallIcon size={14} /> {a.phone}
                     </a>
                   ) : null}

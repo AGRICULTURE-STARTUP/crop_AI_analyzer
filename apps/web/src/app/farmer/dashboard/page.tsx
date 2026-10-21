@@ -7,17 +7,18 @@ import {
   BasketIcon,
   CloudIcon,
   CoinsIcon,
-  DropIcon,
+  InfoIcon,
   ScanIcon,
   ShieldIcon,
   SproutIcon,
-  ThermometerIcon,
 } from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
 import { Card, PageHeader, StatCard } from "@/components/ui/Page";
 import { CropImage } from "@/features/advisor/CropImage";
 import { formatConfidence } from "@/features/advisor/format";
 import { fetchFarmerOverview } from "@/features/farmer/api";
+import { SCORE_MAX, SCORE_MIN, scorePercent } from "@/features/farmer/score";
+import { weatherTip } from "@/features/farmer/weather";
 import { fetchKamisPrices } from "@/features/market/api";
 import { bestMarket } from "@/features/market/prices";
 import { AppsStrip } from "@/features/modules/AppsStrip";
@@ -28,8 +29,6 @@ import { useAuth } from "@/lib/auth";
 import { formatKsh, statusTone, timeAgo } from "@/lib/format";
 import type { WeatherResponse } from "@/lib/types";
 
-const SCORE_MIN = 300;
-const SCORE_MAX = 850;
 
 function greeting() {
   const h = new Date().getHours();
@@ -67,7 +66,6 @@ export default function FarmerDashboardPage() {
   const best = prices.data?.count ? bestMarket(prices.data.results, "seller") : null;
   const w = weather.data?.weather;
   const score = data?.health?.score ?? null;
-  const scorePct = score === null ? 0 : ((score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * 100;
 
   return (
     <PortalShell role="farmer" title="Dashboard">
@@ -204,15 +202,24 @@ export default function FarmerDashboardPage() {
                   </div>
                   <ul className="weather-tile__facts">
                     <li>
-                      <DropIcon size={15} /> Humidity {w.humidity_percent ?? "—"}%
+                      <strong>{w.humidity_percent ?? "—"}%</strong>
+                      <span>Humidity</span>
                     </li>
                     <li>
-                      <ThermometerIcon size={15} /> Wind {w.wind_speed_m_s ?? "—"} m/s
+                      <strong>{w.wind_speed_m_s ?? "—"} m/s</strong>
+                      <span>Wind</span>
                     </li>
                     <li>
-                      <CloudIcon size={15} /> Rain (last hour) {w.rainfall_1h_mm ?? 0} mm
+                      <strong>{w.rainfall_1h_mm ?? 0} mm</strong>
+                      <span>Rain, last hour</span>
                     </li>
                   </ul>
+                  {weatherTip(w) ? (
+                    <p className="weather-tile__tip">
+                      <InfoIcon size={15} />
+                      {weatherTip(w)}
+                    </p>
+                  ) : null}
                 </div>
               ) : (
                 <p className="text-sm text-ink/70">{weather.data?.detail || "Weather is not available right now."}</p>
@@ -301,7 +308,7 @@ export default function FarmerDashboardPage() {
             <Card title="Farm Health Score">
               <div className="score-meter" role="img" aria-label={`Farm Health Score ${score} out of ${SCORE_MAX}`}>
                 <div className="score-meter__track">
-                  <span className="score-meter__fill" style={{ width: `${Math.max(2, Math.min(100, scorePct))}%` }} />
+                  <span className="score-meter__fill" style={{ width: `${scorePercent(score)}%` }} />
                 </div>
                 <div className="score-meter__scale">
                   <span>{SCORE_MIN}</span>

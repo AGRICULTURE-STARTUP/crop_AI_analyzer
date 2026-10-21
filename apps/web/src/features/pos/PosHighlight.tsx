@@ -24,7 +24,7 @@ export function PosHighlight() {
         <span className="pos-highlight__icon">
           <CartIcon size={22} />
         </span>
-        <div className="min-w-0 flex-1">
+        <div className="pos-highlight__body">
           <p className="pos-highlight__title">
             Sell over the counter with {pos.name}
             <span className="badge badge-warn badge--plain">{pricingLabel(pos.settings.model, pos.settings.price)}</span>
@@ -42,7 +42,7 @@ export function PosHighlight() {
       <span className="pos-highlight__icon">
         <CartIcon size={22} />
       </span>
-      <div className="min-w-0 flex-1">
+      <div className="pos-highlight__body">
         <p className="pos-highlight__title">Today at the counter</p>
         <p className="pos-highlight__text">
           {sales.isLoading ? (
@@ -57,10 +57,10 @@ export function PosHighlight() {
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Link href="/agency/pos/sales" className="btn btn-ghost !py-1.5 text-xs">
+        <Link href="/agency/pos/sales" className="btn btn-ghost btn-sm">
           Sales history
         </Link>
-        <Link href="/agency/pos" className="btn btn-primary !py-1.5 text-xs">
+        <Link href="/agency/pos" className="btn btn-primary btn-sm">
           New sale
         </Link>
       </div>

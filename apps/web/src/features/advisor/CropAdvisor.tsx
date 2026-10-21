@@ -368,7 +368,7 @@ export function CropAdvisor({ mode }: { mode: "public" | "portal" }) {
                   </div>
                   <button
                     type="button"
-                    className="btn btn-ghost !px-3 !py-1.5 text-xs"
+                    className="btn btn-ghost btn-sm"
                     onClick={() => {
                       setDraft(toDraft(item.inputs));
                       setResult(null);

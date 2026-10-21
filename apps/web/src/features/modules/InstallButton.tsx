@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useModuleActions } from "./hooks";
@@ -21,13 +22,14 @@ export function InstallButton({
   size?: "sm" | "md";
 }) {
   const { user } = useAuth();
+  const toast = useToast();
   const { install, uninstall } = useModuleActions();
   const [confirm, setConfirm] = useState<"install" | "remove" | null>(null);
   const [error, setError] = useState("");
   const [lowBalance, setLowBalance] = useState(false);
   const paid = module.settings.model !== "free" && module.settings.price > 0;
   const price = pricingLabel(module.settings.model, module.settings.price);
-  const small = size === "sm" ? "!py-1.5 text-xs" : "";
+  const small = size === "sm" ? "btn-sm" : "";
   // Farmers top up from their profile; other roles have no top-up screen yet.
   const topUpPath = user?.role === "farmer" ? "/farmer/profile" : null;
   const payFrom = user?.role === "farmer" ? "your wallet" : "your AgriScan account balance";
@@ -39,6 +41,11 @@ export function InstallButton({
       if (action === "install") await install.mutateAsync(module.key);
       else await uninstall.mutateAsync(module.key);
       setConfirm(null);
+      toast.success(
+        action === "install"
+          ? `${module.name} installed. Find it in your menu under My apps.`
+          : `${module.name} removed. Your saved data is kept.`
+      );
     } catch (err) {
       const short = err instanceof ApiError && err.status === 402;
       setLowBalance(short);

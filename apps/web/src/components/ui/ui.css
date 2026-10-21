@@ -123,11 +123,60 @@
 
 .stat-card__sub {
   grid-area: sub;
+  min-height: 1.1em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.6875rem;
   color: var(--muted);
+}
+
+/* Phones: two compact tiles per row instead of one tall tile each. */
+@media (max-width: 639px) {
+  .stat-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .stat-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label icon"
+      "value value"
+      "sub sub";
+    column-gap: 0.4rem;
+    row-gap: 0.1rem;
+    align-items: start;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .stat-card__icon {
+    grid-area: icon;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 8px;
+  }
+
+  .stat-card__icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .stat-card__arrow {
+    display: none;
+  }
+
+  .stat-card__label {
+    align-self: center;
+  }
+
+  .stat-card__value {
+    font-size: 1.1rem;
+  }
+
+  .stat-card__sub {
+    white-space: normal;
+  }
 }
 
 .dash-grid {
@@ -154,6 +203,12 @@
   .dash-grid--3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* Cards in a dashboard row share a height; let their content use it. */
+.dash-grid > .ui-card {
+  display: flex;
+  flex-direction: column;
 }
 
 .ui-card {
@@ -572,81 +627,6 @@
   }
 }
 
-/* Farmer profile inside the portal: smaller avatar and weather panel. */
-.app-main .profile-avatar {
-  width: 4.75rem;
-  height: 4.75rem;
-  border-width: 3px;
-}
-
-.app-main .profile-avatar__initials {
-  font-size: 1.35rem;
-}
-
-.app-main .profile-avatar__edit {
-  width: 1.75rem;
-  height: 1.75rem;
-}
-
-.app-main .weather-panel {
-  padding: 1rem 1.15rem 1.15rem;
-}
-
-.app-main .weather-temp {
-  font-size: 2.4rem;
-}
-
-.app-main .weather-stats {
-  margin-top: 0.9rem;
-  gap: 0.5rem;
-}
-
-.app-main .w-stat {
-  padding: 0.5rem 0.4rem;
-}
-
-.app-main .w-stat strong {
-  font-size: 0.875rem;
-}
-
-.app-main .profile-stat {
-  padding: 0.65rem 0.8rem;
-}
-
-.app-main .profile-stat dd {
-  font-size: 0.875rem;
-}
-
-/* Wallet card (farmer profile) */
-.wallet-balance {
-  margin-top: 0.75rem;
-  padding: 0.9rem 1rem;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--forest) 0%, var(--leaf-deep) 100%);
-  color: #fff;
-}
-
-.wallet-balance__label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.wallet-balance__value {
-  margin-top: 0.15rem;
-  font-size: 1.6rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.wallet-balance__meta {
-  margin-top: 0.15rem;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
 .amount-chips {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -672,4 +652,288 @@
   border-color: var(--leaf-deep);
   background: var(--mist);
   color: var(--leaf-deep);
+}
+
+/* ------------------------------------------------------------------ */
+/* Form fields: label above control, the same gap for every control    */
+/* ------------------------------------------------------------------ */
+
+.form-field {
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Toasts                                                               */
+/* ------------------------------------------------------------------ */
+
+.toast-region {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  z-index: 140;
+  display: grid;
+  gap: 0.5rem;
+  width: min(calc(100vw - 2rem), 26rem);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.65rem 0.7rem 0.65rem 0.75rem;
+  border-radius: 12px;
+  background: var(--forest-deep);
+  color: #fff;
+  font-size: 0.8125rem;
+  box-shadow: 0 14px 34px rgba(6, 30, 16, 0.3);
+  pointer-events: auto;
+  animation: toast-in 0.22s ease both;
+}
+
+.toast--error {
+  background: #7f1d18;
+}
+
+.toast__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.toast--success .toast__icon {
+  background: var(--sprout);
+  color: var(--forest-deep);
+}
+
+.toast__text {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0.15rem;
+  line-height: 1.4;
+}
+
+.toast__close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.toast__close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Tables that become a stack of cards on phones                        */
+/* Add .data-table--stack to the <table>, .table-wrap--stack to its     */
+/* wrapper, and data-label="Column name" to each <td>. A cell with      */
+/* class cell-title leads the card; cell-actions closes it.             */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 639px) {
+  .table-wrap--stack {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .data-table--stack {
+    min-width: 0;
+  }
+
+  .data-table--stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .data-table--stack,
+  .data-table--stack tbody,
+  .data-table--stack tfoot,
+  .data-table--stack tr {
+    display: block;
+  }
+
+  .data-table--stack tr {
+    margin-bottom: 0.55rem;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .app-main .data-table--stack td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.4rem 0;
+    border: 0;
+    background: transparent;
+    text-align: right;
+  }
+
+  .data-table--stack tbody tr:hover td {
+    background: transparent;
+  }
+
+  .data-table--stack td[data-label]::before {
+    content: attr(data-label);
+    flex: none;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--muted);
+  }
+
+  .app-main .data-table--stack td.cell-title {
+    display: block;
+    padding: 0.35rem 0 0.5rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .app-main .data-table--stack td.cell-title::before {
+    display: none;
+  }
+
+  .app-main .data-table--stack td.cell-actions {
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .app-main .data-table--stack td.cell-actions::before {
+    display: none;
+  }
+
+  .data-table--stack td .truncate {
+    max-width: 14rem;
+  }
+
+  /* Loading / empty rows span every column: centre them instead of labelling. */
+  .app-main .data-table--stack td[colspan]:not([data-label]) {
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Footer totals keep their own card */
+  .app-main .data-table--stack tfoot tr {
+    background: var(--mist);
+  }
+
+  .app-main .data-table--stack tfoot td {
+    padding: 0.3rem 0;
+    border: 0;
+    background: transparent;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Touch screens: bigger targets, same look                             */
+/* ------------------------------------------------------------------ */
+
+@media (pointer: coarse) {
+  .app-main .btn,
+  .app-main .field,
+  .app-main .search-box input {
+    min-height: 2.75rem;
+  }
+
+  .app-main .btn.btn-sm,
+  .app-main .btn[class*="!py-1"] {
+    min-height: 2.5rem;
+  }
+
+  .app-main .icon-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .filter-tabs :is(button, a),
+  .segmented button,
+  .pos-cats button {
+    min-height: 2.5rem;
+  }
+
+  .app-main .ui-card__link,
+  .app-main .apps-strip__store {
+    padding-block: 0.6rem;
+    margin-block: -0.6rem;
+  }
+
+  .app-nav__link,
+  .app-nav__sublink {
+    min-height: 2.6rem;
+  }
+}
+
+/* Compact button / icon button sizes for table rows and card actions. */
+.btn.btn-sm,
+.app-main .btn.btn-sm {
+  padding: 0.28rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+.icon-btn.icon-btn--sm {
+  width: 1.85rem;
+  height: 1.85rem;
+}
+
+/* Neutral icon button (edit, more…): the default one turns red on hover for delete. */
+.icon-btn.icon-btn--neutral:hover:not(:disabled) {
+  border-color: var(--sprout);
+  background: var(--mist);
+  color: var(--leaf-deep);
+}
+
+/* Form dialogs (add / edit product, edit profile) */
+.dialog.dialog--form {
+  width: min(100%, 34rem);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.dialog__fields {
+  display: grid;
+  gap: 0.8rem;
 }

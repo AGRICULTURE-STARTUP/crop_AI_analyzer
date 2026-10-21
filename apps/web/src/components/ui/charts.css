@@ -37,6 +37,99 @@
   overflow: visible;
 }
 
+/* Hover / keyboard layer over the plot: guide line, dots and tooltip. */
+.chart__hit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 2.75rem;
+  cursor: crosshair;
+  touch-action: pan-y;
+  border-radius: 6px;
+}
+
+.chart__hit:focus-visible {
+  outline: 2px solid var(--leaf-500);
+  outline-offset: 2px;
+}
+
+.chart__guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--line-strong);
+  pointer-events: none;
+}
+
+.chart__dot {
+  position: absolute;
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 2px solid var(--leaf-500);
+  border-radius: 999px;
+  background: #fff;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.chart__tip {
+  position: absolute;
+  top: 0.25rem;
+  z-index: 3;
+  min-width: 7.5rem;
+  max-width: 14rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: var(--forest-deep);
+  color: #fff;
+  font-size: 0.75rem;
+  box-shadow: 0 10px 24px rgba(6, 30, 16, 0.28);
+  transform: translateX(0.6rem);
+  pointer-events: none;
+}
+
+.chart__tip.is-left {
+  transform: translateX(calc(-100% - 0.6rem));
+}
+
+.chart__tip-title {
+  margin-bottom: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.chart__tip ul {
+  display: grid;
+  gap: 0.15rem;
+  list-style: none;
+}
+
+.chart__tip li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.chart__tip li span {
+  flex: 1;
+}
+
+.chart__tip li i {
+  flex: none;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 3px;
+}
+
+.chart__tip li strong {
+  margin-left: auto;
+  font-weight: 600;
+}
+
 .chart__x {
   display: flex;
   justify-content: space-between;
@@ -72,6 +165,17 @@
   display: grid;
   gap: 0.8rem;
   list-style: none;
+}
+
+.bar-list li {
+  padding: 0.2rem 0.4rem;
+  margin: -0.2rem -0.4rem;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.bar-list li:hover {
+  background: #f6faf7;
 }
 
 .bar-list__row {
@@ -169,10 +273,22 @@
   font-size: 0.8125rem;
 }
 
+.donut__arc {
+  transition: opacity 0.15s ease, stroke-width 0.15s ease;
+}
+
 .donut__legend li {
   display: flex;
   align-items: center;
   gap: 0.55rem;
+  padding: 0.15rem 0.4rem;
+  margin: 0 -0.4rem;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.donut__legend li.is-focus {
+  background: var(--mist);
 }
 
 .donut__legend i {

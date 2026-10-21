@@ -132,3 +132,42 @@
   background: var(--mist);
   color: var(--leaf-deep);
 }
+
+/* Quick-pick crops under the price search */
+.quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: -0.35rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.quick-chips button {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.quick-chips button:hover {
+  border-color: var(--sprout);
+  background: var(--mist);
+}
+
+.quick-chips button.is-active {
+  border-color: var(--leaf-deep);
+  background: var(--leaf-deep);
+  color: #fff;
+}
+
+@media (pointer: coarse) {
+  .quick-chips button {
+    min-height: 2.25rem;
+  }
+}

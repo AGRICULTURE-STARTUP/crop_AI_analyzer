@@ -42,6 +42,16 @@ export function formatDate(value?: string | null): string {
     : d.toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** "6 Oct 2026, 08:36" — the same style as formatDate, with the time. */
+export function formatDateTime(value?: string | null): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  const date = d.toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" });
+  const time = d.toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${date}, ${time}`;
+}
+
 /** "3 days ago" style label. */
 export function timeAgo(value?: string | null): string {
   if (!value) return "—";

@@ -159,7 +159,7 @@ export function SignupForm({
           <p className="mt-1 text-sm text-ink/70">{meta.blurb}</p>
         </div>
 
-        <label className="block space-y-1.5 text-sm">
+        <label className="form-field">
           <span className="font-medium text-ink/80">I am signing up as</span>
           <select
             className="field"
@@ -247,7 +247,7 @@ export function SignupForm({
                   placeholder="Maize, tomato, beans"
                 />
               ) : (
-                <label className="block space-y-1.5 text-sm sm:col-span-2">
+                <label className="form-field sm:col-span-2">
                   <span className="font-medium text-ink/80">
                     Photo <span className="text-[var(--danger)]">*</span>
                   </span>

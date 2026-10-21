@@ -1,7 +1,9 @@
 /* Farmer dashboard tiles. */
 
 .weather-tile {
-  display: grid;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   gap: 1rem;
 }
 
@@ -22,20 +24,47 @@
 
 .weather-tile__facts {
   display: grid;
-  gap: 0.45rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
   list-style: none;
-  font-size: 0.8125rem;
-  color: var(--text-body);
 }
 
 .weather-tile__facts li {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.55rem 0.5rem;
+  border-radius: 10px;
+  background: var(--paper);
+  text-align: center;
 }
 
-.weather-tile__facts svg {
-  color: var(--leaf);
+.weather-tile__facts strong {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.weather-tile__facts span {
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+.weather-tile__tip {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  background: #fff8e6;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #6b4a07;
+}
+
+.weather-tile__tip svg {
+  flex: none;
+  margin-top: 0.1rem;
 }
 
 .advice-tile {
@@ -90,5 +119,50 @@
 
 .score-meter__scale strong {
   font-size: 0.875rem;
+  color: var(--ink);
+}
+
+/* Scan page */
+.scan-cost {
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.scan-steps {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  list-style: none;
+}
+
+.scan-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.scan-steps li > span {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--mist);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--leaf-deep);
+}
+
+.scan-steps p {
+  font-size: 0.8125rem;
+  color: var(--text-body);
+}
+
+.scan-steps strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--ink);
 }

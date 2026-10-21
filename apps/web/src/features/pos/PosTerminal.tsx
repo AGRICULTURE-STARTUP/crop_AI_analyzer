@@ -5,10 +5,12 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CartIcon, CloseIcon, MinusIcon, PlusIcon, SearchIcon, StoreIcon } from "@/components/Icons";
 import { ProductImage } from "@/features/marketplace/ProductImage";
 import { ApiError, mediaUrl } from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/lib/auth";
 import { formatKsh } from "@/lib/format";
 import type { AgencyProduct } from "@/lib/types";
-import { usePosActions, usePosSales, useShopProducts } from "./hooks";
+import { useShopProducts } from "@/features/catalogue/hooks";
+import { usePosActions, usePosSales } from "./hooks";
 import { ReceiptDialog } from "./Receipt";
 import { newRef } from "./repository";
 import {
@@ -64,6 +66,7 @@ export function PosTerminal() {
   const today = localDay();
   const todaySales = usePosSales({ from: today, to: today });
   const { complete } = usePosActions();
+  const toast = useToast();
 
   const [draft, setDraft] = useState<Draft>(() => loadDraft(userId));
   const [saleRef, setSaleRef] = useState(newRef);
@@ -185,6 +188,7 @@ export function PosTerminal() {
       setReceipt(sale);
       setSaleRef(newRef());
       resetSale();
+      toast.success(`Sale ${sale.receiptNo} saved · ${ksh(sale.total)}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not complete the sale. Try again.");
     }
@@ -317,7 +321,7 @@ export function PosTerminal() {
           <CartIcon size={18} />
           <p className="pos-cart__title flex-1">Current sale</p>
           {draft.lines.length ? (
-            <button type="button" className="btn btn-ghost !px-2.5 !py-1 text-xs" onClick={resetSale}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={resetSale}>
               Clear
             </button>
           ) : null}
@@ -352,10 +356,10 @@ export function PosTerminal() {
               onChange={(e) => setOther({ ...other, price: e.target.value })}
               placeholder="Price"
             />
-            <button type="submit" className="btn btn-primary !px-3 !py-1.5 text-xs">
+            <button type="submit" className="btn btn-primary btn-sm">
               Add
             </button>
-            <button type="button" className="icon-btn !h-8 !w-8" aria-label="Cancel other item" onClick={() => setOther(null)}>
+            <button type="button" className="icon-btn icon-btn--sm icon-btn--neutral" aria-label="Cancel other item" onClick={() => setOther(null)}>
               <CloseIcon size={14} />
             </button>
           </form>
@@ -372,7 +376,7 @@ export function PosTerminal() {
                     {l.name}
                     {l.unit ? <span> · {l.unit}</span> : null}
                   </p>
-                  <button type="button" className="icon-btn !h-7 !w-7" aria-label={`Remove ${l.name}`} onClick={() => remove(l.key)}>
+                  <button type="button" className="icon-btn icon-btn--sm" aria-label={`Remove ${l.name}`} onClick={() => remove(l.key)}>
                     <CloseIcon size={14} />
                   </button>
                 </div>

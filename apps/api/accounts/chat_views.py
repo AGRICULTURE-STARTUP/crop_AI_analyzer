@@ -6,6 +6,7 @@ import json
 import logging
 import os
 
+from django.db import transaction
 from django.utils.html import strip_tags
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -14,8 +15,12 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from accounts.permissions import IsFarmer
+from main_app.models import Wallet
 
 logger = logging.getLogger(__name__)
+
+CHAT_FEE = 10
+FREE_CHATS = 5
 
 
 def _farmer_context(user) -> tuple[str, str, str, dict | None]:
@@ -64,12 +69,13 @@ class ChatMessageView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        wallet = request.user.wallet
-        is_free = wallet.chat_count < 5
-        if not is_free and wallet.balance < 10:
+        # Cheap read-only gate so obvious top-up cases fail fast. The authoritative
+        # check happens under a row lock when the debit is written below.
+        wallet = Wallet.objects.get(user=request.user)
+        if wallet.chat_count >= FREE_CHATS and wallet.balance < CHAT_FEE:
             return Response(
                 {
-                    "detail": "Insufficient balance (KSh 10 required).",
+                    "detail": f"Insufficient balance (KSh {CHAT_FEE} required).",
                     "needs_topup": True,
                 },
                 status=status.HTTP_402_PAYMENT_REQUIRED,
@@ -122,6 +128,8 @@ RAG CONTEXT:
             groq_api_key=os.getenv("GROQ_API_KEY"),
             temperature=0.3,
         )
+        paid = False
+        content = ""
         try:
             result = llm.invoke(
                 [SystemMessage(content=system_prompt), HumanMessage(content=message)]
@@ -133,35 +141,50 @@ RAG CONTEXT:
                 if text.startswith("json"):
                     text = text[4:]
             payload = json.loads(text)
+            paid = True
         except Exception as exc:  # noqa: BLE001
-            raw = ""
-            try:
-                raw = content  # type: ignore[name-defined]
-            except Exception:
-                raw = "Unable to parse model output."
+            # The farmer gets nothing usable, so nothing is charged. Only a
+            # successful model response counts against the free/paid quota.
+            logger.warning("AgriBot chat failed for user %s: %s", request.user_id, exc)
             payload = {
                 "overview": (
-                    f"Thank you so much {name} for this question. "
-                    f"In {location_label}, here is what I can share right now: "
-                    f"{raw if isinstance(raw, str) else 'please try again shortly.'}"
+                    f"Thank you for your question, {name}. "
+                    f"AgriBot could not answer just now — please try again in a moment. "
+                    "You have not been charged for this message."
                 ),
                 "diagnosis": "",
                 "recommendations": [],
                 "prevention": "",
                 "weather_note": "",
-                "local_tip": str(exc)[:200],
+                "local_tip": "",
             }
 
-        if not is_free:
-            wallet.balance -= 10
-        wallet.chat_count += 1
-        wallet.save()
+        with transaction.atomic():
+            locked = Wallet.objects.select_for_update().get(user=request.user)
+            charged = False
+            if paid:
+                if locked.chat_count >= FREE_CHATS:
+                    if locked.balance < CHAT_FEE:
+                        return Response(
+                            {
+                                "detail": f"Insufficient balance (KSh {CHAT_FEE} required).",
+                                "needs_topup": True,
+                            },
+                            status=status.HTTP_402_PAYMENT_REQUIRED,
+                        )
+                    locked.balance -= CHAT_FEE
+                    charged = True
+                locked.chat_count += 1
+                locked.save(update_fields=["balance", "chat_count", "last_updated"])
+            response_balance = str(locked.balance)
+            response_chat_count = locked.chat_count
 
         return Response(
             {
                 "response": payload,
-                "wallet_balance": str(wallet.balance),
-                "chat_count": wallet.chat_count,
+                "wallet_balance": response_balance,
+                "chat_count": response_chat_count,
+                "charged": charged,
                 "farmer": {"name": name, "location": location_label},
             }
         )

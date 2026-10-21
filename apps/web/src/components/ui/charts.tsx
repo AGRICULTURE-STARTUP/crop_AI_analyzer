@@ -1,8 +1,13 @@
+"use client";
+
 /**
- * Small dependency-free SVG charts (admin console, Shop POS, …). Shapes stretch with
- * the container (viewBox + preserveAspectRatio="none"); labels are HTML so the
- * text never distorts. Each bar/day carries a native tooltip.
+ * Small dependency-free charts (admin console, Shop POS, …). Shapes are SVG that stretch with the
+ * container (viewBox + preserveAspectRatio="none"); labels, the hover guide and the tooltip are
+ * HTML so text never distorts. Line and bar charts follow the pointer (or the arrow keys) and show
+ * the exact values for the day under it.
  */
+
+import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 
 /** One value per day; `date` is YYYY-MM-DD. */
 export type SeriesPoint = { date: string; value: number };
@@ -13,6 +18,13 @@ const H = 200;
 function shortDate(iso: string) {
   const d = new Date(`${iso}T00:00:00`);
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-KE", { day: "numeric", month: "short" });
+}
+
+function longDate(iso: string) {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString("en-KE", { weekday: "short", day: "numeric", month: "short" });
 }
 
 function niceMax(value: number) {
@@ -58,26 +70,102 @@ function smoothPath(points: [number, number][]) {
   return d;
 }
 
+/**
+ * Pointer + keyboard tracking for a plot. `toIndex` maps a 0–1 position across the plot to the
+ * data index under it. Touch keeps the last tapped day on screen; a mouse clears it on leave.
+ */
+function useChartHover(count: number, toIndex: (ratio: number) => number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState<number | null>(null);
+
+  const follow = (e: PointerEvent<HTMLDivElement>) => {
+    const box = ref.current?.getBoundingClientRect();
+    if (!box || box.width === 0 || count === 0) return;
+    const ratio = Math.min(1, Math.max(0, (e.clientX - box.left) / box.width));
+    setActive(Math.min(count - 1, Math.max(0, toIndex(ratio))));
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (count === 0) return;
+    const last = count - 1;
+    const at = active ?? last;
+    const next =
+      e.key === "ArrowRight" ? Math.min(last, at + 1) : e.key === "ArrowLeft" ? Math.max(0, at - 1) : e.key === "Home" ? 0 : e.key === "End" ? last : null;
+    if (next === null) return;
+    e.preventDefault();
+    setActive(next);
+  };
+
+  return {
+    ref,
+    active,
+    handlers: {
+      onPointerMove: follow,
+      onPointerDown: follow,
+      onPointerLeave: (e: PointerEvent<HTMLDivElement>) => {
+        if (e.pointerType === "mouse") setActive(null);
+      },
+      onKeyDown,
+      onFocus: () => setActive((a) => a ?? count - 1),
+      onBlur: () => setActive(null),
+    },
+  };
+}
+
+/** Floating readout. It sits beside the guide and flips sides near the right edge. */
+function Tip({
+  at,
+  title,
+  rows,
+}: {
+  at: number;
+  title: string;
+  rows: { label?: string; color: string; value: string }[];
+}) {
+  return (
+    <div className={`chart__tip ${at > 0.6 ? "is-left" : ""}`} style={{ left: `${at * 100}%` }} role="status">
+      <p className="chart__tip-title">{title}</p>
+      <ul>
+        {rows.map((r, i) => (
+          <li key={`${r.label ?? "value"}-${i}`}>
+            <i style={{ background: r.color }} aria-hidden />
+            {r.label ? <span>{r.label}</span> : null}
+            <strong>{r.value}</strong>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function AreaChart({
   series,
   format = (n) => String(n),
+  tipFormat,
   height = 180,
 }: {
   series: ChartSeries[];
+  /** Axis labels. */
   format?: (n: number) => string;
+  /** Tooltip values; defaults to `format`. */
+  tipFormat?: (n: number) => string;
   height?: number;
 }) {
+  const tip = tipFormat ?? format;
+  const hintId = useId();
   const days = series[0]?.points ?? [];
   const n = Math.max(1, days.length - 1);
   const max = niceMax(Math.max(0, ...series.flatMap((s) => s.points.map((p) => p.value))));
   const x = (i: number) => (i / n) * W;
   const y = (v: number) => H - (v / max) * (H - 8) - 4;
+  const hover = useChartHover(days.length, (ratio) => Math.round(ratio * n));
   const summary = series
     .map((s) => `${s.label}: ${s.points.reduce((a, p) => a + p.value, 0)} in ${s.points.length} days`)
     .join("; ");
+  const at = hover.active === null ? null : hover.active / n;
 
   return (
-    <figure className="chart" aria-label={summary} role="img">
+    <figure className="chart">
       <div className="chart__plot" style={{ height }}>
         <div className="chart__grid" aria-hidden>
           {[max, max / 2, 0].map((v) => (
@@ -105,20 +193,48 @@ export function AreaChart({
               </g>
             );
           })}
-          {days.map((d, i) => (
-            <rect key={d.date} x={x(i) - W / n / 2} y={0} width={W / n} height={H} fill="transparent">
-              <title>
-                {shortDate(d.date)}: {series.map((s) => `${s.label} ${format(s.points[i]?.value ?? 0)}`).join(", ")}
-              </title>
-            </rect>
-          ))}
         </svg>
+        <div
+          ref={hover.ref}
+          className="chart__hit"
+          tabIndex={0}
+          role="group"
+          aria-label={`Chart. ${summary}. Use the left and right arrow keys to read each day.`}
+          aria-describedby={hintId}
+          {...hover.handlers}
+        >
+          {at !== null && hover.active !== null ? (
+            <>
+              <span className="chart__guide" style={{ left: `${at * 100}%` }} aria-hidden />
+              {series.map((s) => (
+                <span
+                  key={s.label}
+                  className="chart__dot"
+                  style={{ left: `${at * 100}%`, top: `${(y(s.points[hover.active!]?.value ?? 0) / H) * 100}%`, borderColor: s.color }}
+                  aria-hidden
+                />
+              ))}
+              <Tip
+                at={at}
+                title={longDate(days[hover.active].date)}
+                rows={series.map((s) => ({
+                  label: series.length > 1 ? s.label : undefined,
+                  color: s.color,
+                  value: tip(s.points[hover.active!]?.value ?? 0),
+                }))}
+              />
+            </>
+          ) : null}
+        </div>
       </div>
       <div className="chart__x" aria-hidden>
         <span>{days[0] ? shortDate(days[0].date) : ""}</span>
         <span>{days[Math.floor(days.length / 2)] ? shortDate(days[Math.floor(days.length / 2)].date) : ""}</span>
         <span>{days.length ? shortDate(days[days.length - 1].date) : ""}</span>
       </div>
+      <p id={hintId} className="sr-only">
+        Hover or focus the chart to see the value for each day.
+      </p>
       {series.length > 1 ? (
         <figcaption className="chart__legend">
           {series.map((s) => (
@@ -136,20 +252,29 @@ export function BarChart({
   points,
   color = "var(--leaf-500)",
   format = (n) => String(n),
+  tipFormat,
   label,
   height = 170,
 }: {
   points: SeriesPoint[];
   color?: string;
+  /** Axis labels. */
   format?: (n: number) => string;
+  /** Tooltip values; defaults to `format`. */
+  tipFormat?: (n: number) => string;
   label: string;
   height?: number;
 }) {
+  const tip = tipFormat ?? format;
+  const hintId = useId();
   const max = niceMax(Math.max(0, ...points.map((p) => p.value)));
   const slot = W / Math.max(1, points.length);
   const total = points.reduce((a, p) => a + p.value, 0);
+  const hover = useChartHover(points.length, (ratio) => Math.floor(ratio * points.length));
+  const at = hover.active === null ? null : (hover.active + 0.5) / Math.max(1, points.length);
+
   return (
-    <figure className="chart" role="img" aria-label={`${label}: ${format(total)} over ${points.length} days`}>
+    <figure className="chart">
       <div className="chart__plot" style={{ height }}>
         <div className="chart__grid" aria-hidden>
           {[max, max / 2, 0].map((v) => (
@@ -170,19 +295,32 @@ export function BarChart({
                 height={Math.max(h, p.value > 0 ? 2 : 0)}
                 rx={2}
                 fill={color}
-              >
-                <title>
-                  {shortDate(p.date)}: {format(p.value)}
-                </title>
-              </rect>
+                opacity={hover.active === null || hover.active === i ? 1 : 0.4}
+              />
             );
           })}
         </svg>
+        <div
+          ref={hover.ref}
+          className="chart__hit"
+          tabIndex={0}
+          role="group"
+          aria-label={`${label}: ${format(total)} over ${points.length} days. Use the left and right arrow keys to read each day.`}
+          aria-describedby={hintId}
+          {...hover.handlers}
+        >
+          {at !== null && hover.active !== null ? (
+            <Tip at={at} title={longDate(points[hover.active].date)} rows={[{ color, value: tip(points[hover.active].value) }]} />
+          ) : null}
+        </div>
       </div>
       <div className="chart__x" aria-hidden>
         <span>{points[0] ? shortDate(points[0].date) : ""}</span>
         <span>{points.length ? shortDate(points[points.length - 1].date) : ""}</span>
       </div>
+      <p id={hintId} className="sr-only">
+        Hover or focus the chart to see the value for each day.
+      </p>
     </figure>
   );
 }
@@ -229,7 +367,9 @@ export function Donut({
   centerValue: string;
   format?: (n: number) => string;
 }) {
+  const [focus, setFocus] = useState<string | null>(null);
   const total = parts.reduce((a, p) => a + p.value, 0) || 1;
+  const focused = parts.find((p) => p.label === focus) ?? null;
   let offset = 25; // start at 12 o'clock
   return (
     <div className="donut">
@@ -241,14 +381,18 @@ export function Donut({
             const el = (
               <circle
                 key={p.label}
+                className="donut__arc"
                 cx="21"
                 cy="21"
                 r="15.915"
                 fill="none"
                 stroke={p.color}
-                strokeWidth="5"
+                strokeWidth={focus === p.label ? 6 : 5}
                 strokeDasharray={`${share} ${100 - share}`}
                 strokeDashoffset={offset}
+                opacity={focus === null || focus === p.label ? 1 : 0.35}
+                onMouseEnter={() => setFocus(p.label)}
+                onMouseLeave={() => setFocus(null)}
               >
                 <title>
                   {p.label}: {format(p.value)}
@@ -260,13 +404,18 @@ export function Donut({
           })}
         </svg>
         <div className="donut__center">
-          <strong>{centerValue}</strong>
-          <span>{centerLabel}</span>
+          <strong>{focused ? `${Math.round((focused.value / total) * 100)}%` : centerValue}</strong>
+          <span>{focused ? focused.label : centerLabel}</span>
         </div>
       </div>
       <ul className="donut__legend">
         {parts.map((p) => (
-          <li key={p.label}>
+          <li
+            key={p.label}
+            className={focus === p.label ? "is-focus" : ""}
+            onMouseEnter={() => setFocus(p.label)}
+            onMouseLeave={() => setFocus(null)}
+          >
             <i style={{ background: p.color }} />
             <span className="flex-1">{p.label}</span>
             <strong>{format(p.value)}</strong>

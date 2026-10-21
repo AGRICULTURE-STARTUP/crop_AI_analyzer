@@ -12,6 +12,12 @@ type Props = {
   as?: "input" | "textarea" | "select";
   options?: { value: string; label: string }[];
   autoComplete?: string;
+  /** id of a <datalist> that offers suggestions */
+  list?: string;
+  step?: string;
+  min?: string;
+  inputMode?: "text" | "numeric" | "decimal" | "tel" | "email";
+  hint?: string;
 };
 
 export function FormField({
@@ -24,6 +30,11 @@ export function FormField({
   as = "input",
   options,
   autoComplete,
+  list,
+  step,
+  min,
+  inputMode,
+  hint,
 }: Props) {
   const uid = useId();
   const inputId = `${name}-${uid}`;
@@ -31,7 +42,7 @@ export function FormField({
   const isPassword = type === "password";
 
   return (
-    <div className="block space-y-1.5 text-sm">
+    <div className="form-field">
       <label htmlFor={inputId} className="font-medium text-ink/80">
         {label}
       </label>
@@ -90,8 +101,13 @@ export function FormField({
           defaultValue={defaultValue}
           placeholder={placeholder}
           autoComplete={autoComplete}
+          list={list}
+          step={step}
+          min={min}
+          inputMode={inputMode}
         />
       )}
+      {hint ? <small className="form-field__hint">{hint}</small> : null}
     </div>
   );
 }

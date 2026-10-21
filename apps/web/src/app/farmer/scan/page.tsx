@@ -1,19 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowRightIcon,
-  BasketIcon,
-  ScanIcon,
-  SproutIcon,
-  StoreIcon,
-} from "@/components/Icons";
+import { ScanIcon } from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
 import { PageHeader } from "@/components/ui/Page";
+import { fetchFarmerOverview } from "@/features/farmer/api";
 import { apiRequest, ApiError } from "@/lib/api";
-import { statusTone } from "@/lib/format";
+import { formatKsh, statusTone } from "@/lib/format";
 import type { CropCatalogItem, ScanJob, ScanReport } from "@/lib/types";
 
 function progressLabel(job: ScanJob | null, uploading: boolean): string {
@@ -164,6 +158,10 @@ export default function FarmerScanPage() {
       apiRequest<{ crops: CropCatalogItem[] }>("/api/v1/crops/"),
   });
 
+  // Same query as the dashboard, so this is usually already cached.
+  const overview = useQuery({ queryKey: ["farmer-overview"], queryFn: fetchFarmerOverview });
+  const wallet = overview.data?.wallet;
+
   const supported =
     cropsQuery.data?.crops.filter((c) => c.supported).map((c) => c.crop) ||
     ["maize", "tomato", "potato", "beans"];
@@ -231,26 +229,9 @@ export default function FarmerScanPage() {
         lead="Choose the crop, upload a clear leaf photo and run the scan. Advice uses your county weather and our farm knowledge base."
       />
 
-      <ul className="shortcuts">
-        {SHORTCUTS.map((s) => (
-          <li key={s.href}>
-            <Link href={s.href} className="shortcut">
-              <span className="shortcut__icon">
-                <s.Icon size={20} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="shortcut__title">{s.title}</span>
-                <span className="shortcut__text">{s.text}</span>
-              </span>
-              <ArrowRightIcon size={16} className="shortcut__arrow" />
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      <div className="grid items-start gap-6 lg:grid-cols-2">
+      <div className="grid items-stretch gap-4 lg:grid-cols-2">
         <form onSubmit={onSubmit} className="ui-card space-y-5">
-          <label className="block space-y-1.5 text-sm">
+          <label className="form-field">
             <span className="font-medium text-ink/80">Crop</span>
             <select
               className="field capitalize"
@@ -289,6 +270,13 @@ export default function FarmerScanPage() {
             {preview ? <span className="dropzone__change">Change photo</span> : null}
           </label>
           {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
+          {wallet ? (
+            <p className="scan-cost">
+              {wallet.free_scans_left > 0
+                ? `${wallet.free_scans_left} free ${wallet.free_scans_left === 1 ? "scan" : "scans"} left, then ${formatKsh(wallet.scan_fee)} each.`
+                : `Each scan costs ${formatKsh(wallet.scan_fee)} from your wallet (balance ${formatKsh(wallet.balance)}).`}
+            </p>
+          ) : null}
           <button className="btn btn-primary btn-pill w-full !py-3" disabled={inFlight} type="submit">
             {inFlight ? "Scanning…" : "Run scan"}
           </button>
@@ -298,9 +286,6 @@ export default function FarmerScanPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="ui-card__title">Results</h2>
-              <p className="mt-1 text-sm text-ink/65">
-                Diagnosis and advice appear here after the scan finishes.
-              </p>
             </div>
             {job ? (
               <span className={`badge ${statusTone(job.status)}`}>{job.status}</span>
@@ -333,9 +318,29 @@ export default function FarmerScanPage() {
           ) : null}
 
           {!job && !uploading ? (
-            <p className="mt-4 text-sm text-ink/65">
-              No scan yet. Upload a leaf above and click Run scan.
-            </p>
+            <ol className="scan-steps">
+              <li>
+                <span>1</span>
+                <p>
+                  <strong>Choose the crop</strong>
+                  The scan checks the leaf against that crop&rsquo;s diseases.
+                </p>
+              </li>
+              <li>
+                <span>2</span>
+                <p>
+                  <strong>Add a clear photo</strong>
+                  One leaf, in daylight, filling most of the frame.
+                </p>
+              </li>
+              <li>
+                <span>3</span>
+                <p>
+                  <strong>Run the scan</strong>
+                  Keep this page open. The diagnosis and advice appear here.
+                </p>
+              </li>
+            </ol>
           ) : null}
 
           {job && !inFlight ? (
@@ -367,24 +372,3 @@ export default function FarmerScanPage() {
     </PortalShell>
   );
 }
-
-const SHORTCUTS = [
-  {
-    href: "/farmer/advisor",
-    title: "Crop advisor",
-    text: "Find the crop that suits your soil",
-    Icon: SproutIcon,
-  },
-  {
-    href: "/farmer/marketplace",
-    title: "Marketplace",
-    text: "Seed, fertiliser and sprays near you",
-    Icon: StoreIcon,
-  },
-  {
-    href: "/farmer/market",
-    title: "Prices & buyers",
-    text: "See where your harvest sells best",
-    Icon: BasketIcon,
-  },
-];

@@ -1,20 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import type { AgencyProduct } from "@/lib/types";
 import { posRepository } from "./repository";
 import type { SaleInput, SalesRange } from "./types";
-
-/** The shop's own catalogue (same query as the My products page, so they share a cache). */
-export function useShopProducts() {
-  return useQuery({
-    queryKey: ["my-products"],
-    queryFn: async () =>
-      (await apiRequest<{ products: AgencyProduct[] }>("/api/v1/inputs/my-products/")).products || [],
-  });
-}
 
 /** Name printed on receipts. */
 export function useShopName() {

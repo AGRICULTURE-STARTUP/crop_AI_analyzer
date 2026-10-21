@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { BasketIcon, ClipboardIcon, CoinsIcon, DownloadIcon } from "@/components/Icons";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 import { LinkTabs, PageHeader, StatCard } from "@/components/ui/Page";
 import { formatKsh } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
@@ -31,6 +32,8 @@ type RecordsContextValue = {
   spent: number;
   income: number;
   profit: number;
+  /** "all", "none" (not linked to a field) or a field id. */
+  fieldFilter: string;
   fieldName: (id: string | null) => string;
   edit: (editing: NonNullable<Editing>) => void;
   askDelete: (pending: PendingDelete) => void;
@@ -62,6 +65,8 @@ export function RecordsFrame({ children }: { children: ReactNode }) {
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [editing, setEditing] = useState<Editing>(null);
   const [pending, setPending] = useState<PendingDelete | null>(null);
+  const [fieldChoice, setFieldChoice] = useState("all");
+  const toast = useToast();
 
   const years = useMemo(() => {
     const set = new Set<string>([String(new Date().getFullYear())]);
@@ -69,13 +74,23 @@ export function RecordsFrame({ children }: { children: ReactNode }) {
     return [...set].sort().reverse();
   }, [data]);
 
+  // A removed field can no longer be the filter.
+  const fieldFilter =
+    fieldChoice === "all" || fieldChoice === "none" || data.fields.some((f) => f.id === fieldChoice) ? fieldChoice : "all";
   const inYear = (date: string) => year === "all" || date.startsWith(year);
-  const activities = data.activities.filter((a) => inYear(a.date)).sort((a, b) => b.date.localeCompare(a.date));
-  const sales = data.sales.filter((s) => inYear(s.date)).sort((a, b) => b.date.localeCompare(a.date));
+  const inField = (id: string | null) =>
+    fieldFilter === "all" || (fieldFilter === "none" ? id === null : id === fieldFilter);
+  const activities = data.activities
+    .filter((a) => inYear(a.date) && inField(a.fieldId))
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const sales = data.sales
+    .filter((s) => inYear(s.date) && inField(s.fieldId))
+    .sort((a, b) => b.date.localeCompare(a.date));
   const spent = activities.reduce((sum, a) => sum + a.cost, 0);
   const income = sales.reduce((sum, s) => sum + saleAmount(s), 0);
   const profit = income - spent;
-  const acres = data.fields.reduce((sum, f) => sum + (f.sizeAcres || 0), 0);
+  const shownFields = data.fields.filter((f) => inField(f.id));
+  const acres = shownFields.reduce((sum, f) => sum + (f.sizeAcres || 0), 0);
   const fieldName = (id: string | null) => data.fields.find((f) => f.id === id)?.name ?? "—";
   const busy = api.saveActivity.isPending || api.saveSale.isPending || api.saveField.isPending;
 
@@ -118,6 +133,7 @@ export function RecordsFrame({ children }: { children: ReactNode }) {
     if (pending.kind === "sale") await api.deleteSale.mutateAsync(pending.id);
     if (pending.kind === "field") await api.deleteField.mutateAsync(pending.id);
     setPending(null);
+    toast.success(`${pending.label} deleted`);
   }
 
   const counts: Record<RecordsView, number | undefined> = {
@@ -129,7 +145,7 @@ export function RecordsFrame({ children }: { children: ReactNode }) {
 
   return (
     <RecordsContext.Provider
-      value={{ data, activities, sales, spent, income, profit, fieldName, edit, askDelete: setPending }}
+      value={{ data, activities, sales, spent, income, profit, fieldFilter, fieldName, edit, askDelete: setPending }}
     >
       <div className="records">
         <PageHeader
@@ -148,6 +164,27 @@ export function RecordsFrame({ children }: { children: ReactNode }) {
                 ))}
                 <option value="all">All years</option>
               </select>
+              {data.fields.length > 0 ? (
+                <>
+                  <label className="sr-only" htmlFor="records-field">
+                    Field
+                  </label>
+                  <select
+                    id="records-field"
+                    className="field !w-auto"
+                    value={fieldFilter}
+                    onChange={(e) => setFieldChoice(e.target.value)}
+                  >
+                    <option value="all">All fields</option>
+                    {data.fields.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.name}
+                      </option>
+                    ))}
+                    <option value="none">Not linked to a field</option>
+                  </select>
+                </>
+              ) : null}
               <button type="button" className="btn btn-ghost" onClick={exportCsv}>
                 <DownloadIcon size={15} /> Export CSV
               </button>
@@ -162,7 +199,7 @@ export function RecordsFrame({ children }: { children: ReactNode }) {
         <div className="stat-cards mb-4">
           <StatCard
             label="Fields"
-            value={data.fields.length}
+            value={shownFields.length}
             sub={acres ? `${Math.round(acres * 10) / 10} acres` : "Add your plots"}
             Icon={ClipboardIcon}
           />
@@ -177,7 +214,7 @@ export function RecordsFrame({ children }: { children: ReactNode }) {
           <StatCard
             label="Profit"
             value={<span className={profit < 0 ? "text-[var(--danger)]" : ""}>{ksh(profit)}</span>}
-            sub={year === "all" ? "All years" : `Season ${year}`}
+            sub={`${year === "all" ? "All years" : `Season ${year}`}${fieldFilter === "all" ? "" : ` · ${fieldFilter === "none" ? "Not linked" : fieldName(fieldFilter)}`}`}
             Icon={CoinsIcon}
             tone={profit < 0 ? "plum" : "leaf"}
           />
@@ -196,11 +233,18 @@ export function RecordsFrame({ children }: { children: ReactNode }) {
         />
 
         <div className="toolbar mt-5">
-          <LinkTabs
-            label="Farm records pages"
-            current={pathname}
-            items={RECORD_VIEWS.map((v) => ({ href: v.href, label: v.label, count: counts[v.view] }))}
-          />
+          {/* The sidebar dropdown already lists these pages on wide screens; tabs are for phones and tablets. */}
+          <div className="lg:hidden">
+            <LinkTabs
+              label="Farm records pages"
+              current={pathname}
+              items={RECORD_VIEWS.map((v) => ({ href: v.href, label: v.label, count: counts[v.view] }))}
+            />
+          </div>
+          <h2 className="records__heading">
+            {RECORD_VIEWS.find((v) => v.view === view)?.label}
+            {counts[view] !== undefined ? <span>{counts[view]}</span> : null}
+          </h2>
         </div>
 
         {api.records.isLoading ? <div className="skeleton h-40 rounded-xl" /> : children}

@@ -49,7 +49,8 @@ export function StatCard({
       </div>
       <p className="stat-card__label">{label}</p>
       <p className="stat-card__value">{value}</p>
-      {sub ? <p className="stat-card__sub">{sub}</p> : null}
+      {/* Always rendered so tiles in one row keep their label and value on the same lines. */}
+      <p className="stat-card__sub">{sub ?? " "}</p>
     </>
   );
   return href ? (

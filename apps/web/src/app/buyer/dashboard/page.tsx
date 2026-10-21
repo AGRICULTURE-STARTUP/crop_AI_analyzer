@@ -1,10 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useMemo, useState, type FormEvent } from "react";
-import { CloudIcon, SearchIcon } from "@/components/Icons";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { CloudIcon, PinIcon, SproutIcon, UsersIcon } from "@/components/Icons";
 import { PortalShell } from "@/components/PortalShell";
+import { StatCard } from "@/components/ui/Page";
 import { fetchFarmers } from "@/features/market/api";
 import { ContactCard } from "@/features/market/ContactCard";
 import { PriceFinder } from "@/features/market/PriceFinder";
@@ -53,6 +54,7 @@ export default function BuyerDashboardPage() {
   const farmersQuery = useQuery({
     queryKey: ["buyer-farmers", filter.crop, filter.county],
     queryFn: () => fetchFarmers(filter),
+    placeholderData: keepPreviousData,
   });
   const farmers = useMemo(() => farmersQuery.data ?? [], [farmersQuery.data]);
   const counties = useMemo(
@@ -60,10 +62,22 @@ export default function BuyerDashboardPage() {
     [farmers]
   );
 
+  // The list follows what is typed once typing pauses, so there is no Filter button to press.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setFilter({ crop: farmerCrop.trim(), county: farmerCounty.trim() }), 350);
+    return () => window.clearTimeout(timer);
+  }, [farmerCrop, farmerCounty]);
+
   function onFilter(e: FormEvent) {
     e.preventDefault();
     setFilter({ crop: farmerCrop.trim(), county: farmerCounty.trim() });
   }
+
+  const filtered = Boolean(filter.crop || filter.county);
+  const cropCount = useMemo(
+    () => new Set(farmers.flatMap((f) => cropTags(f.products).map((c) => c.toLowerCase()))).size,
+    [farmers]
+  );
 
   return (
     <PortalShell role="buyer" title="Dashboard">
@@ -94,22 +108,32 @@ export default function BuyerDashboardPage() {
               Edit profile
             </Link>
           </div>
-          <div className="buyer-hero__weather">
-            <CloudIcon size={20} />
-            <div>
-              <p className="text-xs text-ink/65">Local weather</p>
-              {weather ? (
-                <p className="text-sm font-semibold text-[var(--ink)]">
-                  {metric(weather.temperature_celsius)}°C · {metric(weather.humidity_percent)}% humidity
-                </p>
-              ) : (
-                <p className="text-sm text-ink/70">
-                  {weatherQuery.isLoading ? "Loading…" : weatherQuery.data?.detail || "Set your county to see weather"}
-                </p>
-              )}
-            </div>
-          </div>
         </section>
+
+        <div className="stat-cards">
+          <StatCard
+            label={filtered ? "Farmers matching" : "Farmers listed"}
+            value={farmers.length}
+            sub="Registered on AgriScan"
+            Icon={UsersIcon}
+            href="#farmers"
+          />
+          <StatCard label="Counties" value={counties.length} sub="Where they farm" Icon={PinIcon} tone="sky" href="#farmers" />
+          <StatCard label="Crops grown" value={cropCount} sub="Different crops listed" Icon={SproutIcon} tone="amber" href="#farmers" />
+          <StatCard
+            label="Local weather"
+            value={weather ? `${metric(weather.temperature_celsius)}°C` : "—"}
+            sub={
+              weather
+                ? `${metric(weather.humidity_percent)}% humidity${profile.county ? ` · ${profile.county}` : ""}`
+                : weatherQuery.isLoading
+                  ? "Loading…"
+                  : weatherQuery.data?.detail || "Set your county on Profile"
+            }
+            Icon={CloudIcon}
+            tone="plum"
+          />
+        </div>
 
         <section className="space-y-4" id="prices">
           <div>
@@ -126,11 +150,11 @@ export default function BuyerDashboardPage() {
           </div>
 
           <form onSubmit={onFilter} className="panel flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
-            <label className="block flex-1 space-y-1.5 text-sm">
+            <label className="form-field flex-1">
               <span className="font-medium text-ink/80">Crop</span>
               <input className="field" value={farmerCrop} onChange={(e) => setFarmerCrop(e.target.value)} placeholder="e.g. maize" />
             </label>
-            <label className="block flex-1 space-y-1.5 text-sm">
+            <label className="form-field flex-1">
               <span className="font-medium text-ink/80">County</span>
               <input
                 className="field"
@@ -145,20 +169,19 @@ export default function BuyerDashboardPage() {
                 ))}
               </datalist>
             </label>
-            <button type="submit" className="btn btn-primary">
-              <SearchIcon size={16} /> Filter
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() => {
-                setFarmerCrop("");
-                setFarmerCounty("");
-                setFilter({ crop: "", county: "" });
-              }}
-            >
-              Clear
-            </button>
+            {farmerCrop || farmerCounty ? (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  setFarmerCrop("");
+                  setFarmerCounty("");
+                  setFilter({ crop: "", county: "" });
+                }}
+              >
+                Clear filters
+              </button>
+            ) : null}
           </form>
 
           {farmersQuery.isError ? (

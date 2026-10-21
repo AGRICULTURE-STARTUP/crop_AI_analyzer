@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,22 +25,16 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 # and Capacitor WebView can hit the API without production lockdown.
 DEV_ENV = os.getenv("DEV_ENV", "False").lower() in ("1", "true", "yes")
 
+_DEV_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0", "10.0.2.2", "[::1]"}
 ALLOWED_HOSTS = [
     h.strip()
-    for h in os.getenv("ALLOWED_HOSTS", "*").split(",")
+    for h in os.getenv("ALLOWED_HOSTS", "").split(",")
     if h.strip()
 ]
-if DEV_ENV and "*" not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS = list(
-        {
-            *ALLOWED_HOSTS,
-            "localhost",
-            "127.0.0.1",
-            "0.0.0.0",
-            "10.0.2.2",  # Android emulator → host
-            "[::1]",
-        }
-    )
+if DEV_ENV:
+    # Laptop / emulator work. Never widen this in production: a wildcard
+    # ALLOWED_HOSTS lets a forged Host header reach password-reset links.
+    ALLOWED_HOSTS = list({*ALLOWED_HOSTS, *_DEV_HOSTS})
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
@@ -66,7 +61,6 @@ if DEV_ENV:
 
 
 # Security settings for production
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG and not DEV_ENV
 CSRF_COOKIE_SECURE = not DEBUG and not DEV_ENV
 SECURE_SSL_REDIRECT = (
@@ -75,6 +69,10 @@ SECURE_SSL_REDIRECT = (
     else os.getenv("SECURE_SSL_REDIRECT", str(not DEBUG)).lower()
     in ("1", "true", "yes")
 )
+# nginx terminates TLS and sets X-Forwarded-Proto; nothing else may spoof it.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
 
 # Comma-separated CIDRs/IPs allowed to hit M-Pesa callback (empty = allow all).
 # In production set Safaricom egress ranges; ignored when DEV_ENV=True.
@@ -377,6 +375,36 @@ MAX_QUEUED_SCAN_JOBS = int(os.getenv("MAX_QUEUED_SCAN_JOBS", "20"))
 ALLOW_LEGACY_PARTNER_KEYS = os.getenv(
     "ALLOW_LEGACY_PARTNER_KEYS", "false"
 ).lower() in ("1", "true", "yes")
+
+# --- Security headers / transport ---
+# HSTS is off unless SECURE_HSTS_SECONDS is set: a wrong max-age is cached by
+# browsers and hard to undo. Turn it on after TLS is confirmed working.
+SECURE_HSTS_SECONDS = 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+if not DEV_ENV:
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv(
+        "SECURE_HSTS_INCLUDE_SUBDOMAINS", "false"
+    ).lower() in ("1", "true", "yes")
+    SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "false").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
+X_FRAME_OPTIONS = "DENY"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+if not DEV_ENV and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured(
+        "ALLOWED_HOSTS is empty. Set ALLOWED_HOSTS in the environment "
+        "(comma-separated hostnames, no wildcards in production)."
+    )
 
 # Email settings for development
 

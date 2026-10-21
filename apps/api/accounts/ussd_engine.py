@@ -16,6 +16,7 @@ from decimal import Decimal
 from typing import Any
 
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import Avg
 
 from main_app.models import FarmerProfile, FarmHealthProfile, Wallet
@@ -23,6 +24,9 @@ from main_app.utils_scoring import calculate_farm_health_score
 
 SESSION_TTL = 180  # seconds — typical USSD timeout
 DEMO_PHONE = "254700000000"
+FREE_CHATS = 5
+CHAT_FEE = Decimal("10")
+FREE_SCANS = 2
 
 
 @dataclass
@@ -240,8 +244,8 @@ def _wallet_reply(farmer: FarmerProfile | None, demo: bool) -> UssdReply:
         )
     wallet = _get_wallet(farmer)
     assert wallet is not None
-    free_scans = max(0, 2 - wallet.scan_count)
-    free_chats = max(0, 5 - wallet.chat_count)
+    free_scans = max(0, FREE_SCANS - wallet.scan_count)
+    free_chats = max(0, FREE_CHATS - wallet.chat_count)
     return UssdReply(
         f"Wallet\n"
         f"Balance: KSh {wallet.balance}\n"
@@ -387,21 +391,25 @@ def _agribot_reply(
 
     wallet = _get_wallet(farmer) if farmer and not demo else None
     if wallet is not None:
-        is_free = wallet.chat_count < 5
-        if not is_free and wallet.balance < Decimal("10"):
+        is_free = wallet.chat_count < FREE_CHATS
+        if not is_free and wallet.balance < CHAT_FEE:
             return UssdReply(
-                "Insufficient balance (KSh 10).\nTop up in the AgriScan app.",
+                f"Insufficient balance (KSh {CHAT_FEE}).\nTop up in the AgriScan app.",
                 end=True,
             )
 
     overview = _short_advice(question)
 
     if wallet is not None:
-        if wallet.chat_count < 5:
-            wallet.chat_count += 1
-        else:
-            wallet.balance -= Decimal("10")
-        wallet.save()
+        # Row lock + transaction: a gateway retry that arrives while this
+        # session is still running must not double-debit or race the balance.
+        with transaction.atomic():
+            locked = Wallet.objects.select_for_update().get(pk=wallet.pk)
+            if locked.chat_count < FREE_CHATS:
+                locked.chat_count += 1
+            else:
+                locked.balance -= CHAT_FEE
+            locked.save(update_fields=["balance", "chat_count", "last_updated"])
 
     # USSD screens are tiny — keep under ~300 chars.
     trimmed = overview[:280]
