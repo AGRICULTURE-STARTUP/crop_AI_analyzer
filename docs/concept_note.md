@@ -10,9 +10,11 @@
 
 ## 2. Background and Problem Statement
 
-Smallholder farmers in Kenya and across East Africa make high-impact decisions with incomplete information. They may not know which crop best matches their soil, discover crop stress or disease too late, or lack timely access to an agronomist. Most farms also lack continuous records of soil nutrients, moisture, weather, crop health, and interventions.
-
-These information gaps contribute to unsuitable crop selection, delayed treatment, unnecessary input costs, low yields, weak market access, and exclusion from formal finance. Existing agricultural tools usually solve only one part of the problem and often require smartphones, reliable internet, or expensive precision-agriculture equipment.
+Smallholder farmers in Kenya and across East Africa make high-impact decisions with incomplete information due to limited knowledge about the what's and limited access of agronomist.
+Most farms also lack continuous records (soil nutrients, moisture, crop productions, financial reports, yearly spending, yearly profit and Standard farm report).
+These information gaps contribute to unsuitable crop selection, delayed treatment, unnecessary input costs, low yields, weak market access, and exclusion from formal finance. Existing agricultural tools usually solve only one part of the problem and often require expensive precision-agriculture equipment.
+Most smallholder farmers have limited access to the market with best bids due to the middle men who stands on there way to the real market.
+Financial support especially on smallholder farmers.
 
 ## 3. Proposed Solution
 
@@ -31,15 +33,16 @@ The web platform is deployed on a Contabo VPS and accessible at **[ukulimabora.c
 
 ### Primary users
 
-- Smallholder and semi-commercial farmers, beginning in Kenya.
+- Smallholder and semi-commercial farmers.
 - Farmer groups and cooperatives that need field-level monitoring and advice.
 
 ### Secondary users and customers
 
 - Agricultural extension officers and agronomists.
 - Agrovets and input suppliers.
-- Banks, MFIs, SACCOs, and insurers using consent-based farm data.
-- Research, county, and development partners using privacy-preserving aggregate insights.
+- Financial support bodies.
+- Research bodies.
+- Government 
 
 ## 5. Innovation and Uniqueness
 
