@@ -2,7 +2,6 @@
 # Concept Note: Ukulima Bora
 
 **Document version:** 2.1
-**Updated:** 19 October 2026
 
 ## 1. Project Title
 
@@ -10,53 +9,52 @@
 
 ## 2. Background and Problem Statement
 
-Smallholder farmers in Kenya and across East Africa make high-impact decisions with incomplete information due to limited knowledge about the what's and limited access of agronomist.
-Most farms also lack continuous records (soil nutrients, moisture, crop productions, financial reports, yearly spending, yearly profit and Standard farm report).
-These information gaps contribute to unsuitable crop selection, delayed treatment, unnecessary input costs, low yields, weak market access, and exclusion from formal finance. Existing agricultural tools usually solve only one part of the problem and often require expensive precision-agriculture equipment.
-Most smallholder farmers have limited access to the market with best bids due to the middle men who stands on there way to the real market.
-Financial support especially on smallholder farmers.
+Smallholder farmers in Kenya and across East Africa consistently make high-stakes operational decisions based on incomplete or inaccurate data. This systemic information gap stems from several critical challenges:
+• Limited Expert Access: There is a severe shortage of certified agronomists, leaving most smallholders without timely, data-driven advice for plant health and soil management.
+• Absence of Historic Farm Records: The majority of small farms lack a continuous, verified history of soil nutrients, moisture levels, historic yields, or seasonal financial metrics (such as accurate spending, revenues, and profit margins).
+• Fragmented Supply Chains: Inefficient local marketplaces heavily rely on traditional intermediaries and middlemen. This limits a farmer’s ability to independently track competitive agricultural input prices or discover real-time wholesale market values.
+• Financial Exclusion: Without verifiable, structured farm health profiles or transaction data, smallholders face complete exclusion from formal commercial loans and micro-finance services.
+Cumulatively, these roadblocks lead to suboptimal crop selection, delayed disease intervention, inflated input expenses, depressed crop yields, and stagnant economic mobility. Existing tools typically target isolated elements of this loop, often depending on expensive precision-agriculture hardware that remains financially inaccessible to the average smallholder.
 
 ## 3. Proposed Solution
 
-Ukulima Bora is a mobile-first digital agricultural platform that connects the full farming cycle:
-
-1. **Plan:** Recommend suitable crops using nitrogen, phosphorus, potassium, pH, temperature, humidity, and rainfall.
-2. **Monitor:** Collect field data from IoT sensors, beginning with NPK and soil-moisture measurements.
-3. **Diagnose:** Analyse crop images and field conditions to identify disease, stress, and likely contributing factors.
-4. **Advise:** Provide practical English/Kiswahili recommendations through AgriBot, informed by crop, sensor, weather, and scan history.
-5. **Act and transact:** Show accurate latest market prices (KAMIS) for crops farmers want to sell, connect them to trusted input suppliers, and support low-cost payments through M-Pesa. The platform does **not** match farmers to produce buyers.
-6. **Build a farm record:** Maintain a consent-based digital farm profile and Farm Health Score for farmer support and responsible financial services.
-
-The web platform is deployed on a Contabo VPS and accessible at **[ukulimabora.co.ke](https://ukulimabora.co.ke)**. SMS and USSD access, production payment completion, crop-recommendation integration, SEO, and the IoT layer are the next implementation priorities.
+Ukulima Bora is a mobile-first digital agricultural platform designed to seamlessly unite the entire smallholder farming cycle into a single ecosystem:
+1. *Plan*: Deliver tailored crop recommendations by matching regional climate histories with specific soil parameters, including nitrogen (N), phosphorus (P), potassium (K), pH, temperature, and localized rainfall metrics.
+2. *Monitor*: Deploy affordable, field-level Internet of Things (IoT) sensors to continuously track and log NPK levels and soil moisture content.
+3. *Diagnose*: Analyze crop leaf imagery and localized field conditions to accurately identify plant diseases, environmental stressors, and their underlying causes.
+4. *Advise*: Provide direct, practical, and highly responsive agronomic guidance in both English and Kiswahili through AgriBot—an intelligent agent informed by live sensor data, historical crop trends, weather alerts, and individual scan histories.
+5. *Act and Transact*: Provide transparent, live market price feeds via the Kenya Agricultural Market Information System (KAMIS) and connect farmers to verified local agrovets. Secure, low-cost financial transactions are handled natively via Safaricom M-Pesa. Note: The platform focuses strictly on input procurement and price transparency; it does not offer a business-to-business produce matchmaking marketplace.
+6. *Build a Farm Record*: Construct an immutable, consent-driven digital farm profile and a proprietary "Farm Health Score" to empower smallholders when applying for formal, responsible financial services.
+The production platform is securely hosted on a Contabo Virtual Private Server (VPS) and is publicly accessible at ukulimabora.co.ke. Upcoming structural updates focus heavily on deploying low-bandwidth channels (USSD and SMS), completing real-time payment automation, embedding the crop recommendation engines, executing a localized Search Engine Optimization (SEO) strategy, and scaling the IoT network layer.
 
 ## 4. Target Users and Customers
 
-### Primary users
 
-- Smallholder and semi-commercial farmers.
-- Farmer groups and cooperatives that need field-level monitoring and advice.
+Primary Users
 
-### Secondary users and customers
+• Smallholder & Semi-Commercial Farmers: Independent operators seeking to maximize land yield, reduce input waste, and protect plant health.
 
-- Agricultural extension officers and agronomists.
-- Agrovets and input suppliers.
-- Financial support bodies.
-- Research bodies.
-- Government 
+• Agricultural Cooperatives & Farmer Groups: Aggregated groups requiring macro-level field diagnostics, uniform agronomic advice, and coordinated group resource management.
+
+
+Secondary Users & Partners
+
+• Extension Officers & Agronomists: Professionals utilizing remote field telemetry to prioritize physical farm visits and optimize regional care.
+• Agrovets & Input Suppliers: Licensed local merchants looking to list verified seeds, fertilizers, and crop-protection inputs directly to nearby farming communities.
+• Financial Institutions & Lenders: Micro-finance bodies and banks seeking reliable alternative credit profiles (via the Farm Health Score) to de-risk agricultural lending.
+• Research Institutions & Government Bodies: Strategic entities leveraging aggregated, anonymous time-series agricultural data to track regional soil trends, climate resilience, and food security milestones.
 
 ## 5. Innovation and Uniqueness
 
-Ukulima Bora combines capabilities normally delivered by separate systems:
-
-- Soil- and climate-based crop recommendation.
-- IoT-supported field monitoring.
-- Image-based crop diagnosis.
-- Context-aware multilingual agronomic advice.
-- KAMIS market-price intelligence and agrovet inputs marketplace.
-- Mobile money, SMS, and USSD access.
-- Consent-based farm performance and health records.
-
-The integrated data loop is the key innovation: sensor readings and farmer observations improve diagnosis; diagnosis informs advice and input choices; repeated activity builds a longitudinal farm record for better future recommendations.
+The core value proposition of Ukulima Bora rests on its ability to unify disparate agricultural software utilities into a highly integrated, closed-loop data engine:
+    [ IoT Soil & Climate Data ] ──> [ EfficientNet Vision Diagnostics ]
+                ▲                                      │
+                │                                      ▼
+    [ Longitudinal Farm Record ] <── [ AgriBot Contextual Advice (EN/SW) ]
+This data-driven feedback loop directly drives the platform's intelligence:
+• Live sensor data and active farmer observations immediately sharpen the accuracy of the automated disease diagnosis.
+• Validated diagnoses alter the contextual prompts and safety parameters of the bilingual advisory bot.
+• Ongoing transaction records and healthy farming habits dynamically build a comprehensive longitudinal profile, yielding increasingly accurate seasonal recommendations over time.
 
 ## 6. Technology, Materials, and Methods
 
@@ -75,10 +73,11 @@ AI recommendations will be presented as decision support rather than guaranteed 
 
 Ukulima Bora is expected to:
 
-- Improve crop selection using soil and climate conditions.
-- Detect crop health problems earlier through images and field measurements.
-- Reduce inappropriate fertiliser, pesticide, and irrigation use.
-- Improve yields and resilience through timely, context-aware advice.
+- Improve crop production by:
+   a) Using correct and verified inputs
+   b) Detecting and giving what to do, on crop health
+   c) Real monitoring of the soil and the farm condition and suggesting what to do.
+   d) Improving crop selection of the farm
 - Expand access to market-price information, input suppliers, payments, and responsible finance.
 - Create useful farm records while keeping farmers in control of their data.
 
@@ -91,11 +90,13 @@ Ukulima Bora is expected to:
 
 ## 9. Team
 
-- **Job Nyaribari:** Founder, Product and AI/Technical Lead.
-- **Ziro:** Platform, integrations, DevOps, and data engineering.
+- **Job Nyaribari:** Founder and CEO.
+- **Emilio Kamau** AL and ML engineer lead
+- **Stephen Kingori:** Backend Engineer and DevOps.
+- **Brian Ziro:** Frontend Engineer and API intergrations.
 - **Lynn:** Agricultural operations, farmer success, content, and field validation.
-- **Stephen Kingori:** Crop Recommendation and Project Management Lead; owner of the existing crop recommendation system and its integration into Ukulima Bora.
+- **Kinyanjui Wilson** Product manager and Data Engineering.
 
 ## 10. Conclusion
 
-Ukulima Bora is evolving from an AI crop-diagnosis application into a universal digital agricultural system. By combining crop planning, IoT field monitoring, diagnosis, advice, market prices, input access, payments, and consent-based farm records, it can support farmers from pre-planting decisions through production and sale.
+Ukulima Bora represents a major evolutionary leap forward, changing from a helpful crop disease identification application into an all-in-one digital operating system for smallholder agriculture. By cleanly uniting predictive crop planning, live IoT soil telemetry, instant computer-vision diagnostics, localized bilingual chat support, transparent market pricing, and consent-guaranteed alternative credit profiling, the platform fundamentally changes how smallholders manage their land. Ukulima Bora provides farmers with clear, uncompressed, data-driven clarity at every step of the season from the very first seed planted to the final harvest sale.
